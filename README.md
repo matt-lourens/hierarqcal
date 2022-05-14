@@ -1,2 +1,3 @@
-# dynamic-qcnn
-Tool to generate quantum-cnn models programmatically
+# Dynamic Quantum Convolutional Neural Networks
+
+a Tool to generate quantum-cnn models programmatically
