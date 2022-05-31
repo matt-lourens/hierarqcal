@@ -1,5 +1,11 @@
-# TODO These might not be neccesary
+# Dev environment
+# build
 pip==22.1.1
 setuptools==62.3.2
 build==0.8.0
+
+# formatting
 black==22.3.0
+
+# running code
+ipykernel==6.13.0
