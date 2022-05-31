@@ -149,7 +149,7 @@ def get_qcnn_graphs(n_wires, c_step, pool_pattern, p_step=0):
 
     graphs = {}
     layer = 1
-    Qc_l = [i + 1 for i in range(n_wires)]
+    Qc_l = [i + 1 for i in range(n_wires)] # We label the nodes from 1 to n
     Qp_l = Qc_l.copy()
     while len(Qc_l) > 1:
 
