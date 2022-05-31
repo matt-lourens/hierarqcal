@@ -1,1 +1,4 @@
-
+# TODO These might not be neccesary
+pip==22.1.1
+setuptools==62.3.2
+build==0.8.0
