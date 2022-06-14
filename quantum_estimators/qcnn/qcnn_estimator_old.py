@@ -1,8 +1,28 @@
-# base
 import time
+import multiprocessing
+from functools import partial
 import numpy as np
+import autograd.numpy as anp
+from joblib import delayed, Parallel, wrap_non_picklable_objects
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.utils.validation import check_array, check_is_fitted, check_X_y
+from sklearn.utils.multiclass import type_of_target
+import pennylane as qml
+
+# import qiskit
+# from qiskit import IBMQ, Aer
+# from qiskit.providers.aer.noise import NoiseModel
+# from qiskit.providers.aer.noise import depolarizing_error
+from data_handler import save_json
+
+# from pennylane_cirq import ops
+import torch
+from torch import nn
+
+# from qiskit.providers.aer.noise.device import basic_device_noise_model
+from embedding import apply_encoding
+import circuit_presets
+from circuit_presets import CIRCUIT_OPTIONS, POOLING_OPTIONS, get_qcnn_graphs
 
 
 class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
@@ -15,7 +35,6 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
 
     def __init__(
         self,
-        Quantum_class,
         n_iter=25,
         learning_rate=0.01,
         batch_size=25,
@@ -26,7 +45,6 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         s_p=0,
         seed=1,
     ):
-        self.Quantum_class = Quantum_class
         self.n_iter = n_iter
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -35,7 +53,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         self.s_c = s_c
         self.pool_filter = pool_filter
         self.s_p = s_p
-        self.seed = seed        
+        self.seed = seed
 
     def _more_tags(self):
         return {
@@ -241,107 +259,77 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         Args:
             layer_defintion (dict(list(str/int)) or tuple(str,str)): TODO
         """
+        if type(layer_defintion) == type(dict()):
+            layer_dict = {}
+            for layer_name, layer_params in layer_defintion.items():
+                layer_order = layer_params[0]
+                layer_fn_name = layer_params[1]
+                circ_name = layer_params[2]
+                wire_pattern = layer_params[3]
+                layer_fn = getattr(circuit_presets, layer_fn_name, None)
+                if not (wire_pattern == None):
+                    # If wire pattern is specified then ignore layerfn
+                    layer_fn = None
+                circuit_fn = getattr(circuit_presets, circ_name)
+                # TODO document this assumption
+                layer_type, param_count = (
+                    ("convolutional", CIRCUIT_OPTIONS[circ_name])
+                    if layer_name[0].upper() == "C"
+                    else ("pooling", POOLING_OPTIONS[circ_name])
+                )
 
-        # Paramaterized
-        # TODO maybe named tuple is better here
-        circ_name = layer_defintion[0]
-        pool_name = layer_defintion[1]
-        qcnn_graphs = self._get_qcnn_graphs(self.n_wires, self.s_c, self.pool_filter, self.s_p)
+                layer_dict[layer_name] = Layer(
+                    layer_fn,
+                    circuit_fn,
+                    layer_type,
+                    param_count,
+                    layer_order,
+                    wire_pattern,
+                )
+            return layer_dict.copy()
+        elif type(layer_defintion) == type(tuple()) and len(layer_defintion) == 3:
+            """
+            The following is the default structure, it can be manually constructed as follows:
+            layer_dict = {
+                    "c_1": Layer(c_1, getattr(circuit_presets, circ_name), "convolutional", circ_param_count, 0,),
+                    "p_1": Layer(p_1, getattr(circuit_presets, pool_name),"pooling",pool_param_count,1,),
+                    "c_2": Layer(c_2, getattr(circuit_presets, circ_name),"convolutional",circ_param_count,2,),
+                    "p_2": Layer(p_2, getattr(circuit_presets, pool_name),"pooling",pool_param_count,3,),
+                    "c_3": Layer(c_3, getattr(circuit_presets, circ_name),"convolutional",circ_param_count,4,),
+                    "p_3": Layer(p_3, getattr(circuit_presets, pool_name),"pooling",pool_param_count,5,),
+                }
+            """
+            # TODO maybe named tuple is better here
+            circ_name = layer_defintion[0]
+            pool_name = layer_defintion[1]
+            wire_pattern_args = layer_defintion[2]
+            wire_combos = get_qcnn_graphs(**wire_pattern_args)
 
-        layer_dict = {}
-        layer_index = 0
-        for layer, graph in qcnn_graphs.items():            
-            layer_type, prefix, param_count, circuit_fn_name = (
-                ("convolutional", "c", CIRCUIT_OPTIONS[circ_name], circ_name)
-                if layer_name[0].upper() == "C"
-                else ("pooling", "p", POOLING_OPTIONS[pool_name], pool_name)
+            layer_dict = {}
+            layer_index = 0
+            for layer_name, wire_combo in wire_combos.items():
+                layer_order = layer_index
+                layer_type, prefix, param_count, circuit_fn_name = (
+                    ("convolutional", "c", CIRCUIT_OPTIONS[circ_name], circ_name)
+                    if layer_name[0].upper() == "C"
+                    else ("pooling", "p", POOLING_OPTIONS[pool_name], pool_name)
+                )
+                # layer_fn_name = f"{prefix}_{int(np.ceil((layer_index+1)/2))}"
+                # If wire pattern is empty then use default layer functions
+                layer_dict[layer_name] = Layer(
+                    None,
+                    getattr(circuit_presets, circuit_fn_name),
+                    layer_type,
+                    param_count,
+                    layer_order,
+                    wire_combo,
+                )
+                layer_index = layer_index + 1
+            return layer_dict.copy()
+        else:
+            raise NotImplementedError(
+                f"There is no implementation that supports the provided layer defintion"
             )
-            # layer_fn_name = f"{prefix}_{int(np.ceil((layer_index+1)/2))}"
-            # If wire pattern is empty then use default layer functions
-            layer_dict[layer_name] = Layer(
-                None,
-                getattr(self.Quantum_class, circuit_fn_name),
-                layer_type,
-                param_count,
-                layer_order,
-                wire_combo,
-            )
-            layer_index = layer_index + 1
-        return layer_dict.copy()
-
-    def _get_qcnn_graphs(n_wires, s_c, pool_filter, s_p=0):
-        """ """
-        if type(pool_filter) is str:
-            # Mapping words to the filter type
-            if pool_filter == "left":
-                # 0 1 2 3 4 5 6 7
-                # x x x x
-                pool_filter = lambda arr: arr[0 : len(arr) // 2 : 1]
-            elif pool_filter == "right":
-                # 0 1 2 3 4 5 6 7
-                #         x x x x
-                pool_filter = lambda arr: arr[len(arr) : len(arr) // 2 - 1 : -1]
-            elif pool_filter == "eo_even":
-                # 0 1 2 3 4 5 6 7
-                # x   x   x   x
-                pool_filter = lambda arr: arr[0::2]
-            elif pool_filter == "eo_odd":
-                # 0 1 2 3 4 5 6 7
-                #   x   x   x   x
-                pool_filter = lambda arr: arr[1::2]
-            elif pool_filter == "inside":
-                # 0 1 2 3 4 5 6 7
-                #     x x x x
-                pool_filter = lambda arr: arr[
-                    len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1
-                ]  # inside
-            elif pool_filter == "outside":
-                # 0 1 2 3 4 5 6 7
-                # x x         x x
-                pool_filter = lambda arr: [
-                    item
-                    for item in arr
-                    if not (
-                        item
-                        in arr[
-                            len(arr) // 2
-                            - len(arr) // 4 : len(arr) // 2
-                            + len(arr) // 4 : 1
-                        ]
-                    )
-                ]  # outside
-
-        graphs = {}
-        layer = 1
-        Qc_l = [i + 1 for i in range(n_wires)]  # We label the nodes from 1 to n
-        Qp_l = Qc_l.copy()
-        while len(Qc_l) > 1:
-
-            nq_avaiable = len(Qc_l)
-            mod_nq = lambda x: x % nq_avaiable
-            Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + s_c)]) for i in range(nq_avaiable)]
-            if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
-                # TODO improve this, the issue is (1,2) and (2,1) with this logic, there might be a better
-                # TODO way to traverse the graph in a general way
-                Ec_l = [Ec_l[0]]
-            measured_q = pool_filter(Qc_l)
-            remaining_q = [q for q in Qc_l if not (q in measured_q)]
-            Ep_l = [
-                (measured_q[i], remaining_q[(i + s_p) % len(remaining_q)])
-                for i in range(len(measured_q))
-            ]
-            # Convolution graph
-            C_l = (Qc_l, Ec_l)
-            # Pooling graph
-            P_l = (Qp_l, Ep_l)
-            # Graph for layer
-            G_l = (C_l, P_l)
-            graphs[layer] = G_l
-            # set avaiable qubits for next layer
-            layer = layer + 1
-            Qc_l = [j for (i, j) in Ep_l]
-            Qp_l = Qc_l.copy()
-        return graphs
 
     def _sort_layer_dict_by_order(self):
         """
@@ -355,18 +343,36 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         }
 
     def _evaluate(self):
-        for layer, graph in self.graphs():
+        i = 0
+        n = -1  # -1 means don't limit fn executions
         for layer_name, layer in self.layer_dict_.items():
-            if layer.layer_fn == None:
-                for wire_con in layer.wire_pattern:
-                    layer.circuit(
-                        self.coef_[self.coef_indices_[layer_name]], wire_con
+            if (n == -1) or (i < n):
+                if layer.layer_fn == None:
+                    for wire_con in layer.wire_pattern:
+                        layer.circuit(
+                            self.coef_[self.coef_indices_[layer_name]], wire_con
+                        )
+
+                else:
+                    layer.layer_fn(
+                        layer.circuit, self.coef_[self.coef_indices_[layer_name]]
                     )
-            else:
-                layer.layer_fn(
-                    layer.circuit, self.coef_[self.coef_indices_[layer_name]]
-                )
-        
+                # If modelling noise is required
+                if self.noise:
+                    # if layers are defined through wire combos function rather than custom structure
+                    if (
+                        type(self.layer_defintion) == type(tuple())
+                        and len(self.layer_defintion) == 3
+                    ):
+                        # then the number of wires is contained in the layer definition
+                        n_wires = self.layer_defintion[2]["n_wires"]
+                    else:
+                        # else assume 8 Qbits for now
+                        n_wires = 8
+                    for q in range(n_wires):
+                        qml.DepolarizingChannel(self.noise, wires=q)
+                        # qml.Depolarize(self.noise, wires=q)
+            i = i + 1
 
     def _get_coef_information(self):
         total_coef_count = 0
@@ -395,3 +401,51 @@ class Layer:
         self.param_count = param_count
         self.layer_order = layer_order
         self.wire_pattern = wire_pattern
+
+
+# TODO difference between mixed and qubit for noise modelling?
+# DEVICE = qml.device("default.qubit", wires=8)
+# DEVICE = qml.device('qulacs.simulator', wires=8)
+DEVICE = qml.device("default.qubit", wires=8)
+# provider = IBMQ.load_account()
+
+
+@qml.qnode(DEVICE, interface="torch")
+def quantum_node(X, classifier):
+    if getattr(classifier, "numpy", False):
+        # If classifier needs to be deserialized
+        classifier = classifier.numpy()
+    if classifier.encoding_type:
+        # If encoding is specified, otherwise don't encode
+        apply_encoding(
+            X,
+            encoding_type=classifier.encoding_type,
+            encoding_kwargs=classifier.encoding_kwargs,
+        )
+    classifier._evaluate()
+    if classifier.cost == "mse":
+        result = qml.expval(qml.PauliZ(classifier.response_wire_))
+    elif classifier.cost == "cross_entropy":
+        result = qml.probs(wires=classifier.response_wire_)
+    return result
+
+
+def square_loss(labels, predictions):
+    loss = 0
+    for l, p in zip(labels, predictions):
+        loss = loss + (l - p) ** 2
+
+    loss = loss / len(labels)
+    return loss
+
+
+def cross_entropy(labels, predictions):
+    # from sklearn.metrics import log_loss
+    # log_loss(labels, [p._value for p in predictions])
+    # TODO use pos_class implement ovr and then ensure labels is in a standardized format
+    loss = 0
+    for l, p in zip(labels, predictions):
+        c_entropy = l * (anp.log(p[1])) + (1 - l) * anp.log(1 - p[1 - l])
+        loss = loss + c_entropy
+
+    return -1 * loss
