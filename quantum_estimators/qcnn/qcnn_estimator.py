@@ -1,4 +1,5 @@
 # base
+import importlib
 import time
 import numpy as np
 from sklearn.base import BaseEstimator, ClassifierMixin
@@ -15,7 +16,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
 
     def __init__(
         self,
-        Quantum_class,
+        quantum_fn_mapping,
         n_iter=25,
         learning_rate=0.01,
         batch_size=25,
@@ -26,7 +27,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         s_p=0,
         seed=1,
     ):
-        self.Quantum_class = Quantum_class
+        self.quantum_fn_mapping = quantum_fn_mapping
         self.n_iter = n_iter
         self.learning_rate = learning_rate
         self.batch_size = batch_size
@@ -35,7 +36,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         self.s_c = s_c
         self.pool_filter = pool_filter
         self.s_p = s_p
-        self.seed = seed        
+        self.seed = seed
 
     def _more_tags(self):
         return {
@@ -65,8 +66,8 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         # Get coefficient information
         self.coef_count_, self.coef_indices_ = self._get_coef_information()
         # Initialize Coefficients
-        if self.seed:
-            torch.manual_seed(self.seed)
+        # if self.seed:
+        #     torch.manual_seed(self.seed) TODO way to set seed
         coefficients = torch.rand(self.coef_count_, requires_grad=True)
         tmp_layer_info = [
             (layer_name, layer.layer_order)
@@ -234,39 +235,45 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
 
         return score
 
-    def _construct_layer_dict(self, layer_defintion):
+    def _construct_layer_dict(self):
         """Constructs layer dictionary from config (containing list(str/int)) or the standard layer structure using the same
         circuit in each layer for pooling and convolution
 
-        Args:
+        Args:self, unit_fn, param_count, wire_pattern, block_order, predefined_structure=None
             layer_defintion (dict(list(str/int)) or tuple(str,str)): TODO
         """
 
-        # Paramaterized
-        # TODO maybe named tuple is better here
-        circ_name = layer_defintion[0]
-        pool_name = layer_defintion[1]
-        qcnn_graphs = self._get_qcnn_graphs(self.n_wires, self.s_c, self.pool_filter, self.s_p)
-
+        self.quantum_module_ = importlib.import_module(
+            self.quantum_fn_mapping["module_import_name"]
+        )
+        self.qcnn_graphs_ = self._get_qcnn_graphs(
+            self.n_wires, self.s_c, self.pool_filter, self.s_p
+        )
         layer_dict = {}
-        layer_index = 0
-        for layer, graph in qcnn_graphs.items():            
-            layer_type, prefix, param_count, circuit_fn_name = (
-                ("convolutional", "c", CIRCUIT_OPTIONS[circ_name], circ_name)
-                if layer_name[0].upper() == "C"
-                else ("pooling", "p", POOLING_OPTIONS[pool_name], pool_name)
-            )
+        for layer, graph in self.qcnn_graphs.items():
+            # Notational scheme is layer -> C graph --> Qc,Ec, P Graph --> Qp,Ep
+            E_cl = graph[layer][0][1]
+            E_pl = graph[layer][1][1]
+            (
+                (convolution_circuit, c_param_count),
+                (pooling_circuit, p_parm_count),
+            ) = self.quantum_fn_mapping["layer_fn_mapping"].get(
+                layer, 1
+            )  # default to layer 1 if specific layer is not defined TODO mention in docs that atleast layer 1 is required
+
             # layer_fn_name = f"{prefix}_{int(np.ceil((layer_index+1)/2))}"
-            # If wire pattern is empty then use default layer functions
-            layer_dict[layer_name] = Layer(
-                None,
-                getattr(self.Quantum_class, circuit_fn_name),
-                layer_type,
-                param_count,
-                layer_order,
-                wire_combo,
+            layer_dict[f"c_{layer}"] = Block(
+                getattr(self.quantum_module_, convolution_circuit),
+                c_param_count,
+                E_cl,
+                2 * layer - 1,
             )
-            layer_index = layer_index + 1
+            layer_dict[f"c_{layer}"] = Block(
+                getattr(self.quantum_module_, pooling_circuit),
+                p_parm_count,
+                E_pl,
+                2 * layer,
+            )
         return layer_dict.copy()
 
     def _get_qcnn_graphs(n_wires, s_c, pool_filter, s_p=0):
@@ -350,48 +357,43 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         self.layer_dict_ = {
             layer_name: layer
             for layer_name, layer in sorted(
-                self.layer_dict_.items(), key=lambda x: x[1].layer_order
+                self.layer_dict_.items(), key=lambda x: x[1].block_order
             )
         }
 
     def _evaluate(self):
-        for layer, graph in self.graphs():
-        for layer_name, layer in self.layer_dict_.items():
-            if layer.layer_fn == None:
-                for wire_con in layer.wire_pattern:
-                    layer.circuit(
-                        self.coef_[self.coef_indices_[layer_name]], wire_con
-                    )
+        for block_name, block in self.layer_dict_.items():
+            if block.predefined_structure == None:
+                for wire_con in block.wire_pattern:
+                    block.unit_fn(self.coef_[self.coef_indices_[block_name]], wire_con)
             else:
-                layer.layer_fn(
-                    layer.circuit, self.coef_[self.coef_indices_[layer_name]]
+                block.predefined_structure(
+                    block.unit_fn, self.coef_[self.coef_indices_[block_name]]
                 )
-        
 
     def _get_coef_information(self):
         total_coef_count = 0
         coef_indices = {}
         # Determine paramater indices per layer
-        for layer_name, layer in self.layer_dict_.items():
+        for layer_name, block in self.layer_dict_.items():
             coef_indices[layer_name] = range(
-                total_coef_count, total_coef_count + layer.param_count
+                total_coef_count, total_coef_count + block.param_count
             )
-            total_coef_count += layer.param_count
+            total_coef_count += block.param_count
         return total_coef_count, coef_indices.copy()
 
 
-class Layer:
+class Block:
     """
-    A generic layer consisting of some combination of variational circuits.
+    A generic circuit block consisting of some combination of variational circuits.
     Order doesn't have to be from 0, all layers get sorted purely by order value
     """
 
     def __init__(
-        self, layer_fn, circuit, layer_type, param_count, layer_order, wire_pattern
+        self, unit_fn, param_count, wire_pattern, block_order, predefined_structure=None
     ):
-        self.layer_fn = layer_fn
-        self.circuit = circuit
-        self.layer_type = layer_type
+        self.unit_fn = unit_fn
         self.param_count = param_count
-        self.layer_order = layer_order
         self.wire_pattern = wire_pattern
+        self.block_order = block_order
+        self.predefined_structure = predefined_structure
