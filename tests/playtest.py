@@ -3,57 +3,6 @@
 from quantum_estimators.qcnn import Qcnn_Classifier
 
 # %% Quantum - Pennylane
-import pennylane as qml
-from pennylane.templates.embeddings import AngleEmbedding
-
-
-class Quantum_Pennylane:
-    def Quantum_Pennylane(
-        self,
-        n_wires=8,
-        device="default.qubit",
-        interface="torch",
-        layer_fn_mapping={1: ("U", "V")},
-    ):
-        self.n_wires = n_wires
-        self.device = qml.device(device, wires=self.n_wires)
-        self.interface = interface
-        self.layer_fn_mapping = layer_fn_mapping
-
-    def execute(self):
-        return qml.QNode(self.subroutine, self.device)
-
-    def subroutine(X, classifier):
-        if getattr(classifier, "numpy", False):
-            # If classifier needs to be deserialized
-            classifier = classifier.numpy()
-        # Encode data
-        n_wires = X.shape[0]
-        AngleEmbedding(X, wires=range(n_wires), rotation="Y")
-        # Evaluate circuit
-        classifier._evaluate()
-        # Obtain probability
-        result = qml.probs(wires=classifier.response_wire_)
-
-        return result
-
-    def U(params, wires):
-        qml.RX(params[0], wires=wires[0])
-        qml.RX(params[1], wires=wires[1])
-        qml.RZ(params[2], wires=wires[0])
-        qml.RZ(params[3], wires=wires[1])
-        qml.CRZ(params[4], wires=[wires[1], wires[0]])
-        qml.CRZ(params[5], wires=[wires[0], wires[1]])
-        qml.RX(params[6], wires=wires[0])
-        qml.RX(params[7], wires=wires[1])
-        qml.RZ(params[8], wires=wires[0])
-        qml.RZ(params[9], wires=wires[1])
-
-    def V(params, wires):
-        qml.CRZ(params[0], wires=[wires[0], wires[1]])
-        qml.PauliX(wires=wires[0])
-        qml.CRX(params[1], wires=[wires[0], wires[1]])
-
 
 # %% Data
 import numpy as np
@@ -118,9 +67,13 @@ pipeline = Pipeline(steps_list)
 
 
 # %% Model
+quantum_fn_mapping = {
+    "module_import_name": "quantum_pennylane",  # my_code.some_feature.quantum_cicuit
+    "layer_fn_mapping": {1: (("U", 10), ("V", 2))},
+}
 n_wires = X.shape
 model = Qcnn_Classifier(
-    Quantum_class=Quantum_Pennylane,
+    quantum_mapping=quantum_fn_mapping,
     n_iter=50,
     batch_size=50,
     learning_rate=0.01,
