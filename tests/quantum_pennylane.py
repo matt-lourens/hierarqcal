@@ -2,12 +2,10 @@
 import pennylane as qml
 from pennylane.templates.embeddings import AngleEmbedding
 
+DEVICE = qml.device("default.qubit", wires=8)
 
-def circuit_execute(device_kwargs, qnode_kwargs):
-    device = qml.device(**device_kwargs)
-    qml.QNode(circuit, device, **qnode_kwargs)
-    
-def circuit(X, classifier):
+@qml.qnode(DEVICE, interface="torch") 
+def quantum_node(X, classifier):
     if getattr(classifier, "numpy", False):
         # If classifier needs to be deserialized
         classifier = classifier.numpy()

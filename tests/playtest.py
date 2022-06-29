@@ -68,7 +68,8 @@ pipeline = Pipeline(steps_list)
 
 # %% Model
 quantum_fn_mapping = {
-    "module_import_name": "quantum_pennylane",  # my_code.some_feature.quantum_cicuit
+    "module_import_name": "quantum_pennylane",  # my_code.some_feature.quantum
+    "quantum_execution:":"quantum_node",
     "layer_fn_mapping": {1: (("U", 10), ("V", 2))},
 }
 n_wires = X.shape
@@ -106,3 +107,18 @@ clf.fit(X, y)
 y_pred = clf.predict(X_test)
 
 ovo_lr = OnveVsOneClassifier(LogisticRegression(penalty="l1"))
+
+# %%
+import pennylane as qml
+dev = qml.device("default.qubit", wires=1)
+@qml.qnode(dev)
+def circuit(x):
+    qml.RX(x, wires=0)
+    return qml.expval(qml.PauliZ(0))
+# %%
+def circuit(x):
+    qml.RX(x, wires=0)
+    return qml.expval(qml.PauliZ(0))
+dev = qml.device("default.qubit", wires=1)
+qnode = qml.QNode(circuit, dev)
+# %%

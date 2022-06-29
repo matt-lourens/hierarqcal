@@ -59,8 +59,14 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         """
         X, y = check_X_y(X, y, ensure_2d=False)
 
-        # Construct Quantum Convolutional structure
-        self.layer_dict_ = self._construct_layer_dict(self.layer_defintion)
+        # - Quantum setup -
+        self.quantum_module_ = importlib.import_module(
+            self.quantum_fn_mapping["module_import_name"]
+        )
+        # Get quantum execution function
+        self.quantum_node_ = getattr(self.quantum_module_, "quantum_execution")
+        # Construct QCNN structure
+        self.layer_dict_ = self._construct_layer_dict()
         # Sort the layers according to the order provided
         self._sort_layer_dict_by_order()
         # Get coefficient information
@@ -193,7 +199,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
 
     def predict_proba(self, X, require_tensor=False):
         if require_tensor:
-            y_hat = [quantum_node(x, self) for x in X]
+            y_hat = [self.quantum_node_(x, self) for x in X]
             y_hat = torch.stack(y_hat)
             # parallel
             # pool = multiprocessing.Pool()
@@ -202,7 +208,7 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
             #     delayed(partial(quantum_node, classifier=self))(x) for x in X
             # )
         else:
-            y_hat = np.array([quantum_node(x, self).numpy() for x in X])
+            y_hat = np.array([quantum_node_(x, self).numpy() for x in X])
             # pool = multiprocessing.Pool()
             # y_hat = pool.map(quantum_node, [{"x": x, "classifier": self} for x in X])
         return y_hat
@@ -242,10 +248,6 @@ class Qcnn_Classifier(BaseEstimator, ClassifierMixin):
         Args:self, unit_fn, param_count, wire_pattern, block_order, predefined_structure=None
             layer_defintion (dict(list(str/int)) or tuple(str,str)): TODO
         """
-
-        self.quantum_module_ = importlib.import_module(
-            self.quantum_fn_mapping["module_import_name"]
-        )
         self.qcnn_graphs_ = self._get_qcnn_graphs(
             self.n_wires, self.s_c, self.pool_filter, self.s_p
         )
