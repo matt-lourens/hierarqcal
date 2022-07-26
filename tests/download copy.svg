@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  </head>
+  <body>
+    <text>\( \xi \) works.</text>
+    <div></div>
+    <svg width="300" height="50">
+      <foreignObject x="0" y="20" width="300" height="50">
+        <div xmlns="http://www.w3.org/1999/xhtml">
+        And \( \pi \) does too!
+        </div>
+      </foreignObject>
+    </svg>
+  </body>
+</html>

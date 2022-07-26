@@ -1,0 +1,6 @@
+\Qcircuit @R=.3em @C=0.3em {
+ \\
+ &\lstick{\text{1}}& \qw&\control \qw    &\qw\\
+ &\lstick{\text{2}}& \qw&\targ    \qw\qwx&\qw\\
+ \\
+}
