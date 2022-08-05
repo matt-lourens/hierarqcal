@@ -81,16 +81,14 @@ samples_tfd = Samples(
 )
 
 
-
-
-
-
 # %%
 import quantum_cirq_3
 import importlib
 
 importlib.reload(quantum_cirq_3)
 from quantum_cirq_3 import Qcnn_Classifier
+from quantum_estimators.cirq_qcnn import Qcnn
+
 
 def qubit_encoding(x):
     circuit = cirq.Circuit()
@@ -104,6 +102,8 @@ def qubit_encoding(x):
 def U(bits, symbols=None):
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    circuit += cirq.H(q0)
+    circuit += cirq.H(q1)
     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
     circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
     return circuit
@@ -115,8 +115,9 @@ def V(bits, symbols=None):
     circuit += cirq.CNOT(q0, q1)
     return circuit
 
+
 x_train_circ = tfq.convert_to_tensor([qubit_encoding(x) for x in samples_tfd.X_train])
-x_test_circ =  tfq.convert_to_tensor([qubit_encoding(x) for x in samples_tfd.X_test])
+x_test_circ = tfq.convert_to_tensor([qubit_encoding(x) for x in samples_tfd.X_test])
 
 samples_circ = Samples(
     x_train_circ, samples_tfd.y_train, x_test_circ, samples_tfd.y_test
@@ -128,22 +129,62 @@ original_inputs = tf.keras.Input(
 
 # This is needed because of Note here:
 # https://www.tensorflow.org/quantum/api_docs/python/tfq/layers/Expectation
-input_circuits = tf.keras.Input(shape=(), dtype=tf.dtypes.string)
-# encoding_layer = tfq.layers.AddCircuit()(input_circuits, prepend=samples_circ.X_train)
-qcnn_circuit = Qcnn_Classifier(
-    convolution_mapping={1: (U, 2)}, pooling_mapping={1: (V, 0)}
-)(input_circuits)
-model = tf.keras.Model(inputs=[input_circuits], outputs=[qcnn_circuit])
+# input_circuits = tf.keras.Input(shape=(), dtype=tf.dtypes.string)
+# # encoding_layer = tfq.layers.AddCircuit()(input_circuits, prepend=samples_circ.X_train)
+# qcnn_circuit = Qcnn_Classifier(
+#     convolution_mapping={1: (U, 2)}, pooling_mapping={1: (V, 0)}
+# )(input_circuits)
+# model = tf.keras.Model(inputs=[input_circuits], outputs=[qcnn_circuit])
 # quantum_execution = tfq.layers.PQC()()
 # circuit = qcnn_1(samples_tfd.X_train)
 # circuit
+# Build the Keras model.
+import itertools as it
 
-
-# %%
-model.compile(optimizer='Adam', loss='binary_crossentropy')
-model.fit(x=samples_circ.X_train,
-          y=samples_circ.y_train,
-          epochs=10)
+results = []
+# for s_c, s_p, pool_filter in it.product(
+#     [1, 3, 5, 7],
+#     [0, 1, 2, 3],
+#     ["right", "left", "even", "odd", "inside", "outside"],
+# ):
+# qcnn_1 = Qcnn_Classifier(
+#     n_q=8,
+#     s_c=s_c,
+#     s_p=s_p,
+#     pool_filter=pool_filter,
+#     convolution_mapping={1: (U, 1)},
+#     pooling_mapping={1: (V, 0)},
+# )
+s_c = 1
+s_p = 3
+pool_filter = "odd"
+model = tf.keras.Sequential(
+    [
+        # The PQC layer returns the expected value of the readout gate, range [-1,1].
+        Qcnn(
+            n_q=8,
+            s_c=s_c,
+            s_p=s_p,
+            pool_filter=pool_filter,
+            convolution_mapping={1: (U, 2)},
+            pooling_mapping={1: (V, 0)},
+        )
+    ]
+)
+model.compile(
+    optimizer="Adam",
+    loss="binary_crossentropy",
+    metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5)],
+)
+# model.run_eagerly = True
+model.fit(x=samples_circ.X_train, y=samples_circ.y_train, epochs=1000)
 # %%
 model.summary()
-print(model.trainable_variables)
+# print(model.trainable_variables)
+
+qcnn_results = model.evaluate(samples_circ.X_test, samples_circ.y_test)
+print(qcnn_results)
+results.append([f"{s_c}_{s_p}_{pool_filter}", qcnn_results])
+
+
+# y_hat_p = tf.divide(tf.add(y_hat_e,1),2)
