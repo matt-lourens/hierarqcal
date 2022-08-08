@@ -157,7 +157,7 @@ results = []
 # )
 s_c = 1
 s_p = 3
-pool_filter = "odd"
+pool_filter = "right"
 model = tf.keras.Sequential(
     [
         # The PQC layer returns the expected value of the readout gate, range [-1,1].
@@ -166,9 +166,11 @@ model = tf.keras.Sequential(
             s_c=s_c,
             s_p=s_p,
             pool_filter=pool_filter,
-            convolution_mapping={1: (U, 2)},
-            pooling_mapping={1: (V, 0)},
-        )
+            # convolution_mapping={1: (U, 2)},
+            # pooling_mapping={1: (V, 0)},
+        ),
+        # Scale expectation values between 0 and 1
+        tf.keras.layers.Rescaling(1.0 / 2, offset=.5),
     ]
 )
 model.compile(
@@ -177,13 +179,14 @@ model.compile(
     metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5)],
 )
 # model.run_eagerly = True
-model.fit(x=samples_circ.X_train, y=samples_circ.y_train, epochs=1000)
+model.fit(x=samples_circ.X_train, y=samples_circ.y_train, epochs=100)
 # %%
 model.summary()
 # print(model.trainable_variables)
 
 qcnn_results = model.evaluate(samples_circ.X_test, samples_circ.y_test)
 print(qcnn_results)
+print(samples_filtered.X_train.columns[pipeline.steps[1][1].get_support()])
 results.append([f"{s_c}_{s_p}_{pool_filter}", qcnn_results])
 
 
