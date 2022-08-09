@@ -43,10 +43,9 @@ class Qcnn(keras.layers.Layer):
         self.ops_gate = ops_gate
         self.theta_init_seed = theta_init_seed
         self.theta_range = theta_range
-        # Start with no variational paramaters (gets updated based on hyperparamaters and chosen circuits)
         self.architecture_strategy = architecture_strategy
         if self.architecture_strategy == "binary_tree_r":
-            self.qcnn_graphs_ = self._get_binary_tree_r_graphs()
+            self.graphs = self._get_binary_tree_r_graphs()
         else:
             raise NotImplementedError(
                 f"Architecture strategy {self.architecture_strategy} is not yet implemented"
@@ -77,8 +76,8 @@ class Qcnn(keras.layers.Layer):
         circuit = cirq.Circuit()
         total_coef_count = 0
         symbols = ()
-        final_layer = max(self.qcnn_graphs_.keys())
-        for layer, graph in self.qcnn_graphs_.items():
+        final_layer = max(self.graphs.keys())
+        for layer, graph in self.graphs.items():
             # Notational scheme is layer -> C graph --> Qc,Ec, P Graph --> Qp,Ep
             E_cl = graph[0][1]
             E_pl = graph[1][1]
@@ -203,7 +202,7 @@ class Qcnn(keras.layers.Layer):
         return graphs
 
 
-# Default circuit blocks
+# Default pooling circuit
 def V(bits, symbols=None):
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
@@ -212,7 +211,7 @@ def V(bits, symbols=None):
     circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
     return circuit
 
-
+# Default convolution circuit
 def U(bits, symbols=None):
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])

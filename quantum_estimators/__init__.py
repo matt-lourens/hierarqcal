@@ -1,4 +1,4 @@
-from .cirq_qcnn import Qcnn
+from .cirq_qcnn import Qcnn as Qcnn_cirq
 __all__ = [
-    "Qcnn",
+    "Qcnn_cirq",
 ]
