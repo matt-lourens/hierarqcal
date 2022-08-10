@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{qcircuit}
+\usepackage{graphics}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\usepackage{bm}
+\geometry{
+    a4paper,
+    left=10mm}
+\begin{document}
+\begin{figure*}[t]
+    \begin{subfigure}[h]{\linewidth}
+        \Huge
+        \makebox[\linewidth]{
+            \Qcircuit @R=.8em @C=0.3em {
+                \\
+                &\lstick{\bm{i}}& \qw&\control                \qw    &\qw\\
+                &\lstick{\bm{j}}& \qw&\gate{\bm{R_z^{\theta}}} \qw\qwx&\qw\\
+                \\
+               }
+        }
+    \end{subfigure}
+    \newline\newline
+    \begin{subfigure}[h]{\linewidth}
+        \Huge
+        \makebox[\linewidth]{
+            % \text{1-0-left}\newline
+            \Qcircuit @R=.8em @C=0.3em {
+                \\
+                &\lstick{\bm{i}}& \qw&\control \qw    &\qw\\
+                &\lstick{\bm{j}}& \qw&\targ    \qw\qwx&\qw\\
+                \\
+               }
+        }
+    \end{subfigure}
+    \end{figure*}
+\end{document}
