@@ -279,3 +279,167 @@ model.fit(x=samples_circ.X_train,
 # %%
 model.summary()
 print(model.trainable_variables)
+
+
+
+# class QcnnArchitecture:
+#     def __init__(self, graphs=[], n_q=8, architecture_strategy=None, **kwargs) -> None:
+#         self.n_q = n_q
+#         # sequence of graphs
+#         if self.architecture_strategy == "binary_tree_r":
+#             self.graphs = self._get_binary_tree_r_graphs(**kwargs)
+#         else:
+#             self.graphs = graphs
+
+#     def append(self, value: tuple) -> None:
+#         self.graphs.append(value)
+#         self.n_layers += 1
+#         return self.graphs
+
+#     def _get_binary_tree_r_graphs(self):
+#         """ """
+#         if type(self.pool_filter) is str:
+#             # Mapping words to the filter type
+#             if self.pool_filter == "left":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x x x x
+#                 self.pool_filter = lambda arr: arr[0 : len(arr) // 2 : 1]
+#             elif self.pool_filter == "right":
+#                 # 0 1 2 3 4 5 6 7
+#                 #         x x x x
+#                 self.pool_filter = lambda arr: arr[len(arr) : len(arr) // 2 - 1 : -1]
+#             elif self.pool_filter == "even":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x   x   x   x
+#                 self.pool_filter = lambda arr: arr[0::2]
+#             elif self.pool_filter == "odd":
+#                 # 0 1 2 3 4 5 6 7
+#                 #   x   x   x   x
+#                 self.pool_filter = lambda arr: arr[1::2]
+#             elif self.pool_filter == "inside":
+#                 # 0 1 2 3 4 5 6 7
+#                 #     x x x x
+#                 self.pool_filter = (
+#                     lambda arr: arr[
+#                         len(arr) // 2
+#                         - len(arr) // 4 : len(arr) // 2
+#                         + len(arr) // 4 : 1
+#                     ]
+#                     if len(arr) > 2
+#                     else [arr[1]]
+#                 )  # inside
+#             elif self.pool_filter == "outside":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x x         x x
+#                 self.pool_filter = (
+#                     lambda arr: [
+#                         item
+#                         for item in arr
+#                         if not (
+#                             item
+#                             in arr[
+#                                 len(arr) // 2
+#                                 - len(arr) // 4 : len(arr) // 2
+#                                 + len(arr) // 4 : 1
+#                             ]
+#                         )
+#                     ]
+#                     if len(arr) > 2
+#                     else [arr[0]]
+#                 )  # outside
+
+#         graphs = {}
+#         layer = 1
+#         Qc_l = [i + 1 for i in range(self.n_q)]  # We label the nodes from 1 to n
+#         Qp_l = Qc_l.copy()
+#         while len(Qc_l) > 1:
+
+#             nq_avaiable = len(Qc_l)
+#             mod_nq = lambda x: x % nq_avaiable
+#             Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.s_c)]) for i in range(nq_avaiable)]
+#             if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
+#                 Ec_l = [Ec_l[0]]
+#             measured_q = self.pool_filter(Qc_l)
+#             remaining_q = [q for q in Qc_l if not (q in measured_q)]
+#             Ep_l = [
+#                 (measured_q[i], remaining_q[(i + self.s_p) % len(remaining_q)])
+#                 for i in range(len(measured_q))
+#             ]
+#             # Convolution graph
+#             C_l = (Qc_l, Ec_l)
+#             # Pooling graph
+#             P_l = (Qp_l, Ep_l)
+#             # Graph for layer
+#             G_l = (C_l, P_l)
+#             graphs[layer] = G_l
+#             # set avaiable qubits for next layer
+#             layer = layer + 1
+#             Qc_l = [j for (i, j) in Ep_l]
+#             Qp_l = Qc_l.copy()
+#         return graphs
+
+
+# class QConv(keras.layers.Layer):
+#     def __init__(
+#         self,
+#         layer=1,
+#         n_q=8,
+#         stride=1,
+#         unitary=None,
+#         n_theta=None,
+#         theta_init_seed=None,
+#         theta_range=(0, 2 * np.pi),
+#         graph=None,
+#         e_pl=None,
+#         total_coef_before=0,
+#         name="QConv",
+#         **kwargs,
+#     ):
+#         super(QConv, self).__init__(name=name, **kwargs)
+#         self.stride = stride
+#         self.unitary = U if unitary is None else unitary
+#         self.n_theta = 10 if unitary is None else n_theta
+#         # TODO handle case of unitary provided but not n_theta
+#         self.theta_init_seed = theta_init_seed
+#         self.theta_range = theta_range
+#         self.graph = graph
+
+#         self.layer = layer
+#         if self.graph is None:
+#             self.graph = self._build_conv_graph(e_pl)
+#         else:
+#             self.graph = graph
+#         self.circuit, self.symbols, self.total_coef_after = self._construct_circuit(
+#             total_coef_before
+#         )
+
+#     def _build_conv_graph(self, e_pl):
+#         # use stride and n_q to determine convolution
+#         if self.layer == 1:
+#             Qc_l = [i + 1 for i in range(self.n_q)]
+#         else:
+#             Qc_l = [j for (i, j) in e_pl]
+#         nq_avaiable = len(Qc_l)
+#         mod_nq = lambda x: x % nq_avaiable
+#         Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.s_c)]) for i in range(nq_avaiable)]
+#         return (Qc_l, Ec_l)
+
+#     def _construct_circuit(self, total_coef_before):
+#         circuit = cirq.Circuit()
+#         symbols = ()
+#         # graph is a tuple of nodes then edges: (Qc_l,Ec_l)
+#         E_cl = self.graph[1]
+#         if self.n_theta > 0:
+#             layer_symbols_c = sympy.symbols(
+#                 f"x_{total_coef_before}:{total_coef_before + self.n_theta}"
+#             )
+#             symbols += layer_symbols_c
+#             total_coef_after = total_coef_before + self.n_theta
+#         # Convolution Operation
+#         for bits in E_cl:
+#             if self.n_theta > 0:
+#                 circuit.append(self.unitary(bits, layer_symbols_c))
+#             else:
+#                 # If the circuit has no paramaters then the only argument is bits
+#                 circuit.append(self.unitary(bits))
+#         return circuit, symbols, total_coef_after
