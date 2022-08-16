@@ -5,55 +5,99 @@ import cirq
 import sympy
 from tensorflow import keras
 
+# Default pooling circuit
+def V(bits, symbols=None):
+    circuit = cirq.Circuit()
+    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
+    circuit += cirq.X(q0)
+    circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
+    return circuit
+
+
+# Default convolution circuit
+def U(bits, symbols=None):
+    circuit = cirq.Circuit()
+    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    circuit += cirq.rx(symbols[0]).on(q0)
+    circuit += cirq.rx(symbols[1]).on(q1)
+    circuit += cirq.rz(symbols[2]).on(q0)
+    circuit += cirq.rz(symbols[3]).on(q1)
+    circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
+    circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
+    circuit += cirq.rx(symbols[6]).on(q0)
+    circuit += cirq.rx(symbols[7]).on(q1)
+    circuit += cirq.rz(symbols[8]).on(q0)
+    circuit += cirq.rz(symbols[9]).on(q1)
+    return circuit
+
+
+def convert_graph_to_circuit_cirq(graph):
+    circuit = cirq.Circuit()
+    total_coef_count = 0
+    symbols = ()
+    current_layer = graph
+    # Head graph was provided so we need to go forward
+    while not (current_layer is None):
+        block, block_param_count = current_layer.function_mapping
+        if block_param_count > 0:
+            layer_symbols = sympy.symbols(
+                f"x_{total_coef_count}:{total_coef_count + block_param_count}"
+            )
+            symbols += layer_symbols
+            total_coef_count = total_coef_count + block_param_count
+        for bits in current_layer.E:
+            if block_param_count > 0:
+                circuit.append(block(bits, layer_symbols))
+            else:
+                # If the circuit has no paramaters then the only argument is bits
+                circuit.append(block(bits))
+        # Go to next graph
+        current_layer = current_layer.next_graph
+    return circuit, symbols
+
+# def U_s(bits, symbols=None):
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     # circuit += cirq.H(q0)
+#     # circuit += cirq.H(q1)
+#     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
+#     # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
+#     return circuit
+
+
+# def V_s(bits, symbols=None):
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.CNOT(q0, q1)
+#     return circuit
+# from core import QConv, QPool, binary_tree_r
+# head_graph, _ = binary_tree_r(8, convolution_mapping={1:(U_s,1)}, pooling_mapping={1:(V_s,1)})
+# circuit, symbols = convert_graph_to_circuit_cirq(head_graph)
+
 
 class Qcnn(keras.layers.Layer):
     def __init__(
         self,
-        n_q=8,
-        s_c=1,
-        s_p=0,
-        pool_filter="right",
-        convolution_mapping=None,
-        pooling_mapping=None,
+        circuit,
+        symbols,
         name="qcnn",
         readout=None,
         ops_gate=cirq.Z,
         theta_init_seed=None,
         theta_range=(0, 2 * np.pi),
-        architecture_strategy="binary_tree_r",
         **kwargs,
     ):
         super(Qcnn, self).__init__(name=name, **kwargs)
-        self.n_q = n_q
-        self.s_c = s_c
-        self.s_p = s_p
-        self.pool_filter = pool_filter
-        if convolution_mapping is None:
-            # default convolution layer is defined as U with 10 paramaters. The same U is used in all layers
-            # meaning only the first layer needs to be specified
-            self.convolution_mapping = {1: (U, 10)}
-        else:
-            self.convolution_mapping = convolution_mapping
-        if pooling_mapping is None:
-            self.pooling_mapping = {1: (V, 2)}
-        else:
-            self.pooling_mapping = pooling_mapping
+        self.circuit = circuit
+        self.symbols = symbols
         # Specify measured wire
         self.readout = readout
         self.ops_gate = ops_gate
         self.theta_init_seed = theta_init_seed
         self.theta_range = theta_range
-        self.architecture_strategy = architecture_strategy
-        if self.architecture_strategy == "binary_tree_r":
-            self.graphs = self._get_binary_tree_r_graphs()
-        else:
-            raise NotImplementedError(
-                f"Architecture strategy {self.architecture_strategy} is not yet implemented"
-            )
-
-        self.circuit, self.symbols_ = self._construct_circuit()
         self.theta = self.add_weight(
-            shape=(1, len(self.symbols_)),
+            shape=(1, len(self.symbols)),
             initializer=tf.random_uniform_initializer(
                 minval=self.theta_range[0],
                 maxval=self.theta_range[1],
@@ -210,6 +254,7 @@ def V(bits, symbols=None):
     circuit += cirq.X(q0)
     circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
     return circuit
+
 
 # Default convolution circuit
 def U(bits, symbols=None):
