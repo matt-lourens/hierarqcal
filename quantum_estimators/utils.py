@@ -15,7 +15,7 @@ def plot_graph(
     """
     n_qbits = len(graph.Q)
     # Change order around a circle, this way you start at x=0 then move left around
-    theta_0 = 2 / n_qbits
+    theta_0 = 2 / 8 # specify vector(0,1) as start
     theta_step = 1 / n_qbits
     pos = {
         ind
@@ -28,7 +28,6 @@ def plot_graph(
         for ind in range(n_qbits)
     }
     nx_graph = nx.DiGraph()
-
     nx_graph.add_nodes_from(graph.Q)
     nx_graph.add_edges_from(graph.E)
     if graph.type == "convolution":
@@ -36,7 +35,7 @@ def plot_graph(
         node_colour = conv_color
     elif graph.type == "pooling":
         node_sizes = [
-            1000 if (q in [j for (i, j) in graph.E]) else 200 for q in graph.Q
+            200 if (q in [i for (i, j) in graph.E]) else 1000 for q in graph.Q
         ]
         node_colour = pool_color
     else:
@@ -53,8 +52,7 @@ def plot_graph(
         width=1.5,
         **kwargs,
     )
-
-
+# %%
 def plot_qcnn_graphs(graphs, conv_color="#0096ff", pool_color="#ff7e79", **kwargs):
     # Get the first graph to derive some relevant information from the structure
     Qc_0 = list(graphs.values())[0][0][0]
