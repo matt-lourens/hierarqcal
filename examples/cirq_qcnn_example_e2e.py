@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # %% Data Cleaning
 Samples = namedtuple("Samples", ["X_train", "y_train", "X_test", "y_test"])
 
-path = "/home/matt/dev/projects/quantum_estimators/tests/features_30_sec.csv"
+path = "/home/matt/dev/projects/quantum_estimators/data/gtzan_30s_stats.csv"
 raw = pd.read_csv(path)
 target = "label"
 columns_to_remove = ["filename", "length", target]
@@ -63,9 +63,17 @@ samples_filtered = Samples(
 #     "mfcc11_var",
 #     "mfcc13_mean",
 # ]
-features = ['mfcc2_var', 'mfcc3_var', 'mfcc4_var', 'mfcc5_var', 'mfcc7_var',
-       'mfcc8_var', 'mfcc11_mean', 'mfcc13_mean']
-#['spectral_bandwidth_var', 'mfcc3_var', 'mfcc4_var', 'mfcc5_var', 'mfcc6_var', 'mfcc7_var', 'mfcc8_var', 'mfcc10_var']
+features = [
+    "mfcc2_var",
+    "mfcc3_var",
+    "mfcc4_var",
+    "mfcc5_var",
+    "mfcc7_var",
+    "mfcc8_var",
+    "mfcc11_mean",
+    "mfcc13_mean",
+]
+# ['spectral_bandwidth_var', 'mfcc3_var', 'mfcc4_var', 'mfcc5_var', 'mfcc6_var', 'mfcc7_var', 'mfcc8_var', 'mfcc10_var']
 
 X_train_selected = np.array(samples_filtered.X_train[features])
 X_test_selected = np.array(samples_filtered.X_test[features])
@@ -118,15 +126,19 @@ samples_tfd = Samples(
     X_train_tfd, samples_selected.y_train, X_test_tfd, samples_selected.y_test
 )
 
+
 def qubit_encoding(x):
     circuit = cirq.Circuit()
     for i, value in enumerate(x):
         qubit = cirq.LineQubit(i)
         circuit.append(cirq.rx(x[i]).on(qubit))
 
-    return circuit  
+    return circuit
 
-X_train_encoded = tfq.convert_to_tensor([qubit_encoding(x) for x in samples_tfd.X_train])
+
+X_train_encoded = tfq.convert_to_tensor(
+    [qubit_encoding(x) for x in samples_tfd.X_train]
+)
 X_test_encoded = tfq.convert_to_tensor([qubit_encoding(x) for x in samples_tfd.X_test])
 
 samples_encoded = Samples(
@@ -134,8 +146,11 @@ samples_encoded = Samples(
 )
 
 # %%
-from quantum_estimators import Qcnn
+from quantum_estimators import Qcnn_cirq as Qcnn
+from cirq.contrib.svg import SVGCircuit
+
 # from quantum_estimators.cirq_qcnn import Qcnn
+
 
 def U(bits, symbols=None):
     circuit = cirq.Circuit()
@@ -153,45 +168,86 @@ def V(bits, symbols=None):
     circuit += cirq.CNOT(q0, q1)
     return circuit
 
+
 import itertools as it
+
 # s_c = 1
 # s_p = 3
 # pool_filter = "right"
 results = []
-for s_c, s_p, pool_filter in it.product(
-    [1, 3, 5, 7],
-    [0, 1, 2, 3],
-    ["right", "left", "even", "odd", "inside", "outside"],
-):
-    for rep in range(10):
-        model = tf.keras.Sequential(
-            [
-                # The PQC layer returns the expected value of the readout gate, range [-1,1].
-                Qcnn(
-                    n_q=8,
-                    s_c=s_c,
-                    s_p=s_p,
-                    pool_filter=pool_filter,
-                    # convolution_mapping={1: (U, 2)},
-                    # pooling_mapping={1: (V, 0)},
-                ),
-                # Scale expectation values between 0 and 1
-                tf.keras.layers.Rescaling(1.0 / 2, offset=.5),
-            ]
-        )
-        model.compile(
-            optimizer="Adam",
-            loss="binary_crossentropy",
-            metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5)],
-        )
-        # model.run_eagerly = True
-        model.fit(x=samples_encoded.X_train, y=samples_encoded.y_train, epochs=100)
-        # %%
-        model.summary()
-        # print(model.trainable_variables)
 
-        qcnn_results = model.evaluate(samples_encoded.X_test, samples_encoded.y_test)
-        results.append([f"{s_c}_{s_p}_{pool_filter}_{rep}", qcnn_results])
-        # print(qcnn_results)
-print(results)
-print("Stop here dont play")
+
+class QConv(keras.layers.Layer):
+    def __init__(
+        self,
+        name="QConv",
+        **kwargs,
+    ):
+        super(QConv, self).__init__(name=name, **kwargs)
+        self.n_theta = 2        
+        self.symbols=sympy.symbols(f"x{1}:{self.n_theta}")
+        self.circuit = cirq.Circuit(
+            cirq.X(bit) ** self.symbols[0], cirq.Z(bit) ** self.symbols[1]
+        )
+        self.theta = self.add_weight(
+            shape=(1, len(self.symbols)),
+            initializer=tf.random_uniform_initializer(
+                minval=0,
+                maxval=2 * np.pi
+            ),
+            trainable=True,
+        )
+    def call(self, inputs):
+        combined = tfq.layers.AddCircuit()(inputs, append=self.circuit)
+        return combined
+
+
+
+bit = cirq.GridQubit(0, 0)
+model = tf.keras.Sequential()
+outputs = tfq.layers.ControlledPQC(model, cirq.Z(bit))
+quantum_data = tfq.convert_to_tensor(
+    [cirq.Circuit(), cirq.Circuit(cirq.X(bit)), cirq.Circuit(cirq.Z(bit))]
+)
+model_params = tf.convert_to_tensor([[0.5, 0.5], [0.25, 0.75]])
+res = outputs([quantum_data, model_params])
+res
+
+
+# for s_c, s_p, pool_filter in it.product(
+#     [1, 3, 5, 7],
+#     [0, 1, 2, 3],
+#     ["right", "left", "even", "odd", "inside", "outside"],
+# ):
+#     for rep in range(10):
+#         model = tf.keras.Sequential(
+#             [
+#                 # The PQC layer returns the expected value of the readout gate, range [-1,1].
+#                 Qcnn(
+#                     n_q=8,
+#                     s_c=s_c,
+#                     s_p=s_p,
+#                     pool_filter=pool_filter,
+#                     # convolution_mapping={1: (U, 2)},
+#                     # pooling_mapping={1: (V, 0)},
+#                 ),
+#                 # Scale expectation values between 0 and 1
+#                 tf.keras.layers.Rescaling(1.0 / 2, offset=.5),
+#             ]
+#         )
+#         model.compile(
+#             optimizer="Adam",
+#             loss="binary_crossentropy",
+#             metrics=[tf.keras.metrics.BinaryAccuracy(threshold=0.5)],
+#         )
+#         # model.run_eagerly = True
+#         model.fit(x=samples_encoded.X_train, y=samples_encoded.y_train, epochs=100)
+#         # %%
+#         model.summary()
+#         # print(model.trainable_variables)
+
+#         qcnn_results = model.evaluate(samples_encoded.X_test, samples_encoded.y_test)
+#         results.append([f"{s_c}_{s_p}_{pool_filter}_{rep}", qcnn_results])
+#         # print(qcnn_results)
+# print(results)
+# print("Stop here dont play")
