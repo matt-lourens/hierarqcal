@@ -245,29 +245,3 @@ class Qcnn(keras.layers.Layer):
             Qp_l = Qc_l.copy()
         return graphs
 
-
-# Default pooling circuit
-def V(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-    circuit += cirq.X(q0)
-    circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
-    return circuit
-
-
-# Default convolution circuit
-def U(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.rx(symbols[0]).on(q0)
-    circuit += cirq.rx(symbols[1]).on(q1)
-    circuit += cirq.rz(symbols[2]).on(q0)
-    circuit += cirq.rz(symbols[3]).on(q1)
-    circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
-    circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
-    circuit += cirq.rx(symbols[6]).on(q0)
-    circuit += cirq.rx(symbols[7]).on(q1)
-    circuit += cirq.rz(symbols[8]).on(q0)
-    circuit += cirq.rz(symbols[9]).on(q1)
-    return circuit
