@@ -1,5 +1,7 @@
+import warnings
 import numpy as np
 import cirq
+
 
 # TODO remove these functions, use defaults differently
 # Default pooling circuit
@@ -45,7 +47,7 @@ class QConv(DiGraph):
         # TODO test that stride is odd (this can be a more involved test if it's not even numbered qubits)
         # TODO repr functions for both conv and pool
         # TODO graphing functions for both
-        # TODO for both convolution and pooling test edge cases
+        # TODO for both convolution and pooling test edge cases, case for badly initialized graph base = QPool(8) -> QPool(QPool(QPool(QPool(base))))
         if isinstance(prev_graph, DiGraph):
             prev_graph.set_next(self)
             Qc_l = prev_graph.Q_avail
@@ -77,7 +79,6 @@ class QConv(DiGraph):
 class QPool(DiGraph):
     def __init__(self, prev_graph, stride=0, pool_filter="right", pooling_mapping=None):
         if isinstance(prev_graph, DiGraph):
-            prev_graph.set_next(self)
             Qp_l = prev_graph.Q_avail
         elif type(prev_graph) == int:
             # Assume number of qubits were specified as prev_graph for first layer
@@ -86,21 +87,28 @@ class QPool(DiGraph):
             TypeError(
                 f"prev_graph needs to be int or DiGraph, recieved {type(prev_graph)}"
             )
-        self.type = "pooling"
-        self.stride = stride
-        self.pool_filter_fn = self.get_pool_filter_fn(pool_filter)
-        measured_q = self.pool_filter_fn(Qp_l)
-        remaining_q = [q for q in Qp_l if not (q in measured_q)]
-        Ep_l = [
-            (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
-            for i in range(len(measured_q))
-        ]
-        self.Q_avail = remaining_q
-        # Specify sequence of gates:
-        if pooling_mapping is None:
-            pooling_mapping = (V, 0)
-        # Initialize graph
-        super().__init__(Qp_l, Ep_l, prev_graph, function_mapping=pooling_mapping)
+        if len(Qp_l) > 1:
+            if isinstance(prev_graph, DiGraph):
+                prev_graph.set_next(self)
+            self.type = "pooling"
+            self.stride = stride
+            self.pool_filter_fn = self.get_pool_filter_fn(pool_filter)
+            measured_q = self.pool_filter_fn(Qp_l)
+            remaining_q = [q for q in Qp_l if not (q in measured_q)]
+            Ep_l = [
+                (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
+                for i in range(len(measured_q))
+            ]
+            self.Q_avail = remaining_q
+            # Specify sequence of gates:
+            if pooling_mapping is None:
+                pooling_mapping = (V, 0)
+            # Initialize graph
+            super().__init__(Qp_l, Ep_l, prev_graph, function_mapping=pooling_mapping)
+        else:
+            warnings.warn(
+                "Pooling operation not added, Cannot perform pooling on 1 qubit"
+            )
 
     def get_pool_filter_fn(self, pool_filter):
         if type(pool_filter) is str:
@@ -197,3 +205,8 @@ def binary_tree_r(
             pooling_mapping=pooling_l,
         )
     return head_graph, tail_graph
+
+
+print("==debug==")
+base = QPool(8)
+QConv(QPool(QConv(QPool(base, pool_filter="10000000"))))
