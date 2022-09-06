@@ -30,6 +30,7 @@ class DiGraph:
         if isinstance(prev_graph, DiGraph):
             self.prev_graph = prev_graph
         else:
+            # Case for first graph in sequence, then there is no previous graph and int is recieved
             self.prev_graph = None
         self.function_mapping = function_mapping
         self.next_graph = next_graph
@@ -44,26 +45,25 @@ class QConv(DiGraph):
         # TODO test that stride is odd (this can be a more involved test if it's not even numbered qubits)
         # TODO repr functions for both conv and pool
         # TODO graphing functions for both
+        # TODO for both convolution and pooling test edge cases
         if isinstance(prev_graph, DiGraph):
             prev_graph.set_next(self)
+            Qc_l = prev_graph.Q_avail
+        elif type(prev_graph) == int:
+            # Assume number of qubits were specified as prev_graph for first layer
+            Qc_l = [i + 1 for i in range(prev_graph)]
+        else:
+            TypeError(
+                f"prev_graph needs to be int or DiGraph, recieved {type(prev_graph)}"
+            )
+
         self.type = "convolution"
         self.stride = stride
-        if type(prev_graph) == int:
-            # assume first layer and number of qubits were specified
-            Q = [i + 1 for i in range(prev_graph)]
-        else:
-            # Sorting is important because of the way pooling filters gets implemented
-            if prev_graph.type == "pooling":
-                # All nodes that were not measured, the i indices are the measured qubits for a pooling layer
-                Q = sorted(
-                    list(set(prev_graph.Q) - set([i for (i, j) in prev_graph.E]))
-                )
-            else:
-                Q = sorted(prev_graph.Q)
+        self.Q_avail = Qc_l
         # Determine convolution operation
-        nq_avaiable = len(Q)
+        nq_avaiable = len(Qc_l)
         mod_nq = lambda x: x % nq_avaiable
-        Ec_l = [(Q[i], Q[mod_nq(i + self.stride)]) for i in range(nq_avaiable)]
+        Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.stride)]) for i in range(nq_avaiable)]
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         # Specify sequence of gates:
@@ -71,30 +71,31 @@ class QConv(DiGraph):
             # default convolution layer is defined as U with 10 paramaters.
             convolution_mapping = (U, 1)
         # Initialize graph
-        super().__init__(Q, Ec_l, prev_graph, function_mapping=convolution_mapping)
+        super().__init__(Qc_l, Ec_l, prev_graph, function_mapping=convolution_mapping)
 
 
 class QPool(DiGraph):
     def __init__(self, prev_graph, stride=0, pool_filter="right", pooling_mapping=None):
         if isinstance(prev_graph, DiGraph):
             prev_graph.set_next(self)
+            Qp_l = prev_graph.Q_avail
+        elif type(prev_graph) == int:
+            # Assume number of qubits were specified as prev_graph for first layer
+            Qp_l = [i + 1 for i in range(prev_graph)]
+        else:
+            TypeError(
+                f"prev_graph needs to be int or DiGraph, recieved {type(prev_graph)}"
+            )
         self.type = "pooling"
         self.stride = stride
         self.pool_filter_fn = self.get_pool_filter_fn(pool_filter)
-        # Determine pooling operation
-        if prev_graph.type == "pooling":
-            # All nodes that were not measured, the i indices are the measured qubits for a pooling layer
-            Qp_l = sorted(list(set(prev_graph.Q) - set([i for (i, j) in prev_graph.E])))
-        else:
-            Qp_l = sorted(prev_graph.Q)
-        # Qc_l = prev_graph.Q
-        # Qp_l = Qc_l.copy()
         measured_q = self.pool_filter_fn(Qp_l)
         remaining_q = [q for q in Qp_l if not (q in measured_q)]
         Ep_l = [
             (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
             for i in range(len(measured_q))
         ]
+        self.Q_avail = remaining_q
         # Specify sequence of gates:
         if pooling_mapping is None:
             pooling_mapping = (V, 0)
