@@ -43,6 +43,7 @@ class DiGraph:
 
 class QConv(DiGraph):
     def __init__(self, prev_graph, stride=1, convolution_mapping=None):
+
         # TODO repr functions for both conv and pool
         # TODO graphing functions for both
         if isinstance(prev_graph, DiGraph):
@@ -206,8 +207,3 @@ def binary_tree_r(
             pooling_mapping=pooling_l,
         )
     return head_graph, tail_graph
-
-
-print("==debug==")
-base = QPool(8)
-QConv(QPool(QConv(QPool(base, pool_filter="10000000"))))
