@@ -43,11 +43,8 @@ class DiGraph:
 
 class QConv(DiGraph):
     def __init__(self, prev_graph, stride=1, convolution_mapping=None):
-        # TODO test that stride < Q
-        # TODO test that stride is odd (this can be a more involved test if it's not even numbered qubits)
         # TODO repr functions for both conv and pool
         # TODO graphing functions for both
-        # TODO for both convolution and pooling test edge cases, case for badly initialized graph base = QPool(8) -> QPool(QPool(QPool(QPool(base))))
         if isinstance(prev_graph, DiGraph):
             prev_graph.set_next(self)
             Qc_l = prev_graph.Q_avail
@@ -64,6 +61,10 @@ class QConv(DiGraph):
         self.Q_avail = Qc_l
         # Determine convolution operation
         nq_avaiable = len(Qc_l)
+        if nq_avaiable == stride:
+            raise ValueError(
+                f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {stride}\navaiable qubits:{nq_avaiable}"
+            )
         mod_nq = lambda x: x % nq_avaiable
         Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.stride)]) for i in range(nq_avaiable)]
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
@@ -106,7 +107,7 @@ class QPool(DiGraph):
             # Initialize graph
             super().__init__(Qp_l, Ep_l, prev_graph, function_mapping=pooling_mapping)
         else:
-            warnings.warn(
+            raise ValueError(
                 "Pooling operation not added, Cannot perform pooling on 1 qubit"
             )
 
