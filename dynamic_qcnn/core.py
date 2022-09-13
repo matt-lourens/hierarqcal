@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 import cirq
 
@@ -22,14 +21,28 @@ def V(bits, symbols=None):
     return circuit
 
 
-class DiGraph:
+class Q_Primitive:
+    """QCNN Primitive operation class, each instance represents a directed graph that has pointers to its predecessor and successor.
+    Each directed graph corresponds to some primitive operation of a QCNN such as a convolution or pooling.
+    """
+
     def __init__(
-        self, Q=(), E=(), prev_graph=None, next_graph=None, function_mapping=None
+        self, Q=[], E=[], prev_graph=None, next_graph=None, function_mapping=None
     ):
-        # TODO should this rather be a namedtuple?
+        """Initialize primitive operation
+
+        Args:
+            Q (list(int), optional): qubits (nodes of directed graph) available for the primitive operation. Defaults to [].
+            E (list(tuple(int)), optional): pairs of qubits (edges of directed graph) used for the primitive operation. Defaults to ().
+            prev_graph (Q_Primitive or int, optional): Instance of previous Q_Primitive, if int the it's assumed to be the first layer and
+                the int corresponds to the number of available qubits. Defaults to None.
+            next_graph (Q_Primitive, optional): Instance of next Q_Primitive. Defaults to None.
+            function_mapping (tuple(func,int), optional): tuple containing unitary function corresponding to primitive along with the number of paramaters
+                it requieres. Defaults to None.
+        """
         self.Q = Q
         self.E = E
-        if isinstance(prev_graph, DiGraph):
+        if isinstance(prev_graph, Q_Primitive):
             self.prev_graph = prev_graph
         else:
             # Case for first graph in sequence, then there is no previous graph and int is recieved
@@ -38,15 +51,20 @@ class DiGraph:
         self.next_graph = next_graph
 
     def set_next(self, next_graph):
+        """Function to point to next primitive operation (next layer).
+
+        Args:
+            next_graph (Q_Primitive): Instance of next primitive operation
+        """
         self.next_graph = next_graph
 
 
-class QConv(DiGraph):
+class QConv(Q_Primitive):
     def __init__(self, prev_graph, stride=1, convolution_mapping=None):
 
         # TODO repr functions for both conv and pool
         # TODO graphing functions for both
-        if isinstance(prev_graph, DiGraph):
+        if isinstance(prev_graph, Q_Primitive):
             prev_graph.set_next(self)
             Qc_l = prev_graph.Q_avail
         elif type(prev_graph) == int:
@@ -54,7 +72,7 @@ class QConv(DiGraph):
             Qc_l = [i + 1 for i in range(prev_graph)]
         else:
             TypeError(
-                f"prev_graph needs to be int or DiGraph, recieved {type(prev_graph)}"
+                f"prev_graph needs to be int or Q_Primitive, recieved {type(prev_graph)}"
             )
 
         self.type = "convolution"
@@ -78,19 +96,19 @@ class QConv(DiGraph):
         super().__init__(Qc_l, Ec_l, prev_graph, function_mapping=convolution_mapping)
 
 
-class QPool(DiGraph):
+class QPool(Q_Primitive):
     def __init__(self, prev_graph, stride=0, pool_filter="right", pooling_mapping=None):
-        if isinstance(prev_graph, DiGraph):
+        if isinstance(prev_graph, Q_Primitive):
             Qp_l = prev_graph.Q_avail
         elif type(prev_graph) == int:
             # Assume number of qubits were specified as prev_graph for first layer
             Qp_l = [i + 1 for i in range(prev_graph)]
         else:
             TypeError(
-                f"prev_graph needs to be int or DiGraph, recieved {type(prev_graph)}"
+                f"prev_graph needs to be int or Q_Primitive, recieved {type(prev_graph)}"
             )
         if len(Qp_l) > 1:
-            if isinstance(prev_graph, DiGraph):
+            if isinstance(prev_graph, Q_Primitive):
                 prev_graph.set_next(self)
             self.type = "pooling"
             self.stride = stride
