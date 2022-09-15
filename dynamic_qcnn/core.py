@@ -1,23 +1,27 @@
+from collections.abc import Sequence
 import numpy as np
-import cirq
+from qutip.qip.circuit import QubitCircuit, Gate
 
 
 # TODO remove these functions, use defaults differently
 # Default pooling circuit
 def U(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    # circuit += cirq.H(q0)
-    # circuit += cirq.H(q1)
-    circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
+    circuit = QubitCircuit(len(bits))
+    circuit.add_gate("RZ", controls=bits[0], targets=bits[1], control_value=symbols[0])
+    # q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    # # circuit += cirq.H(q0)
+    # # circuit += cirq.H(q1)
+    # circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
     # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
     return circuit
 
 
 def V(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.CNOT(q0, q1)
+    circuit = QubitCircuit(len(bits))
+    circuit.add_gate("CNOT", controls=bits[0], targets=bits[1])
+    # circuit = cirq.Circuit()
+    # q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    # circuit += cirq.CNOT(q0, q1)
     return circuit
 
 
@@ -70,9 +74,12 @@ class QConv(Q_Primitive):
         elif type(prev_graph) == int:
             # Assume number of qubits were specified as prev_graph for first layer
             Qc_l = [i + 1 for i in range(prev_graph)]
+        elif isinstance(prev_graph, Sequence):
+            # Qc_l is given as a sequence: list, tuple or range object. 
+            Qc_l = list(prev_graph)
         else:
             TypeError(
-                f"prev_graph needs to be int or Q_Primitive, recieved {type(prev_graph)}"
+                f"prev_graph needs to be int, sequence or Q_Primitive, recieved {type(prev_graph)}"
             )
 
         self.type = "convolution"
@@ -103,9 +110,12 @@ class QPool(Q_Primitive):
         elif type(prev_graph) == int:
             # Assume number of qubits were specified as prev_graph for first layer
             Qp_l = [i + 1 for i in range(prev_graph)]
+        elif isinstance(prev_graph, Sequence):
+            # Qc_l is given as a sequence: list, tuple or range object. 
+            Qp_l = list(prev_graph)
         else:
             TypeError(
-                f"prev_graph needs to be int or Q_Primitive, recieved {type(prev_graph)}"
+                f"prev_graph needs to be int, sequence or Q_Primitive, recieved {type(prev_graph)}"
             )
         if len(Qp_l) > 1:
             if isinstance(prev_graph, Q_Primitive):
