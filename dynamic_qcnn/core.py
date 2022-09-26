@@ -31,9 +31,18 @@ def V(bits, symbols=None):
 
 class QMotif:
     def __init__(
-        self, Q=[], E=[], Q_avail=[], next=None, prev=None, function_mapping=None
+        self,
+        Q=[],
+        E=[],
+        Q_avail=[],
+        next=None,
+        prev=None,
+        function_mapping=None,
+        is_operation=True,
     ) -> None:
-        # Data capturing motif
+        # Meta information
+        self.is_operation = is_operation
+        # Data capturing
         self.Q = Q
         self.Q_avail = Q_avail
         self.E = E
@@ -41,6 +50,12 @@ class QMotif:
         # pointers
         self.prev = prev
         self.next = next
+
+    def __add__(self, other):
+        return self.append(other)
+
+    def append(self, other):
+        return (self, other)
 
     def set_Q(self, Q):
         self.Q = Q
@@ -59,62 +74,95 @@ class QMotif:
 
 
 class Qcnn:
-    def __init__(self, Q=8) -> None:
+    def __init__(self, qubits) -> None:
         # Set avaiable qubit
-        if isinstance(Q, Sequence):
-            self.nq = len(Q)
-            self.Q = Q
-        elif type(Q) == int:
-            self.nq = Q
-            self.Q = [i + 1 for i in range(Q)]
-        self.head = None
-        self.tail = None
+        if isinstance(qubits, QMotif):
+            self.tail = qubits
+            self.head = self.tail
+        else:
+            self.tail = QFree(qubits)
+            self.head = self.tail
 
     def append(self, motif):
-        if self.head is None:
-            self.head = motif(self.Q)
-            self.tail = motif
-        else:
-            motif(self.head.Q_avail)
-            self.head.set_next(motif)
-            self.head = self.head.next
-        return self
+        motif(self.head.Q_avail)
+        new_qcnn = deepcopy(self)
+        new_qcnn.head.set_next(motif)
+        new_qcnn.head = new_qcnn.head.next
+        return new_qcnn
 
     def extend(self, motifs):
-        for motif in range(motifs):
-            self.append(motif)
+        new_qcnn = deepcopy(self)
+        for motif in motifs:
+            new_qcnn = new_qcnn.append(motif)
+        return new_qcnn
 
     def merge(self, qcnn):
         # ensure immutability
         other_qcnn = deepcopy(qcnn)
         new_qcnn = deepcopy(self)
-        
         other_qcnn.update_Q(new_qcnn.head.Q_avail)
         new_qcnn.head.set_next(other_qcnn.tail)
         new_qcnn.head = other_qcnn.head
         return new_qcnn
 
     def update_Q(self, Q):
-        self.Q = Q
-        motif = self.tail(self.Q)
-        while motif != self.head:
+        motif = self.tail(Q)
+        while motif.next is not None:
             motif = motif.next(motif.Q_avail)
 
     def __add__(self, other):
-        # Check extend or append depending on iterable
-        new_qcnn = None
         if isinstance(other, Qcnn):
             new_qcnn = self.merge(other)
         elif isinstance(other, Sequence):
-            self.extend(other)
+            new_qcnn = self.extend(other)
         elif isinstance(other, QMotif):
-            self.append(other)
-        return new_qcnn if new_qcnn else self
+            new_qcnn = self.append(other)
+        return new_qcnn
+    
+    def __mul__(self, other):
+        # TODO
+        if isinstance(other, Qcnn):
+            new_qcnn = self.merge(other)
+        elif isinstance(other, Sequence):
+            new_qcnn = self.extend(other)
+        elif isinstance(other, QMotif):
+            new_qcnn = self.append(other)
+
+    def __iter__(self):
+        # Generator to go from head to tail and only return operations
+        current = self.tail
+        while current is not None:
+            if current.is_operation:
+                yield current
+            current = current.next
+
+
+class QFree(QMotif):
+    """Frees up a number of Qbits
+
+    Args:
+        QMotif (_type_): _description_
+    """
+
+    def __init__(self, Q) -> None:
+        if isinstance(Q, Sequence):
+            Qfree = Q
+        elif type(Q) == int:
+            Qfree = [i + 1 for i in range(Q)]
+        self.type = "reset"
+        # Initialize graph
+        super().__init__(Q=Qfree, Q_avail=Qfree, is_operation=False)
+
+    def __call__(self, Q):
+        # TODO doesn't do anything If a motif needs updating based on merge
+        self.set_Q(self.Q)
+        self.set_Qavail(self.Q)
+        return self
 
 
 class QConv(QMotif):
     def __init__(self, stride=1, convolution_mapping=None):
-        self.type = "convolution"
+        self.type = "operation"
         self.stride = stride
         # Specify sequence of gates:
         if convolution_mapping is None:
@@ -128,7 +176,7 @@ class QConv(QMotif):
         nq_avaiable = len(Qc_l)
         if nq_avaiable == self.stride:
             raise ValueError(
-                f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {stride}\navaiable qubits:{nq_avaiable}"
+                f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}"
             )
         mod_nq = lambda x: x % nq_avaiable
         Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.stride)]) for i in range(nq_avaiable)]
@@ -143,7 +191,7 @@ class QConv(QMotif):
 
 class QPool(QMotif):
     def __init__(self, stride=0, pool_filter="right", pooling_mapping=None):
-        self.type = "pooling"
+        self.type = "operation"
         self.stride = stride
         self.pool_filter_fn = self.get_pool_filter_fn(pool_filter)
         # Specify sequence of gates:
@@ -316,15 +364,7 @@ def binary_tree_r(
     return head_graph, tail_graph
 
 
-qcnn = Qcnn(8)
-qcnn + QConv()
-qcnn + QPool()
-a = qcnn + qcnn
-b = a + qcnn
-qcnn + qcnn + qcnn
-
-
-print("debug")
+# print("debug")
 
 # class QConv(QMotif):
 #     def __init__(self, prev_graph, stride=1, convolution_mapping=None):
