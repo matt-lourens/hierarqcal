@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+import warnings
 from copy import copy, deepcopy
 from collections import deque
 import numpy as np
@@ -57,10 +58,10 @@ class Qmotif:
 
     def __mul__(self, other):
         # TODO must create new each time investigate __new__, this copies the object.
-        return Qmotifs((self,)) * other
+        return Qmotifs((deepcopy(self) for i in range(other)))
 
     def append(self, other):
-        return Qmotifs((self, other))
+        return Qmotifs((deepcopy(self), deepcopy(other)))
 
     def set_Q(self, Q):
         self.Q = Q
@@ -82,7 +83,17 @@ class Qmotifs(tuple):
     # TODO mention assumption that only operators should be used i.e. +, *
     # TODO explain this hackery, it's to ensure the case (a,b)+b -> (a,b,c) no matter type of b
     def __add__(self, other):
-        return Qmotifs(tuple(self) + (other,))
+        if isinstance(other, Sequence):
+            return Qmotifs(tuple(self) + tuple(other))
+        else:
+            return Qmotifs(tuple(self) + (other,))
+
+    def __mul__(self, other):
+        # repeats "other=int" times i.e. other=5 -> i in range(5)
+        if type(other) is int:
+            return Qmotifs((deepcopy(item) for i in range(other) for item in self))
+        else:
+            raise ValueError("Only integers are allowed for multiplication")
 
 
 class Qcnn:
@@ -96,6 +107,7 @@ class Qcnn:
             self.head = self.tail
 
     def append(self, motif):
+        motif = deepcopy(motif)
         motif(self.head.Q_avail)
         new_qcnn = deepcopy(self)
         new_qcnn.head.set_next(motif)
@@ -193,9 +205,11 @@ class Qfree(Qmotif):
 
 
 class Qconv(Qmotif):
-    def __init__(self, stride=1, convolution_mapping=None):
+    def __init__(self, stride=1, step=1, offset=0, convolution_mapping=None):
         self.type = "operation"
         self.stride = stride
+        self.step = step
+        self.offset = offset
         # Specify sequence of gates:
         if convolution_mapping is None:
             # default convolution layer is defined as U with 10 paramaters.
@@ -206,12 +220,17 @@ class Qconv(Qmotif):
     def __call__(self, Qc_l, *args, **kwds):
         # Determine convolution operation
         nq_avaiable = len(Qc_l)
-        if nq_avaiable == self.stride:
-            raise ValueError(
-                f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}"
-            )
+        if self.stride % nq_avaiable == 0:
+            # TODO make this clear in documentation
+            # warnings.warn(
+            #     f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}. Deafulting to stride of 1"
+            # )
+            self.stride = 1
         mod_nq = lambda x: x % nq_avaiable
-        Ec_l = [(Qc_l[i], Qc_l[mod_nq(i + self.stride)]) for i in range(nq_avaiable)]
+        Ec_l = [
+            (Qc_l[mod_nq(i)], Qc_l[mod_nq(i + self.stride)])
+            for i in range(self.offset, nq_avaiable, self.step)
+        ]
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
@@ -224,9 +243,9 @@ class Qconv(Qmotif):
 class Qdense(Qmotif):
     """Dense layer, connects unitaries to all possible combinations of wires"""
 
-    def __init__(self, reverse=False, function_mapping=None):
+    def __init__(self, permutations=False, function_mapping=None):
         self.type = "operation"
-        self.reverse = reverse
+        self.permutations = permutations
         # Specify sequence of gates:
         if function_mapping is None:
             # default convolution layer is defined as U with 10 paramaters.
@@ -236,7 +255,10 @@ class Qdense(Qmotif):
 
     def __call__(self, Qc_l, *args, **kwds):
         # All possible wire combinations
-        Ec_l = list(it.combinations(Qc_l, r=2))
+        if self.permutations:
+            Ec_l = list(it.permutations(Qc_l, r=2))
+        else:
+            Ec_l = list(it.combinations(Qc_l, r=2))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
@@ -261,17 +283,27 @@ class Qpool(Qmotif):
         if len(Qp_l) > 1:
             measured_q = self.pool_filter_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            Ep_l = [
-                (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
-                for i in range(len(measured_q))
-            ]
-            self.set_Q(Qp_l)
-            self.set_E(Ep_l)
-            self.set_Qavail(remaining_q)
+            if len(remaining_q) > 0:
+                Ep_l = [
+                    (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
+                    for i in range(len(measured_q))
+                ]
+            else:
+                # No qubits were pooled
+                Ep_l = []
+                remaining_q = Qp_l
+
         else:
-            raise ValueError(
-                "Pooling operation not added, Cannot perform pooling on 1 qubit"
-            )
+            # raise ValueError(
+            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
+            # )
+            # No qubits were pooled
+            # TODO make clear in documentation, no pooling is done if 1 qubit remain
+            Ep_l = []
+            remaining_q = Qp_l
+        self.set_Q(Qp_l)
+        self.set_E(Ep_l)
+        self.set_Qavail(remaining_q)
         return self
 
     def get_pool_filter_fn(self, pool_filter):
@@ -334,7 +366,10 @@ class Qpool(Qmotif):
                     for item, indicator in zip(arr, pool_filter)
                     if indicator == "1"
                 ]
-            return pool_filter_fn
+        else:
+            pool_filter_fn = pool_filter
+        return pool_filter_fn
+
 
 class LinkedDiGraph:
     """QCNN Primitive operation class, each instance represents a directed graph that has pointers to its predecessor and successor.
@@ -386,6 +421,34 @@ class LinkedDiGraph:
         self.prev_graph = prev_graph
 
 
+# print("debug")
+# import random
+# import operator
+# from functools import reduce
+# from dynamic_qcnn import convert_graph_to_circuit_cirq
+
+# N = 8
+
+# p = [
+#     Qpool(s_p, filter=i_filter)
+#     for i_filter in (
+#         "right",
+#         "left",
+#         "even",
+#         "odd",
+#         "inside",
+#         "outside",
+#         lambda arr: [arr[-1]],
+#         lambda arr: [arr[0]],
+#     )
+#     for s_p in range(N)
+# ]
+# c = [Qconv(s_c, s_t,so) for s_c in range(N) for s_t in range(1, N, 1) for so in range(N)]
+# m2_1 = [random.choice(c) + random.choice(p) for i in range(int(np.log2(N)))]
+# m2_2 = [random.choice(c) + random.choice(c) for i in range(int(np.log2(N)))]
+# m3_1 = reduce(operator.add, m2_1)
+# Qfree(N) + m3_1
+# circuit, symbols = convert_graph_to_circuit_cirq(Qfree(N) + m3_1)
 # construct reverse binary tree
 def binary_tree_r(
     n_q=8,

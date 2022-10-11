@@ -31,10 +31,10 @@ def plot_graph(
     nx_graph = nx.DiGraph()
     nx_graph.add_nodes_from(graph.Q)
     nx_graph.add_edges_from(graph.E)
-    if isinstance(graph, QConv):
+    if isinstance(graph, Qconv):
         node_sizes = [1000 for q in graph.Q]
         node_colour = conv_color
-    elif isinstance(graph, QPool):
+    elif isinstance(graph, Qpool):
         node_sizes = [
             200 if (q in [i for (i, j) in graph.E]) else 1000 for q in graph.Q
         ]
