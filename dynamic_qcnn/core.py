@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from copy import copy, deepcopy
 from collections import deque
 import numpy as np
+import itertools as it
 from qutip.qip.circuit import QubitCircuit, Gate
 import cirq
 
@@ -29,7 +30,7 @@ def V(bits, symbols=None):
     return circuit
 
 
-class QMotif:
+class Qmotif:
     def __init__(
         self,
         Q=[],
@@ -54,8 +55,12 @@ class QMotif:
     def __add__(self, other):
         return self.append(other)
 
+    def __mul__(self, other):
+        # TODO must create new each time investigate __new__, this copies the object.
+        return Qmotifs((self,)) * other
+
     def append(self, other):
-        return (self, other)
+        return Qmotifs((self, other))
 
     def set_Q(self, Q):
         self.Q = Q
@@ -73,14 +78,21 @@ class QMotif:
         self.prev = prev
 
 
+class Qmotifs(tuple):
+    # TODO mention assumption that only operators should be used i.e. +, *
+    # TODO explain this hackery, it's to ensure the case (a,b)+b -> (a,b,c) no matter type of b
+    def __add__(self, other):
+        return Qmotifs(tuple(self) + (other,))
+
+
 class Qcnn:
     def __init__(self, qubits) -> None:
         # Set avaiable qubit
-        if isinstance(qubits, QMotif):
+        if isinstance(qubits, Qmotif):
             self.tail = qubits
             self.head = self.tail
         else:
-            self.tail = QFree(qubits)
+            self.tail = Qfree(qubits)
             self.head = self.tail
 
     def append(self, motif):
@@ -105,6 +117,12 @@ class Qcnn:
         new_qcnn.head = other_qcnn.head
         return new_qcnn
 
+    def extmerge(self, qcnns):
+        new_qcnn = deepcopy(self)
+        for qcnn in qcnns:
+            new_qcnn = new_qcnn.merge(qcnn)
+        return new_qcnn
+
     def update_Q(self, Q):
         motif = self.tail(Q)
         while motif.next is not None:
@@ -114,19 +132,30 @@ class Qcnn:
         if isinstance(other, Qcnn):
             new_qcnn = self.merge(other)
         elif isinstance(other, Sequence):
-            new_qcnn = self.extend(other)
-        elif isinstance(other, QMotif):
+            if isinstance(other[-1], Qmotif):
+                new_qcnn = self.extend(other)
+            elif isinstance(other[-1], Qcnn):
+                new_qcnn = self.extmerge(other)
+        elif isinstance(other, Qmotif):
             new_qcnn = self.append(other)
         return new_qcnn
-    
+
     def __mul__(self, other):
         # TODO
         if isinstance(other, Qcnn):
             new_qcnn = self.merge(other)
         elif isinstance(other, Sequence):
             new_qcnn = self.extend(other)
-        elif isinstance(other, QMotif):
+        elif isinstance(other, Qmotif):
             new_qcnn = self.append(other)
+        elif isinstance(other, int):
+            t = (self,) * other
+            if other > 1:
+                new_qcnn = t[0] + t[1:]
+            else:
+                # TODO no action for multiplication too large, might want to make use of 0
+                new_qcnn = self
+        return new_qcnn
 
     def __iter__(self):
         # Generator to go from head to tail and only return operations
@@ -137,11 +166,11 @@ class Qcnn:
             current = current.next
 
 
-class QFree(QMotif):
+class Qfree(Qmotif):
     """Frees up a number of Qbits
 
     Args:
-        QMotif (_type_): _description_
+        Qmotif (_type_): _description_
     """
 
     def __init__(self, Q) -> None:
@@ -149,9 +178,12 @@ class QFree(QMotif):
             Qfree = Q
         elif type(Q) == int:
             Qfree = [i + 1 for i in range(Q)]
-        self.type = "reset"
+        self.type = "special"
         # Initialize graph
         super().__init__(Q=Qfree, Q_avail=Qfree, is_operation=False)
+
+    def __add__(self, other):
+        return Qcnn(self) + other
 
     def __call__(self, Q):
         # TODO doesn't do anything If a motif needs updating based on merge
@@ -160,7 +192,7 @@ class QFree(QMotif):
         return self
 
 
-class QConv(QMotif):
+class Qconv(Qmotif):
     def __init__(self, stride=1, convolution_mapping=None):
         self.type = "operation"
         self.stride = stride
@@ -189,11 +221,36 @@ class QConv(QMotif):
         return self
 
 
-class QPool(QMotif):
-    def __init__(self, stride=0, pool_filter="right", pooling_mapping=None):
+class Qdense(Qmotif):
+    """Dense layer, connects unitaries to all possible combinations of wires"""
+
+    def __init__(self, reverse=False, function_mapping=None):
+        self.type = "operation"
+        self.reverse = reverse
+        # Specify sequence of gates:
+        if function_mapping is None:
+            # default convolution layer is defined as U with 10 paramaters.
+            function_mapping = (U, 1)
+        # Initialize graph
+        super().__init__(function_mapping=function_mapping)
+
+    def __call__(self, Qc_l, *args, **kwds):
+        # All possible wire combinations
+        Ec_l = list(it.combinations(Qc_l, r=2))
+        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
+            Ec_l = [Ec_l[0]]
+        self.set_Q(Qc_l)
+        self.set_E(Ec_l)
+        # All qubits are still available for the next operation
+        self.set_Qavail(Qc_l)
+        return self
+
+
+class Qpool(Qmotif):
+    def __init__(self, stride=0, filter="right", pooling_mapping=None):
         self.type = "operation"
         self.stride = stride
-        self.pool_filter_fn = self.get_pool_filter_fn(pool_filter)
+        self.pool_filter_fn = self.get_pool_filter_fn(filter)
         # Specify sequence of gates:
         if pooling_mapping is None:
             pooling_mapping = (V, 0)
@@ -279,7 +336,6 @@ class QPool(QMotif):
                 ]
             return pool_filter_fn
 
-
 class LinkedDiGraph:
     """QCNN Primitive operation class, each instance represents a directed graph that has pointers to its predecessor and successor.
     Each directed graph corresponds to some primitive operation of a QCNN such as a convolution or pooling.
@@ -346,7 +402,7 @@ def binary_tree_r(
             convolution_l = convolution_mapping.get(layer, convolution_mapping[1])
         else:
             convolution_l = None
-        tail_graph = QConv(tail_graph, stride=s_c, convolution_mapping=convolution_l)
+        tail_graph = Qconv(tail_graph, stride=s_c, convolution_mapping=convolution_l)
         if tail_graph.prev_graph is None:
             # Set first graph, i.e. first layer first convolution
             head_graph = tail_graph
@@ -355,7 +411,7 @@ def binary_tree_r(
             pooling_l = pooling_mapping.get(layer, pooling_mapping[1])
         else:
             pooling_l = None
-        tail_graph = QPool(
+        tail_graph = Qpool(
             tail_graph,
             stride=s_p,
             pool_filter=pool_filter,
@@ -363,8 +419,6 @@ def binary_tree_r(
         )
     return head_graph, tail_graph
 
-
-# print("debug")
 
 # class QConv(QMotif):
 #     def __init__(self, prev_graph, stride=1, convolution_mapping=None):

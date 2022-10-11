@@ -2,6 +2,7 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from .core import Qconv, Qpool
 
 
 def plot_graph(
@@ -30,10 +31,10 @@ def plot_graph(
     nx_graph = nx.DiGraph()
     nx_graph.add_nodes_from(graph.Q)
     nx_graph.add_edges_from(graph.E)
-    if graph.type == "convolution":
+    if isinstance(graph, QConv):
         node_sizes = [1000 for q in graph.Q]
         node_colour = conv_color
-    elif graph.type == "pooling":
+    elif isinstance(graph, QPool):
         node_sizes = [
             200 if (q in [i for (i, j) in graph.E]) else 1000 for q in graph.Q
         ]
@@ -52,6 +53,8 @@ def plot_graph(
         width=1.5,
         **kwargs,
     )
+    return fig
+
 
 def plot_qcnn_graphs(graphs, conv_color="#0096ff", pool_color="#ff7e79", **kwargs):
     # Get the first graph to derive some relevant information from the structure
@@ -112,3 +115,38 @@ def plot_qcnn_graphs(graphs, conv_color="#0096ff", pool_color="#ff7e79", **kwarg
         )
         figs = figs + [fig]
     return figs
+
+
+def pretty_cirq_plot(circuit, out):
+    import cirq.contrib.qcircuit as ccq
+
+    # from cirq.contrib.svg import SVGCircuit
+    # SVGCircuit(circuit)
+    a = ccq.circuit_to_latex_using_qcircuit(circuit)
+    with open(
+        f"{out}",
+        "a",
+    ) as f:
+        f.write(f"\\newline\n" f"{a}\\newline\n")
+
+
+# QConv(2)+QPool(filter="left")
+# m3 = QConv(3)+QPool(stride=2, filter="even")+QConv(3)
+# m4=m1+m1+m1
+# m5=m3+m2
+
+# m1=QConv(2)+QPool(filter="left")
+# m2=QConv(1)+QConv(2)
+# m3=QConv(3)+QPool(stride=2, filter="even")+QConv(3)
+# (QConv(1)+QPool(filter="right"))*3
+# motif_1 = QConv(1)+QPool(filter="right")
+
+# m1 * 3,
+
+
+# (a): QConv(stride=1)
+# (b): QConv(stride=3)
+# (c): QPool(filter="right")
+# (d): QPool(filter="inside")
+# (e): m1 = QConv(1) + QPool("right")
+# (f): m2 = m1 * 3
