@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from enum import Enum
 import warnings
 from copy import copy, deepcopy
 from collections import deque
@@ -31,6 +32,12 @@ def V(bits, symbols=None):
     return circuit
 
 
+class Primitive_Types(Enum):
+    CONVOLUTION = "convolution"
+    POOLING = "pooling"
+    DENSE = "dense"
+
+
 class Qmotif:
     def __init__(
         self,
@@ -40,10 +47,12 @@ class Qmotif:
         next=None,
         prev=None,
         function_mapping=None,
+        is_default_mapping=True,
         is_operation=True,
     ) -> None:
         # Meta information
         self.is_operation = is_operation
+        self.is_default_mapping = is_default_mapping
         # Data capturing
         self.Q = Q
         self.Q_avail = Q_avail
@@ -72,6 +81,9 @@ class Qmotif:
     def set_Qavail(self, Q_avail):
         self.Q_avail = Q_avail
 
+    def set_mapping(self, function_mapping):
+        self.function_mapping = function_mapping
+
     def set_next(self, next):
         self.next = next
 
@@ -96,19 +108,228 @@ class Qmotifs(tuple):
             raise ValueError("Only integers are allowed for multiplication")
 
 
+class Qconv(Qmotif):
+    def __init__(self, stride=1, step=1, offset=0, convolution_mapping=None):
+        self.type = Primitive_Types.CONVOLUTION.value
+        self.stride = stride
+        self.step = step
+        self.offset = offset
+        # Specify sequence of gates:
+        if convolution_mapping is None:
+            # default convolution layer is defined as U with 1 paramater.
+            convolution_mapping = (U, 1)
+            is_default_mapping = True
+        else:
+            is_default_mapping = False
+        # Initialize graph
+        super().__init__(
+            function_mapping=convolution_mapping, is_default_mapping=is_default_mapping
+        )
+
+    def __call__(self, Qc_l, *args, **kwds):
+        # Determine convolution operation
+        nq_avaiable = len(Qc_l)
+        if self.stride % nq_avaiable == 0:
+            # TODO make this clear in documentation
+            # warnings.warn(
+            #     f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}. Deafulting to stride of 1"
+            # )
+            self.stride = 1
+        mod_nq = lambda x: x % nq_avaiable
+        Ec_l = [
+            (Qc_l[mod_nq(i)], Qc_l[mod_nq(i + self.stride)])
+            for i in range(self.offset, nq_avaiable, self.step)
+        ]
+        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
+            Ec_l = [Ec_l[0]]
+        self.set_Q(Qc_l)
+        self.set_E(Ec_l)
+        # All qubits are still available for the next operation
+        self.set_Qavail(Qc_l)
+        mapping = kwds.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        return self
+
+
+class Qdense(Qmotif):
+    """Dense layer, connects unitaries to all possible combinations of wires"""
+
+    def __init__(self, permutations=False, function_mapping=None):
+        self.type = Primitive_Types.DENSE.value
+        self.permutations = permutations
+        # Specify sequence of gates:
+        if function_mapping is None:
+            # default convolution layer is defined as U with 10 paramaters.
+            function_mapping = (U, 1)
+            is_default_mapping = True
+        else:
+            is_default_mapping = False
+        # Initialize graph
+        super().__init__(
+            function_mapping=function_mapping, is_default_mapping=is_default_mapping
+        )
+
+    def __call__(self, Qc_l, *args, **kwds):
+        # All possible wire combinations
+        if self.permutations:
+            Ec_l = list(it.permutations(Qc_l, r=2))
+        else:
+            Ec_l = list(it.combinations(Qc_l, r=2))
+        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
+            Ec_l = [Ec_l[0]]
+        self.set_Q(Qc_l)
+        self.set_E(Ec_l)
+        # All qubits are still available for the next operation
+        self.set_Qavail(Qc_l)
+        mapping = kwds.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        return self
+
+
+class Qpool(Qmotif):
+    def __init__(self, stride=0, filter="right", pooling_mapping=None):
+        self.type = Primitive_Types.POOLING.value
+        self.stride = stride
+        self.pool_filter_fn = self.get_pool_filter_fn(filter)
+        # Specify sequence of gates:
+        if pooling_mapping is None:
+            pooling_mapping = (V, 0)
+            is_default_mapping = True
+        else:
+            is_default_mapping = False
+        # Initialize graph
+        super().__init__(
+            function_mapping=pooling_mapping, is_default_mapping=is_default_mapping
+        )
+
+    def __call__(self, Qp_l, *args, **kwds):
+        if len(Qp_l) > 1:
+            measured_q = self.pool_filter_fn(Qp_l)
+            remaining_q = [q for q in Qp_l if not (q in measured_q)]
+            if len(remaining_q) > 0:
+                Ep_l = [
+                    (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
+                    for i in range(len(measured_q))
+                ]
+            else:
+                # No qubits were pooled
+                Ep_l = []
+                remaining_q = Qp_l
+
+        else:
+            # raise ValueError(
+            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
+            # )
+            # No qubits were pooled
+            # TODO make clear in documentation, no pooling is done if 1 qubit remain
+            Ep_l = []
+            remaining_q = Qp_l
+        self.set_Q(Qp_l)
+        self.set_E(Ep_l)
+        self.set_Qavail(remaining_q)
+        mapping = kwds.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        return self
+
+    def get_pool_filter_fn(self, pool_filter):
+        if type(pool_filter) is str:
+            # Mapping words to the filter type
+            if pool_filter == "left":
+                # 0 1 2 3 4 5 6 7
+                # x x x x
+                pool_filter_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
+            elif pool_filter == "right":
+                # 0 1 2 3 4 5 6 7
+                #         x x x x
+                pool_filter_fn = lambda arr: arr[len(arr) : len(arr) // 2 - 1 : -1]
+            elif pool_filter == "even":
+                # 0 1 2 3 4 5 6 7
+                # x   x   x   x
+                pool_filter_fn = lambda arr: arr[0::2]
+            elif pool_filter == "odd":
+                # 0 1 2 3 4 5 6 7
+                #   x   x   x   x
+                pool_filter_fn = lambda arr: arr[1::2]
+            elif pool_filter == "inside":
+                # 0 1 2 3 4 5 6 7
+                #     x x x x
+                pool_filter_fn = (
+                    lambda arr: arr[
+                        len(arr) // 2
+                        - len(arr) // 4 : len(arr) // 2
+                        + len(arr) // 4 : 1
+                    ]
+                    if len(arr) > 2
+                    else [arr[1]]
+                )  # inside
+            elif pool_filter == "outside":
+                # 0 1 2 3 4 5 6 7
+                # x x         x x
+                pool_filter_fn = (
+                    lambda arr: [
+                        item
+                        for item in arr
+                        if not (
+                            item
+                            in arr[
+                                len(arr) // 2
+                                - len(arr) // 4 : len(arr) // 2
+                                + len(arr) // 4 : 1
+                            ]
+                        )
+                    ]
+                    if len(arr) > 2
+                    else [arr[0]]
+                )  # outside
+            else:
+                # Assume filter is in form contains a string specifying which indices to remove
+                # For example "01001" removes idx 1 and 4 or qubit 2 and 5
+                # The important thing here is for pool filter to be the same length as the current number of qubits
+                # TODO add functionality to either pad or infer a filter from a string such as "101"
+                pool_filter_fn = lambda arr: [
+                    item
+                    for item, indicator in zip(arr, pool_filter)
+                    if indicator == "1"
+                ]
+        else:
+            pool_filter_fn = pool_filter
+        return pool_filter_fn
+
+
 class Qcnn:
-    def __init__(self, qubits) -> None:
-        # Set avaiable qubit
+    def __init__(self, qubits, function_mappings={}) -> None:
+        # Set available qubit
         if isinstance(qubits, Qmotif):
             self.tail = qubits
             self.head = self.tail
         else:
             self.tail = Qfree(qubits)
             self.head = self.tail
+        self.function_mappings = function_mappings
+        self.mapping_counter = {
+            primitive_type.value: 1 for primitive_type in Primitive_Types
+        }
 
     def append(self, motif):
         motif = deepcopy(motif)
-        motif(self.head.Q_avail)
+
+        if motif.is_operation & motif.is_default_mapping:
+            mapping = None
+            # If no function mapping was provided
+            mappings = self.function_mappings.get(motif.type, None)
+            if mappings:
+                mapping = mappings[
+                    (self.mapping_counter.get(motif.type) - 1) % len(mappings)
+                ]
+                self.mapping_counter.update(
+                    {motif.type: self.mapping_counter.get(motif.type) + 1}
+                )
+            motif(self.head.Q_avail, mapping=mapping)
+        else:
+            motif(self.head.Q_avail)
         new_qcnn = deepcopy(self)
         new_qcnn.head.set_next(motif)
         new_qcnn.head = new_qcnn.head.next
@@ -204,173 +425,6 @@ class Qfree(Qmotif):
         return self
 
 
-class Qconv(Qmotif):
-    def __init__(self, stride=1, step=1, offset=0, convolution_mapping=None):
-        self.type = "operation"
-        self.stride = stride
-        self.step = step
-        self.offset = offset
-        # Specify sequence of gates:
-        if convolution_mapping is None:
-            # default convolution layer is defined as U with 10 paramaters.
-            convolution_mapping = (U, 1)
-        # Initialize graph
-        super().__init__(function_mapping=convolution_mapping)
-
-    def __call__(self, Qc_l, *args, **kwds):
-        # Determine convolution operation
-        nq_avaiable = len(Qc_l)
-        if self.stride % nq_avaiable == 0:
-            # TODO make this clear in documentation
-            # warnings.warn(
-            #     f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}. Deafulting to stride of 1"
-            # )
-            self.stride = 1
-        mod_nq = lambda x: x % nq_avaiable
-        Ec_l = [
-            (Qc_l[mod_nq(i)], Qc_l[mod_nq(i + self.stride)])
-            for i in range(self.offset, nq_avaiable, self.step)
-        ]
-        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
-            Ec_l = [Ec_l[0]]
-        self.set_Q(Qc_l)
-        self.set_E(Ec_l)
-        # All qubits are still available for the next operation
-        self.set_Qavail(Qc_l)
-        return self
-
-
-class Qdense(Qmotif):
-    """Dense layer, connects unitaries to all possible combinations of wires"""
-
-    def __init__(self, permutations=False, function_mapping=None):
-        self.type = "operation"
-        self.permutations = permutations
-        # Specify sequence of gates:
-        if function_mapping is None:
-            # default convolution layer is defined as U with 10 paramaters.
-            function_mapping = (U, 1)
-        # Initialize graph
-        super().__init__(function_mapping=function_mapping)
-
-    def __call__(self, Qc_l, *args, **kwds):
-        # All possible wire combinations
-        if self.permutations:
-            Ec_l = list(it.permutations(Qc_l, r=2))
-        else:
-            Ec_l = list(it.combinations(Qc_l, r=2))
-        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
-            Ec_l = [Ec_l[0]]
-        self.set_Q(Qc_l)
-        self.set_E(Ec_l)
-        # All qubits are still available for the next operation
-        self.set_Qavail(Qc_l)
-        return self
-
-
-class Qpool(Qmotif):
-    def __init__(self, stride=0, filter="right", pooling_mapping=None):
-        self.type = "operation"
-        self.stride = stride
-        self.pool_filter_fn = self.get_pool_filter_fn(filter)
-        # Specify sequence of gates:
-        if pooling_mapping is None:
-            pooling_mapping = (V, 0)
-        # Initialize graph
-        super().__init__(function_mapping=pooling_mapping)
-
-    def __call__(self, Qp_l, *args, **kwds):
-        if len(Qp_l) > 1:
-            measured_q = self.pool_filter_fn(Qp_l)
-            remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            if len(remaining_q) > 0:
-                Ep_l = [
-                    (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
-                    for i in range(len(measured_q))
-                ]
-            else:
-                # No qubits were pooled
-                Ep_l = []
-                remaining_q = Qp_l
-
-        else:
-            # raise ValueError(
-            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
-            # )
-            # No qubits were pooled
-            # TODO make clear in documentation, no pooling is done if 1 qubit remain
-            Ep_l = []
-            remaining_q = Qp_l
-        self.set_Q(Qp_l)
-        self.set_E(Ep_l)
-        self.set_Qavail(remaining_q)
-        return self
-
-    def get_pool_filter_fn(self, pool_filter):
-        if type(pool_filter) is str:
-            # Mapping words to the filter type
-            if pool_filter == "left":
-                # 0 1 2 3 4 5 6 7
-                # x x x x
-                pool_filter_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
-            elif pool_filter == "right":
-                # 0 1 2 3 4 5 6 7
-                #         x x x x
-                pool_filter_fn = lambda arr: arr[len(arr) : len(arr) // 2 - 1 : -1]
-            elif pool_filter == "even":
-                # 0 1 2 3 4 5 6 7
-                # x   x   x   x
-                pool_filter_fn = lambda arr: arr[0::2]
-            elif pool_filter == "odd":
-                # 0 1 2 3 4 5 6 7
-                #   x   x   x   x
-                pool_filter_fn = lambda arr: arr[1::2]
-            elif pool_filter == "inside":
-                # 0 1 2 3 4 5 6 7
-                #     x x x x
-                pool_filter_fn = (
-                    lambda arr: arr[
-                        len(arr) // 2
-                        - len(arr) // 4 : len(arr) // 2
-                        + len(arr) // 4 : 1
-                    ]
-                    if len(arr) > 2
-                    else [arr[1]]
-                )  # inside
-            elif pool_filter == "outside":
-                # 0 1 2 3 4 5 6 7
-                # x x         x x
-                pool_filter_fn = (
-                    lambda arr: [
-                        item
-                        for item in arr
-                        if not (
-                            item
-                            in arr[
-                                len(arr) // 2
-                                - len(arr) // 4 : len(arr) // 2
-                                + len(arr) // 4 : 1
-                            ]
-                        )
-                    ]
-                    if len(arr) > 2
-                    else [arr[0]]
-                )  # outside
-            else:
-                # Assume filter is in form contains a string specifying which indices to remove
-                # For example "01001" removes idx 1 and 4 or qubit 2 and 5
-                # The important thing here is for pool filter to be the same length as the current number of qubits
-                # TODO add functionality to either pad or infer a filter from a string such as "101"
-                pool_filter_fn = lambda arr: [
-                    item
-                    for item, indicator in zip(arr, pool_filter)
-                    if indicator == "1"
-                ]
-        else:
-            pool_filter_fn = pool_filter
-        return pool_filter_fn
-
-
 class LinkedDiGraph:
     """QCNN Primitive operation class, each instance represents a directed graph that has pointers to its predecessor and successor.
     Each directed graph corresponds to some primitive operation of a QCNN such as a convolution or pooling.
@@ -422,6 +476,45 @@ class LinkedDiGraph:
 
 
 # print("debug")
+# # Pooling circuit
+# def V_1(bits, symbols=None):  # 1
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.rx(symbols[0]).on(q1).controlled_by(q0)
+
+#     return circuit
+
+
+# def V_2(bits, symbols=None):  # 0
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.CNOT(q0, q1)
+#     return circuit
+
+
+# # Convolution circuit
+# def U_1(bits, symbols=None):  # 1
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
+#     return circuit
+
+
+# def U_2(bits, symbols=None):  # 1
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.ry(symbols[0]).on(q1).controlled_by(q0)
+#     return circuit
+
+
+# function_mappings = {
+#     "convolution": [(U_1, 1), (U_2, 1)],
+#     "pooling": [(V_1, 1), (V_2, 0)],
+# }
+# qcnn = Qcnn(16, function_mappings=function_mappings)
+
+# a = qcnn + (Qconv() + Qpool()) * 3
+
 # import random
 # import operator
 # from functools import reduce
