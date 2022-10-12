@@ -9,5 +9,5 @@
 </p>
 
 # Example usage
-
+$$\log_2{x^2}=2^x$$
 ___
