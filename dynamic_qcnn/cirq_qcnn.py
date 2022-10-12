@@ -32,29 +32,31 @@ def U(bits, symbols=None):
     return circuit
 
 
-def convert_graph_to_circuit_cirq(graph):
+def convert_graph_to_circuit_cirq(qcnn, pretty=False):
     circuit = cirq.Circuit()
     total_coef_count = 0
     symbols = ()
-    current_layer = graph
-    # Head graph was provided so we need to go forward
-    while not (current_layer is None):
-        block, block_param_count = current_layer.function_mapping
+    for layer in qcnn:
+        block, block_param_count = layer.function_mapping
         if block_param_count > 0:
-            layer_symbols = sympy.symbols(
-                f"x_{total_coef_count}:{total_coef_count + block_param_count}"
-            )
+            if pretty:
+                layer_symbols = sympy.symbols(
+                    f"\\theta_{{{total_coef_count}:{total_coef_count + block_param_count}}}"
+                )
+            else:
+                layer_symbols = sympy.symbols(
+                    f"x_{total_coef_count}:{total_coef_count + block_param_count}"
+                )
             symbols += layer_symbols
             total_coef_count = total_coef_count + block_param_count
-        for bits in current_layer.E:
+        for bits in layer.E:
             if block_param_count > 0:
                 circuit.append(block(bits, layer_symbols))
             else:
                 # If the circuit has no paramaters then the only argument is bits
                 circuit.append(block(bits))
-        # Go to next graph
-        current_layer = current_layer.next_graph
     return circuit, symbols
+
 
 # def U_s(bits, symbols=None):
 #     circuit = cirq.Circuit()
@@ -244,4 +246,3 @@ class Qcnn(keras.layers.Layer):
             Qc_l = [j for (i, j) in Ep_l]
             Qp_l = Qc_l.copy()
         return graphs
-
