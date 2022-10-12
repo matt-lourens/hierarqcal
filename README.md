@@ -3,7 +3,7 @@
 <img src="./img/dalle_img.png" alt="dalle image" style="height:150px;padding-right:10px" align="left"/>
 
 <p style="height:150px">
-<code>dynamic_qcnn</code> is an open-source python package for the dynamic creation of QCNNs by system or hand. It includes primitives: <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form QCNN circuit architectures. 
+<code>dynamic_qcnn</code> is an open-source python package for the dynamic generation of QCNN circuits by system or hand. It includes primitives: <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form QCNN circuit architectures. 
 </p>
 <br/>
 
