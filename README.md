@@ -13,5 +13,5 @@
 from dynamic_cnn import Qconv, Qpool, Qfree
 qcnn = Qfree(8) + (Qconv(stride=1) + Qpool(filter="right")) * 3
 ```
-<img src="./img/rbt_right.svg" style="background-color:white!important;border:solid 2px black;">
+<img src="./img/rbt_right.png" style="border:solid 2px black;">
 
