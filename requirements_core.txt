@@ -1,1 +1,8 @@
-qutip==4.7.0
+# Core
+numpy
+# Utils
+networkx
+matplotlib
+# For now cirq is used for plotting circuits, but strictly not neccesary to generate them.
+tensorflow==2.7.0
+tensorflow-quantum==0.6.1

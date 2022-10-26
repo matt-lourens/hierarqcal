@@ -38,3 +38,13 @@ $m^3_1\rightarrow \text{QCNN}:$
 # extending follows naturally, repeating the above circuit 5 times is just:
 m3_1 * 5
 ```
+## Installation
+The package is still under development, to use it for the time being you can clone the project and install it in editable mode:
+```bash
+cd path/to/project/
+pip install -e .
+``` 
+You only need numpy to use the core functionality, the other packages that gets installed are for visualization of the graphs (matplotlib and networkx) and the circuits (google's Cirq). The latter will be removed as a requirement soon.
+
+## Usage
+See examples/basic_usage.ipynb for some basic examples of usage.
