@@ -39,7 +39,7 @@ $m^3_1\rightarrow \text{QCNN}:$
 m3_1 * 5
 ```
 ## Installation
-The package is still under development, to use it for the time being you can clone the project and install it as follow:
+The package is still under development, to use it for the time being you can clone the project and install it as follow (on the `develop` branch):
 ```bash
 cd path/to/project/
 pip install -r requirements_core.txt
