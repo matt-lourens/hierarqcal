@@ -39,7 +39,7 @@ $m^3_1\rightarrow \text{QCNN}:$
 m3_1 * 5
 ```
 ## Installation
-The package is still under development, to use it for the time being you can clone the project and install it as follows in your environment:
+The package is still under development, to use it for the time being you can clone the project and install it as follow:
 ```bash
 cd path/to/project/
 pip install -r requirements_core.txt
@@ -48,4 +48,4 @@ pip install .
 You only need numpy to use the core functionality, the other packages that gets installed are for visualization of the graphs (matplotlib and networkx) and the circuits (google's Cirq). The latter will be removed as a requirement soon.
 
 ## Usage
-See examples/examples.ipynb for some basic examples of usage.
+See examples/examples.ipynb for some basic usage.
