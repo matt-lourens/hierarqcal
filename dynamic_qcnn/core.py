@@ -504,4 +504,3 @@ class LinkedDiGraph:
 #             pooling_mapping=pooling_l,
 #         )
 #     return head_graph, tail_graph
-
