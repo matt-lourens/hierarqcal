@@ -53,25 +53,18 @@ def convert_graph_to_circuit_cirq(qcnn, pretty=False):
                 circuit.append(block(bits))
     return circuit, symbols
 
+def pretty_cirq_plot(circuit, out):
+    import cirq.contrib.qcircuit as ccq
 
-# def U_s(bits, symbols=None):
-#     circuit = cirq.Circuit()
-#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-#     # circuit += cirq.H(q0)
-#     # circuit += cirq.H(q1)
-#     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-#     # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
-#     return circuit
+    # from cirq.contrib.svg import SVGCircuit
+    # SVGCircuit(circuit)
+    a = ccq.circuit_to_latex_using_qcircuit(circuit)
+    with open(
+        f"{out}",
+        "a",
+    ) as f:
+        f.write(f"\\newline\n" f"{a}\\newline\n")
 
-
-# def V_s(bits, symbols=None):
-#     circuit = cirq.Circuit()
-#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-#     circuit += cirq.CNOT(q0, q1)
-#     return circuit
-# from core import QConv, QPool, binary_tree_r
-# head_graph, _ = binary_tree_r(8, convolution_mapping={1:(U_s,1)}, pooling_mapping={1:(V_s,1)})
-# circuit, symbols = convert_graph_to_circuit_cirq(head_graph)
 
 
 
