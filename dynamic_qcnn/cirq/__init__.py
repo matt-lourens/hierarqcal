@@ -1,3 +1,1 @@
-from .cirq_qcnn import (
-    convert_graph_to_circuit_cirq,
-)
+from .cirq_helper import convert_graph_to_circuit_cirq, pretty_cirq_plot

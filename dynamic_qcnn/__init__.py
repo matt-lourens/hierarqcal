@@ -1,5 +1,5 @@
 from .core import Qconv, Qdense, Qpool, Qfree, Qcnn, Qmotifs, Qmotif
-from .utils import plot_qcnn_graphs, plot_graph, pretty_cirq_plot
+from .utils import plot_qcnn_graphs, plot_graph
 
 __all__ = [
     "Qcnn",
@@ -11,5 +11,4 @@ __all__ = [
     "Qmotifs",
     "plot_qcnn_graphs",
     "plot_graph",
-    "pretty_cirq_plot",
 ]

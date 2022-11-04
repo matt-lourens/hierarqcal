@@ -115,38 +115,3 @@ def plot_qcnn_graphs(graphs, conv_color="#0096ff", pool_color="#ff7e79", **kwarg
         )
         figs = figs + [fig]
     return figs
-
-
-def pretty_cirq_plot(circuit, out):
-    import cirq.contrib.qcircuit as ccq
-
-    # from cirq.contrib.svg import SVGCircuit
-    # SVGCircuit(circuit)
-    a = ccq.circuit_to_latex_using_qcircuit(circuit)
-    with open(
-        f"{out}",
-        "a",
-    ) as f:
-        f.write(f"\\newline\n" f"{a}\\newline\n")
-
-
-# QConv(2)+QPool(filter="left")
-# m3 = QConv(3)+QPool(stride=2, filter="even")+QConv(3)
-# m4=m1+m1+m1
-# m5=m3+m2
-
-# m1=QConv(2)+QPool(filter="left")
-# m2=QConv(1)+QConv(2)
-# m3=QConv(3)+QPool(stride=2, filter="even")+QConv(3)
-# (QConv(1)+QPool(filter="right"))*3
-# motif_1 = QConv(1)+QPool(filter="right")
-
-# m1 * 3,
-
-
-# (a): QConv(stride=1)
-# (b): QConv(stride=3)
-# (c): QPool(filter="right")
-# (d): QPool(filter="inside")
-# (e): m1 = QConv(1) + QPool("right")
-# (f): m2 = m1 * 3

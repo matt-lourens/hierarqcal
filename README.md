@@ -48,4 +48,19 @@ pip install .[cirq]
 You only need numpy to use the core functionality, the other packages that gets installed are for visualization of the graphs (matplotlib and networkx) and the circuits (google's Cirq). The latter will be removed as a requirement soon.
 
 ## Usage
-See `examples/examples.ipynb` for some basic usage.
+See `examples/examples_cirq.ipynb` for some basic usage.
+
+## Citation
+```latex
+@article{lourensArchitectureRepresentationsQuantum2022,
+  doi = {10.48550/ARXIV.2210.15073},
+  url = {https://arxiv.org/abs/2210.15073},
+  author = {Lourens, Matt and Sinayskiy, Ilya and Park, Daniel K. and Blank, Carsten and Petruccione,   Francesco},
+  keywords = {Quantum Physics (quant-ph), Artificial Intelligence (cs.AI)},
+  title = {Architecture representations for quantum convolutional neural networks},
+  publisher = {arXiv},
+  journal = {arXiv:2210.15073[quant-ph]},
+  year = {2022},
+  copyright = {arXiv.org perpetual, non-exclusive license}
+}
+```
