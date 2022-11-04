@@ -48,4 +48,4 @@ pip install .[cirq]
 You only need numpy to use the core functionality, the other packages that gets installed are for visualization of the graphs (matplotlib and networkx) and the circuits (google's Cirq). The latter will be removed as a requirement soon.
 
 ## Usage
-See examples/examples.ipynb for some basic usage.
+See `examples/examples.ipynb` for some basic usage.
