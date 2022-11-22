@@ -19,9 +19,6 @@ ipykernel==6.13.0
 # python
 numpy==1.22.4
 
-# ml
-scikit-learn==1.1.1
-
 # Visualization
 seaborn
 jupyterlab
