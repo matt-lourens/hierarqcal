@@ -5,30 +5,6 @@ from copy import copy, deepcopy
 from collections import deque
 import numpy as np
 import itertools as it
-import cirq
-
-
-# TODO remove these functions, use defaults differently
-# Default pooling circuit
-def U(bits, symbols=None):
-    # circuit = QubitCircuit(len(bits))
-    # circuit.add_gate("RZ", controls=bits[0], targets=bits[1], control_value=symbols[0])
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit = cirq.Circuit()
-    # circuit += cirq.H(q0)
-    # circuit += cirq.H(q1)
-    circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-    # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
-    return circuit
-
-
-def V(bits, symbols=None):
-    # circuit = QubitCircuit(len(bits))
-    # circuit.add_gate("CNOT", controls=bits[0], targets=bits[1])
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.CNOT(q0, q1)
-    return circuit
 
 
 class Primitive_Types(Enum):
@@ -116,7 +92,6 @@ class Qconv(Qmotif):
         # Specify sequence of gates:
         if convolution_mapping is None:
             # default convolution layer is defined as U with 1 paramater.
-            convolution_mapping = (U, 1)
             is_default_mapping = True
         else:
             is_default_mapping = False
@@ -160,7 +135,7 @@ class Qdense(Qmotif):
         # Specify sequence of gates:
         if function_mapping is None:
             # default convolution layer is defined as U with 10 paramaters.
-            function_mapping = (U, 1)
+            # function_mapping = (U, 1) TODO remove
             is_default_mapping = True
         else:
             is_default_mapping = False
@@ -194,7 +169,7 @@ class Qpool(Qmotif):
         self.pool_filter_fn = self.get_pool_filter_fn(filter)
         # Specify sequence of gates:
         if pooling_mapping is None:
-            pooling_mapping = (V, 0)
+            # pooling_mapping = (V, 0) TODO remove this line
             is_default_mapping = True
         else:
             is_default_mapping = False
@@ -314,7 +289,6 @@ class Qcnn:
 
     def append(self, motif):
         motif = deepcopy(motif)
-
         if motif.is_operation & motif.is_default_mapping:
             mapping = None
             # If no function mapping was provided
@@ -472,6 +446,7 @@ class LinkedDiGraph:
 
     def __call__(self, prev_graph):
         self.prev_graph = prev_graph
+
 
 # def binary_tree_r(
 #     n_q=8,
