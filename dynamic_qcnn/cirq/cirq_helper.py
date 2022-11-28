@@ -1,30 +1,54 @@
+from dynamic_qcnn.core import Primitive_Types
+import warnings
 import sympy
 import cirq
 
+# # Default pooling circuit
+# def V(bits, symbols=None):
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
+#     circuit += cirq.X(q0)
+#     circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
+#     return circuit
+
+
+# # Default convolution circuit
+# def U(bits, symbols=None):
+#     circuit = cirq.Circuit()
+#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+#     circuit += cirq.rx(symbols[0]).on(q0)
+#     circuit += cirq.rx(symbols[1]).on(q1)
+#     circuit += cirq.rz(symbols[2]).on(q0)
+#     circuit += cirq.rz(symbols[3]).on(q1)
+#     circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
+#     circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
+#     circuit += cirq.rx(symbols[6]).on(q0)
+#     circuit += cirq.rx(symbols[7]).on(q1)
+#     circuit += cirq.rz(symbols[8]).on(q0)
+#     circuit += cirq.rz(symbols[9]).on(q1)
+#     return circuit
+
+# TODO remove these functions, use defaults differently
 # Default pooling circuit
-def V(bits, symbols=None):
-    circuit = cirq.Circuit()
+def U(bits, symbols=None):
+    # circuit = QubitCircuit(len(bits))
+    # circuit.add_gate("RZ", controls=bits[0], targets=bits[1], control_value=symbols[0])
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
+    circuit = cirq.Circuit()
+    # circuit += cirq.H(q0)
+    # circuit += cirq.H(q1)
     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-    circuit += cirq.X(q0)
-    circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
+    # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
     return circuit
 
 
-# Default convolution circuit
-def U(bits, symbols=None):
+def V(bits, symbols=None):
+    # circuit = QubitCircuit(len(bits))
+    # circuit.add_gate("CNOT", controls=bits[0], targets=bits[1])
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.rx(symbols[0]).on(q0)
-    circuit += cirq.rx(symbols[1]).on(q1)
-    circuit += cirq.rz(symbols[2]).on(q0)
-    circuit += cirq.rz(symbols[3]).on(q1)
-    circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
-    circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
-    circuit += cirq.rx(symbols[6]).on(q0)
-    circuit += cirq.rx(symbols[7]).on(q1)
-    circuit += cirq.rz(symbols[8]).on(q0)
-    circuit += cirq.rz(symbols[9]).on(q1)
+    circuit += cirq.CNOT(q0, q1)
     return circuit
 
 
@@ -33,6 +57,18 @@ def convert_graph_to_circuit_cirq(qcnn, pretty=False):
     total_coef_count = 0
     symbols = ()
     for layer in qcnn:
+        if layer.is_default_mapping and layer.function_mapping == None:
+            if layer.type in [
+                Primitive_Types.CONVOLUTION.value,
+                Primitive_Types.DENSE.value,
+            ]:
+                layer.set_mapping((U, 1))
+            elif layer.type in [Primitive_Types.POOLING.value]:
+                layer.set_mapping((V, 0))
+            else:
+                warnings.warn(
+                    f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
+                )
         block, block_param_count = layer.function_mapping
         if block_param_count > 0:
             if pretty:
@@ -53,6 +89,7 @@ def convert_graph_to_circuit_cirq(qcnn, pretty=False):
                 circuit.append(block(bits))
     return circuit, symbols
 
+
 def pretty_cirq_plot(circuit, out):
     import cirq.contrib.qcircuit as ccq
 
@@ -64,7 +101,3 @@ def pretty_cirq_plot(circuit, out):
         "a",
     ) as f:
         f.write(f"\\newline\n" f"{a}\\newline\n")
-
-
-
-

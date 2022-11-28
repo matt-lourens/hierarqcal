@@ -1,51 +1,43 @@
-# Default pooling circuit
+from dynamic_qcnn.core import Primitive_Types
+import warnings
+import pennylane as qml
+
+
 def V(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-    circuit += cirq.X(q0)
-    circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
-    return circuit
+    qml.CNOT(wires=[bits[0], bits[1]])
 
 
-# Default convolution circuit
 def U(bits, symbols=None):
-    circuit = cirq.Circuit()
-    q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-    circuit += cirq.rx(symbols[0]).on(q0)
-    circuit += cirq.rx(symbols[1]).on(q1)
-    circuit += cirq.rz(symbols[2]).on(q0)
-    circuit += cirq.rz(symbols[3]).on(q1)
-    circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
-    circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
-    circuit += cirq.rx(symbols[6]).on(q0)
-    circuit += cirq.rx(symbols[7]).on(q1)
-    circuit += cirq.rz(symbols[8]).on(q0)
-    circuit += cirq.rz(symbols[9]).on(q1)
-    return circuit
+    qml.CRZ(symbols[0], wires=[bits[0], bits[1]])
 
 
-def convert_graph_to_circuit_cirq(qcnn, pretty=False):
-    circuit = cirq.Circuit()
+def convert_graph_to_circuit_pennylane(qcnn, symbols):
     total_coef_count = 0
-    symbols = ()
+    coef_indices = {}
+    ind = 0
     for layer in qcnn:
+        if layer.is_default_mapping and layer.function_mapping == None:
+            if layer.type in [
+                Primitive_Types.CONVOLUTION.value,
+                Primitive_Types.DENSE.value,
+            ]:
+                layer.set_mapping((U, 1))
+            elif layer.type in [Primitive_Types.POOLING.value]:
+                layer.set_mapping((V, 0))
+            else:
+                warnings.warn(
+                    f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
+                )
         block, block_param_count = layer.function_mapping
         if block_param_count > 0:
-            if pretty:
-                layer_symbols = sympy.symbols(
-                    f"\\theta_{{{total_coef_count}:{total_coef_count + block_param_count}}}"
-                )
-            else:
-                layer_symbols = sympy.symbols(
-                    f"x_{total_coef_count}:{total_coef_count + block_param_count}"
-                )
-            symbols += layer_symbols
+            coef_indices[ind] = range(
+                total_coef_count, total_coef_count + block_param_count
+            )
             total_coef_count = total_coef_count + block_param_count
-        for bits in layer.E:
-            if block_param_count > 0:
-                circuit.append(block(bits, layer_symbols))
-            else:
-                # If the circuit has no paramaters then the only argument is bits
-                circuit.append(block(bits))
-    return circuit, symbols
+            for bits in layer.E:
+                block(bits=bits, symbols=symbols[coef_indices[ind]])
+            ind = ind + 1
+        else:
+            for bits in layer.E:
+                block(bits=bits)
+    return coef_indices
