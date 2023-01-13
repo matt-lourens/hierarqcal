@@ -447,35 +447,3 @@ class LinkedDiGraph:
     def __call__(self, prev_graph):
         self.prev_graph = prev_graph
 
-
-# def binary_tree_r(
-#     n_q=8,
-#     s_c=1,
-#     s_p=0,
-#     pool_filter="right",
-#     convolution_mapping=None,
-#     pooling_mapping=None,
-# ):
-#     tail_graph = n_q
-#     for layer in range(1, int(np.log2(n_q)) + 1, 1):
-#         # Convolution
-#         if not (convolution_mapping is None):
-#             convolution_l = convolution_mapping.get(layer, convolution_mapping[1])
-#         else:
-#             convolution_l = None
-#         tail_graph = Qconv(tail_graph, stride=s_c, convolution_mapping=convolution_l)
-#         if tail_graph.prev_graph is None:
-#             # Set first graph, i.e. first layer first convolution
-#             head_graph = tail_graph
-#         # Pooling
-#         if not (pooling_mapping is None):
-#             pooling_l = pooling_mapping.get(layer, pooling_mapping[1])
-#         else:
-#             pooling_l = None
-#         tail_graph = Qpool(
-#             tail_graph,
-#             stride=s_p,
-#             pool_filter=pool_filter,
-#             pooling_mapping=pooling_l,
-#         )
-#     return head_graph, tail_graph
