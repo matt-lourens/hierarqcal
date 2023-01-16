@@ -2,5 +2,6 @@ Examples
 ========
 
 .. toctree::
-    examples/sample
-    examples/cirq_qcnn_example_e2e
+    examples/examples_cirq.ipynb
+    examples/examples_pennylane.ipynb
+    examples/examples_qiskit.ipynb

@@ -8,4 +8,5 @@ Welcome to Dynamic QCNN's documentation!
 
    intro
    examples
+   modules
 

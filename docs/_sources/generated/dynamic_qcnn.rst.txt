@@ -1,0 +1,23 @@
+﻿dynamic\_qcnn
+=============
+
+.. automodule:: dynamic_qcnn
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
