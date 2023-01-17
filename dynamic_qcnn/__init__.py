@@ -1,5 +1,5 @@
 from .core import Qconv, Qdense, Qpool, Qfree, Qcnn, Qmotifs, Qmotif
-from .utils import plot_qcnn_graphs, plot_graph
+from .utils import plot_motifs, plot_motif
 
 __all__ = [
     "Qcnn",
@@ -9,6 +9,6 @@ __all__ = [
     "Qfree",
     "Qmotif",
     "Qmotifs",
-    "plot_qcnn_graphs",
-    "plot_graph",
+    "plot_motifs",
+    "plot_motif",
 ]

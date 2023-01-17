@@ -1,21 +1,41 @@
-# %%
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from .core import Qconv, Qpool
+from .core import Qconv, Qpool, Qdense, Qfree
 
 
-def plot_graph(
-    graph, conv_color="#0096ff", pool_color="#ff7e79", figsize=(7, 7), **kwargs
+def plot_motif(
+    motif,
+    conv_color="#0096ff",
+    pool_color="#ff7e79",
+    dense_colour="#a9449d",
+    qfree_colour="#92a9bd",
+    node_large=400,
+    node_small=150,
+    edge_width=1.5,
+    figsize=(4, 4),
+    **kwargs,
 ):
-    """plot single graph
+    """
+    Plot a motif in its directed graph representation
 
     Args:
-        graph (DiGraph): _description_
-        conv_color (str, optional): _description_. Defaults to "#0096ff".
-        pool_color (str, optional): _description_. Defaults to "#ff7e79".
+        motif (Qmotif): The motif to plot, such as Qconv, Qpool or Qdense.
+        conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
+        pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
+        dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
+        qfree_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
+        node_large (int, optional): The size of the nodes for non pooled qubits. Defaults to 400.
+        node_small (int, optional): The size of the nodes for the pooled qubits. Defaults to 150.
+        edge_width (float, optional): The width of the edges. Defaults to 1.5.
+        figsize (tuple, optional): The size of the figure. Defaults to (4, 4).
+        **kwargs: Additional keyword arguments to pass to the networkx draw function.
+
+    Returns:
+        fig (matplotlib.figure.Figure): The figure object.
+        ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
     """
-    n_qbits = len(graph.Q)
+    n_qbits = len(motif.Q)
     # Change order around a circle, this way you start at x=0 then move left around
     theta_0 = 2 / 8  # specify vector(0,1) as start
     theta_step = 1 / n_qbits
@@ -26,22 +46,30 @@ def plot_graph(
                 np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
             ]
         )
-        for label, ind in zip(graph.Q, range(n_qbits))
+        for label, ind in zip(motif.Q, range(n_qbits))
     }
     nx_graph = nx.DiGraph()
-    nx_graph.add_nodes_from(graph.Q)
-    nx_graph.add_edges_from(graph.E)
-    if isinstance(graph, Qconv):
-        node_sizes = [1000 for q in graph.Q]
+    nx_graph.add_nodes_from(motif.Q)
+    nx_graph.add_edges_from(motif.E)
+    if isinstance(motif, Qconv):
+        node_sizes = [node_large for q in motif.Q]
         node_colour = conv_color
-    elif isinstance(graph, Qpool):
+    elif isinstance(motif, Qpool):
         node_sizes = [
-            200 if (q in [i for (i, j) in graph.E]) else 1000 for q in graph.Q
+            node_small if (q in [i for (i, j) in motif.E]) else node_large
+            for q in motif.Q
         ]
         node_colour = pool_color
+    elif isinstance(motif, Qdense):
+        node_sizes = [node_large for q in motif.Q]
+        node_colour = dense_colour
+    elif isinstance(motif, Qfree):
+        node_sizes = [node_large for q in motif.Q]
+        node_colour = qfree_colour
     else:
-        raise NotImplementedError(f"No plot specified for {graph.type} graph type")
-    fig, ax = plt.subplots(figsize=figsize)
+        raise NotImplementedError(f"No plot specified for {motif} motif")
+
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
     nx.draw(
         nx_graph,
         pos,
@@ -50,68 +78,96 @@ def plot_graph(
         edge_color="#000000",
         edgecolors="#000000",
         node_color=node_colour,
-        width=1.5,
+        width=edge_width,
         **kwargs,
     )
-    return fig
+    return fig, ax
 
 
-def plot_qcnn_graphs(graphs, conv_color="#0096ff", pool_color="#ff7e79", **kwargs):
-    # Get the first graph to derive some relevant information from the structure
-    Qc_0 = list(graphs.values())[0][0][0]
-    # The number of nodes of first graph
-    n_qbits = len(Qc_0)
-    # Change order around a circle, this way you start at x=0 then move left around
-    theta_0 = 2 / n_qbits
-    theta_step = 1 / n_qbits
-    pos = {
-        ind
-        + 1: np.array(
-            [
-                np.cos(2 * np.pi * (theta_0 + ind * theta_step)),
-                np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
-            ]
-        )
-        for ind in range(n_qbits)
-    }
+def plot_motifs(
+    qcnn,
+    all_motifs=False,
+    conv_color="#0096ff",
+    pool_color="#ff7e79",
+    dense_colour="#a9449d",
+    qfree_colour="#92a9bd",
+    **kwargs,
+):
+    """
+    Plot all motifs in a Qcnn object
+
+    Args:
+        qcnn (Qcnn): The Qcnn object to plot.
+        all_motifs (bool, optional): Whether to plot all motifs in the Qcnn object or just the operational ones. Defaults to False (just operations)
+        conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
+        pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
+        dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
+        qfree_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
+        **kwargs: Additional keyword arguments to pass to the networkx draw function.
+
+    Returns:
+        figs (list): A list of matplotlib figure objects.
+    """
+    oPlot = FlowLayout()
     figs = []
-    for layer, ((Qc_l, Ec_l), (Qp_l, Ep_l)) in graphs.items():
-
-        nx_c_graph = nx.DiGraph()
-        nx_p_graph = nx.DiGraph()
-
-        nx_c_graph.add_nodes_from(Qc_0)
-        nx_c_graph.add_edges_from(Ec_l)
-        node_c_sizes = [1000 if (q in Qc_l) else 200 for q in Qc_0]
-
-        nx_p_graph.add_nodes_from(Qc_0)
-        nx_p_graph.add_edges_from(Ep_l)
-        node_p_sizes = [1000 if (q in [j for (i, j) in Ep_l]) else 200 for q in Qc_0]
-
-        fig, ax = plt.subplots(figsize=(7, 7))
-        nx.draw(
-            nx_c_graph,
-            pos,
-            with_labels=True,
-            node_size=node_c_sizes,
-            edge_color="#000000",
-            edgecolors="#000000",
-            node_color=conv_color,
-            width=1.5,
-            **kwargs,
-        )
-        figs = figs + [fig]
-        fig, ax = plt.subplots(figsize=(7, 7))
-        nx.draw(
-            nx_p_graph,
-            pos,
-            with_labels=True,
-            node_size=node_p_sizes,
-            edge_color="#000000",
-            edgecolors="#000000",
-            node_color=pool_color,
-            width=1.5,
-            **kwargs,
-        )
-        figs = figs + [fig]
+    if all_motifs:
+        motif = qcnn.tail
+        while motif is not None:
+            fig, ax = plot_motif(
+                motif, conv_color, pool_color, dense_colour, qfree_colour, **kwargs
+            )
+            motif = motif.next
+            oPlot.add_plot(ax)
+            figs.append(fig)
+            plt.close()
+    else:
+        for motif in qcnn:
+            fig, ax = plot_motif(
+                motif, conv_color, pool_color, dense_colour, qfree_colour, **kwargs
+            )
+            oPlot.add_plot(ax)
+            figs.append(fig)
+            plt.close()
+    oPlot.PassHtmlToCell()
     return figs
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+from IPython.display import HTML
+import io
+import base64
+
+# See https://stackoverflow.com/questions/21754976/ipython-notebook-arrange-plots-horizontally
+class FlowLayout(object):
+    """A class / object to display plots in a horizontal / flow layout below a cell"""
+
+    def __init__(self):
+        # string buffer for the HTML: initially some CSS; images to be appended
+        self.sHtml = """
+        <style>
+        .floating-box {
+        display: inline-block;
+        margin: 10px;
+        border: 2px solid #000000;  
+        }
+        </style>
+        """
+
+    def add_plot(self, oAxes):
+        """Saves a PNG representation of a Matplotlib Axes object"""
+        Bio = io.BytesIO()  # bytes buffer for the plot
+        fig = oAxes.get_figure()
+        fig.canvas.print_png(Bio)  # make a png of the plot in the buffer
+
+        # encode the bytes as string using base 64
+        sB64Img = base64.b64encode(Bio.getvalue()).decode()
+        self.sHtml += (
+            '<div class="floating-box">'
+            + '<img src="data:image/png;base64,{}\n">'.format(sB64Img)
+            + "</div>"
+        )
+
+    def PassHtmlToCell(self):
+        """Final step - display the accumulated HTML"""
+        display(HTML(self.sHtml))
