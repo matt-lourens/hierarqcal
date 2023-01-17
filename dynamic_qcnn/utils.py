@@ -1,3 +1,13 @@
+"""
+Utility functions for the dynamic_qcnn package. These are mostly plotting functions.
+
+Usage:
+qcnn = Qfree(4) + Qconv(2) + Qpool(filter="inside")+ Qfree(7) + Qdense() + Qpool(filter="1000001")
+# Single motif
+fig, ax = plot_motif(qcnn.tail)
+# Full QCNN
+figs = plot_motifs(m, all_motifs= True, figsize=(4,4))
+"""
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
