@@ -1,3 +1,6 @@
+"""
+Helper functions for cirq
+"""
 from dynamic_qcnn.core import Primitive_Types
 import warnings
 import sympy
@@ -90,7 +93,7 @@ def convert_graph_to_circuit_cirq(qcnn, pretty=False):
     return circuit, symbols
 
 
-def pretty_cirq_plot(circuit, out):
+def _pretty_cirq_plot(circuit, out):
     import cirq.contrib.qcircuit as ccq
 
     # from cirq.contrib.svg import SVGCircuit
