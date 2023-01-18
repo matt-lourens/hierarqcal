@@ -3,49 +3,36 @@ import warnings
 import sympy
 import cirq
 
-# # Default pooling circuit
-# def V(bits, symbols=None):
-#     circuit = cirq.Circuit()
-#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-#     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-#     circuit += cirq.X(q0)
-#     circuit += cirq.rx(symbols[1]).on(q1).controlled_by(q0)
-#     return circuit
-
-
-# # Default convolution circuit
-# def U(bits, symbols=None):
-#     circuit = cirq.Circuit()
-#     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
-#     circuit += cirq.rx(symbols[0]).on(q0)
-#     circuit += cirq.rx(symbols[1]).on(q1)
-#     circuit += cirq.rz(symbols[2]).on(q0)
-#     circuit += cirq.rz(symbols[3]).on(q1)
-#     circuit += cirq.rz(symbols[4]).on(q1).controlled_by(q0)
-#     circuit += cirq.rz(symbols[5]).on(q0).controlled_by(q1)
-#     circuit += cirq.rx(symbols[6]).on(q0)
-#     circuit += cirq.rx(symbols[7]).on(q1)
-#     circuit += cirq.rz(symbols[8]).on(q0)
-#     circuit += cirq.rz(symbols[9]).on(q1)
-#     return circuit
-
-# TODO remove these functions, use defaults differently
-# Default pooling circuit
+# Default conviolution circuit
 def U(bits, symbols=None):
-    # circuit = QubitCircuit(len(bits))
-    # circuit.add_gate("RZ", controls=bits[0], targets=bits[1], control_value=symbols[0])
+    """
+    Default convolution circuit, a simple 2 qubit circuit with a single parameter.
+
+    Args:
+        bits (list): List of qubit indices/labels
+        symbols (tuple(sympy.Symbol or float)): Tuple of symbols (rotation angles), can be symbolic (sympy) or numeric
+
+    Returns:
+        circuit (cirq.Circuit): cirq.Circuit object
+    """
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit = cirq.Circuit()
-    # circuit += cirq.H(q0)
-    # circuit += cirq.H(q1)
     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
-    # circuit += cirq.rz(symbols[1]).on(q0).controlled_by(q1)
     return circuit
 
 
+# Default pooling circuit
 def V(bits, symbols=None):
-    # circuit = QubitCircuit(len(bits))
-    # circuit.add_gate("CNOT", controls=bits[0], targets=bits[1])
+    """
+    Default pooling circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.
+
+    Args:
+        bits (list): List of qubit indices/labels
+        symbols (tuple(sympy.Symbol or float)): Tuple of symbols (rotation angles), can be symbolic (sympy) or numeric
+
+    Returns:
+        circuit (cirq.Circuit): cirq.Circuit object
+    """
     circuit = cirq.Circuit()
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit += cirq.CNOT(q0, q1)
@@ -53,6 +40,19 @@ def V(bits, symbols=None):
 
 
 def convert_graph_to_circuit_cirq(qcnn, pretty=False):
+    """
+    The main helper function for cirq, it takes a qcnn(dynamic_qcnn.Qcnn) object that describes the cicruit architecture
+    and converts it to a cirq.Circuit object by connecting the symbols and execution order of function mappings. Essentiall goes through
+    each operation motif of the qcnn and executes it's function mapping with the correct parameter(symbol) values.
+
+    Args:
+        qcnn (dynamic_qcnn.Qcnn): Qcnn object that describes the circuit architecture, consist of a sequence of motifs (dynamic_qcnn.Qmotif)
+        pretty (bool): If True then the symbols will be formatted as pretty latex symbols, otherwise they will be formatted as x_0, x_1, x_2, ...
+
+    Returns:
+        circuit (cirq.Circuit): cirq.Circuit object
+        symbols (tuple(sympy.Symbol or float)): Tuple of symbols (rotation angles).
+    """
     circuit = cirq.Circuit()
     total_coef_count = 0
     symbols = ()
