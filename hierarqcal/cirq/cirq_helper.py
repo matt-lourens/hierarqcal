@@ -1,7 +1,7 @@
 """
 Helper functions for cirq
 """
-from dynamic_qcnn.core import Primitive_Types
+from hierarqcal.core import Primitive_Types
 import warnings
 import sympy
 import cirq
@@ -44,12 +44,12 @@ def V(bits, symbols=None):
 
 def convert_graph_to_circuit_cirq(qcnn, pretty=False):
     """
-    The main helper function for cirq, it takes a qcnn(dynamic_qcnn.Qcnn) object that describes the cicruit architecture
+    The main helper function for cirq, it takes a qcnn(hierarqcal.Qcnn) object that describes the cicruit architecture
     and converts it to a cirq.Circuit object by connecting the symbols and execution order of function mappings. Essentially goes through
     each operational motif of the qcnn and executes it's function mapping with the correct parameter(symbol) values.
 
     Args:
-        qcnn (dynamic_qcnn.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (dynamic_qcnn.Qmotif)
+        qcnn (hierarqcal.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
         pretty (bool): If True then the symbols will be formatted as pretty latex symbols, otherwise they will be formatted as x_0, x_1, x_2, ...
 
     Returns:

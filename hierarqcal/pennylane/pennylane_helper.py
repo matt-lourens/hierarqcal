@@ -4,7 +4,7 @@ Helper functions for cirq
 import warnings
 from sympy import symbols, lambdify
 import pennylane as qml
-from dynamic_qcnn.core import Primitive_Types
+from hierarqcal.core import Primitive_Types
 
 
 def V(bits, symbols=None):
@@ -34,7 +34,7 @@ def get_param_info_pennylane(qcnn):
     Helper function that returns the total number of parameters and a dictionary that maps the parameter indices to the motifs (in the order they occur).
 
     Args:
-        qcnn (dynamic_qcnn.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (dynamic_qcnn.Qmotif)
+        qcnn (hierarqcal.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
 
     Returns:
         total_coef_count (int): Total number of parameters
@@ -70,11 +70,11 @@ def get_param_info_pennylane(qcnn):
 
 def execute_circuit_pennylane(qcnn, params, coef_indices=None):
     """
-    The main helper function for pennylane, it takes a qcnn(dynamic_qcnn.Qcnn) object that describes the cicruit architecture
+    The main helper function for pennylane, it takes a qcnn(hierarqcal.Qcnn) object that describes the cicruit architecture
     and executes the function mappings in the correct order with the correct parameters/symbols.
 
     Args:
-        qcnn (dynamic_qcnn.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (dynamic_qcnn.Qmotif)
+        qcnn (hierarqcal.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
         params (tuple(float)): Tuple of symbol values (rotation angles)
         coef_indices (dict): Dictionary of indices for each motif, if None, it will be calculated automatically
     """

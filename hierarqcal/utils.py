@@ -1,5 +1,5 @@
 """
-Utility functions for the dynamic_qcnn package. These are mostly plotting functions.
+Utility functions for the hierarqcal package. These are mostly plotting functions.
 
 Usage:
 qcnn = Qfree(4) + Qconv(2) + Qpool(filter="inside")+ Qfree(7) + Qdense() + Qpool(filter="1000001")

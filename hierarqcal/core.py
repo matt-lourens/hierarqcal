@@ -1,5 +1,5 @@
 """
-This module contains the core classes for the dynamic_qcnn package. Qmotif is the base class for all motifs, Qmotifs is a sequence of motifs and Qcnn is the full quantum circuit architecture, that handles the interaction between motifs.
+This module contains the core classes for the hierarqcal package. Qmotif is the base class for all motifs, Qmotifs is a sequence of motifs and Qcnn is the full quantum circuit architecture, that handles the interaction between motifs.
 
 Create a qcnn as follows:
 my_qcnn = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3

@@ -1,4 +1,4 @@
-from dynamic_qcnn.core import Primitive_Types
+from hierarqcal.core import Primitive_Types
 import warnings
 from qiskit.circuit import Parameter, QuantumCircuit, QuantumRegister
 
@@ -52,13 +52,13 @@ def V(bits, symbols=None, circuit=None):
 
 def convert_graph_to_circuit_qiskit(qcnn):
     """
-    The main helper function for qiskit, it takes a qcnn(dynamic_qcnn.Qcnn) object that describes the cicruit architecture
+    The main helper function for qiskit, it takes a qcnn(hierarqcal.Qcnn) object that describes the cicruit architecture
     and builds a qiskit.QuantumCircuit object with the correct function mappings and symbols.
 
     If the qubits are provided as ints then the qubit will be named "q0" and "q1", otherwise the qubits are assumed to be strings.
 
     Args:
-        qcnn (dynamic_qcnn.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (dynamic_qcnn.Qmotif)
+        qcnn (hierarqcal.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
 
     Returns:
         circuit (qiskit.QuantumCircuit): QuantumCircuit object
