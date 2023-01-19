@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;no title&gt; &mdash; HierarQcal 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/mystnb.css" type="text/css" />
+      <link rel="stylesheet" href="_static/togglebutton.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script>let toggleHintShow = 'Click to show';</script>
+        <script>let toggleHintHide = 'Click to hide';</script>
+        <script>let toggleOpenOnPrint = 'true';</script>
+        <script src="_static/togglebutton.js"></script>
+        <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="hierarqcal.core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> HierarQcal
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">dynamic-qcnn</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hierarqcal.html">hierarqcal package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="hierarqcal.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="hierarqcal.cirq.html">hierarqcal.cirq package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hierarqcal.pennylane.html">hierarqcal.pennylane package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="hierarqcal.qiskit.html">hierarqcal.qiskit package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="hierarqcal.html#submodules">Submodules</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">HierarQcal</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="modules.html">dynamic-qcnn</a> &raquo;</li>
+          <li><a href="hierarqcal.html">hierarqcal package</a> &raquo;</li>
+      <li>&lt;no title&gt;</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/hierarqcal.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <span class="target" id="module-hierarqcal.utils"></span><p>Utility functions for the hierarqcal package. These are mostly plotting functions.</p>
+<p>Usage:
+qcnn = Qfree(4) + Qconv(2) + Qpool(filter=”inside”)+ Qfree(7) + Qdense() + Qpool(filter=”1000001”)
+# Single motif
+fig, ax = plot_motif(qcnn.tail)
+# Full QCNN
+figs = plot_motifs(m, all_motifs= True, figsize=(4,4))</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.utils.FlowLayout">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.utils.</span></span><span class="sig-name descname"><span class="pre">FlowLayout</span></span><a class="headerlink" href="#hierarqcal.utils.FlowLayout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A class / object to display plots in a horizontal / flow layout below a cell</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.utils.FlowLayout.PassHtmlToCell">
+<span class="sig-name descname"><span class="pre">PassHtmlToCell</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.utils.FlowLayout.PassHtmlToCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Final step - display the accumulated HTML</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.utils.FlowLayout.add_plot">
+<span class="sig-name descname"><span class="pre">add_plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">oAxes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.utils.FlowLayout.add_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves a PNG representation of a Matplotlib Axes object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hierarqcal.utils.plot_motif">
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.utils.</span></span><span class="sig-name descname"><span class="pre">plot_motif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">motif</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#0096ff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#ff7e79'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dense_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#a9449d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qfree_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#92a9bd'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_large</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_small</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">150</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(4,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.utils.plot_motif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a motif in its directed graph representation</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>motif</strong> (<a class="reference internal" href="hierarqcal.html#hierarqcal.Qmotif" title="hierarqcal.Qmotif"><em>Qmotif</em></a>) – The motif to plot, such as Qconv, Qpool or Qdense.</p></li>
+<li><p><strong>conv_color</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for convolution motifs. Defaults to “#0096ff”.</p></li>
+<li><p><strong>pool_color</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for pooling motifs. Defaults to “#ff7e79”.</p></li>
+<li><p><strong>dense_colour</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for dense motifs. Defaults to “#a9449d”.</p></li>
+<li><p><strong>qfree_colour</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for free motifs. Defaults to “#92a9bd”.</p></li>
+<li><p><strong>node_large</strong> (<em>int</em><em>, </em><em>optional</em>) – The size of the nodes for non pooled qubits. Defaults to 400.</p></li>
+<li><p><strong>node_small</strong> (<em>int</em><em>, </em><em>optional</em>) – The size of the nodes for the pooled qubits. Defaults to 150.</p></li>
+<li><p><strong>edge_width</strong> (<em>float</em><em>, </em><em>optional</em>) – The width of the edges. Defaults to 1.5.</p></li>
+<li><p><strong>figsize</strong> (<em>tuple</em><em>, </em><em>optional</em>) – The size of the figure. Defaults to (4, 4).</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments to pass to the networkx draw function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The figure object.
+ax (matplotlib.axes._subplots.AxesSubplot): The axes object.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>fig (matplotlib.figure.Figure)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hierarqcal.utils.plot_motifs">
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.utils.</span></span><span class="sig-name descname"><span class="pre">plot_motifs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qcnn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_motifs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#0096ff'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#ff7e79'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dense_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#a9449d'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qfree_colour</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'#92a9bd'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.utils.plot_motifs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot all motifs in a Qcnn object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qcnn</strong> (<a class="reference internal" href="hierarqcal.html#hierarqcal.Qcnn" title="hierarqcal.Qcnn"><em>Qcnn</em></a>) – The Qcnn object to plot.</p></li>
+<li><p><strong>all_motifs</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether to plot all motifs in the Qcnn object or just the operational ones. Defaults to False (just operations)</p></li>
+<li><p><strong>conv_color</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for convolution motifs. Defaults to “#0096ff”.</p></li>
+<li><p><strong>pool_color</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for pooling motifs. Defaults to “#ff7e79”.</p></li>
+<li><p><strong>dense_colour</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for dense motifs. Defaults to “#a9449d”.</p></li>
+<li><p><strong>qfree_colour</strong> (<em>str</em><em>, </em><em>optional</em>) – The colour of nodes for free motifs. Defaults to “#92a9bd”.</p></li>
+<li><p><strong>**kwargs</strong> – Additional keyword arguments to pass to the networkx draw function.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of matplotlib figure objects.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>figs (list)</p>
+</dd>
+</dl>
+</dd></dl>
+
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hierarqcal.core.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Matt Lourens.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

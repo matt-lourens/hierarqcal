@@ -8,8 +8,8 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Dynamic QCNN"
-copyright = "2022, Matt Lourens"
+project = "HierarQcal"
+copyright = "2023, Matt Lourens"
 author = "Matt Lourens"
 release = "0.1"
 
