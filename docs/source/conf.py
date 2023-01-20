@@ -2,6 +2,7 @@ import sys
 import os
 import sphinx_rtd_theme
 from distutils.dir_util import copy_tree
+import hierarqcal
 
 # Configuration file for the Sphinx documentation builder.
 #
