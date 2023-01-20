@@ -37,6 +37,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_static_path = ["_static"]
 
 sys.path.append("../../hierarqcal")
+# This should be the repositroy root
 sys.path.append("../../")
 
 # Run the bottom of this file to generate the API docs
