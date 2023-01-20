@@ -1,9 +1,12 @@
+import sys
+import os
+import sphinx_rtd_theme
+from distutils.dir_util import copy_tree
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
-
-import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -11,21 +14,19 @@ import sphinx_rtd_theme
 project = "HierarQcal"
 copyright = "2023, Matt Lourens"
 author = "Matt Lourens"
-release = "0.1"
+release = "2023"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
     "myst_nb",
-    "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
-    "sphinx.ext.coverage",    
-    "sphinx.ext.autosectionlabel",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
 ]
-
 templates_path = ["_templates"]
-exclude_patterns = ["_build", "**.ipynb_checkpoints"]
+exclude_patterns = []
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -33,15 +34,14 @@ exclude_patterns = ["_build", "**.ipynb_checkpoints"]
 
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-html_theme_options = {
-    "collapse_navigation": False,
-}
-# TODO: make favicon
-# html_favicon = "images/favicon.png"
 html_static_path = ["_static"]
-autodoc_default_flags = [
-    "members",
-    "private-members",
-    "inherited-members",
-    "show-inheritance",
-]
+
+sys.path.append("../../hierarqcal")
+
+# Run the bottom of this file to generate the API docs
+# sphinx-apidoc -f -E -e -M -P -o source/generated/ ../../hierarqcal/
+
+autodoc_default_options = {"special-members": "__call__, __add__, __mul__"}
+nb_execution_mode = "off"
+
+copy_tree('img', '../build/img')
