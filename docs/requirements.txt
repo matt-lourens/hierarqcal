@@ -1,3 +1,4 @@
+-e ../
 sphinx>=5.3.0
 sphinx_rtd_theme
 myst-nb
