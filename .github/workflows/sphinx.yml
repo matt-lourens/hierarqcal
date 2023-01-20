@@ -10,7 +10,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements_core.txt
-        pip install .[cirq,pennylane,qiskit]
     - name: Build HTML
       uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
