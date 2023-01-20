@@ -39,6 +39,7 @@ html_static_path = ["_static"]
 sys.path.append("../../hierarqcal")
 # This should be the repositroy root
 sys.path.append("../../")
+sys.path.append("/github/workspace")
 
 # Run the bottom of this file to generate the API docs
 # sphinx-apidoc -f -E -e -M -P -o source/generated/ ../../hierarqcal/
