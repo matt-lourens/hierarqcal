@@ -1,18 +1,18 @@
-# Dynamic QCNNs
+# HierarQcal
 
 <img src="./img/dalle_img.png" alt="dalle image" style="height:150px;padding-right:10px" align="left"/>
 
 <p style="height:150px">
-<code>dynamic_qcnn</code> is an open-source python package for the dynamic generation of QCNN circuits by system or hand. It includes primitives: <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form QCNN circuit architectures. 
+**HierarQcal** is an Open-Source Python Package for Building Custom Quantum Circuits for Machine Learning. The package simplifies the process of creating general quantum convolutional neural networks (QCNN) by enabling an hierarchical design process. With HierarQcal, automatic generation of QCNN circuits is made easy, and it facilitates QCNN search space design for neural architecture search (NAS). The package includes primitives such as <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form complex QCNN circuit architectures.
 </p>
 <br/>
 
 *A robot building itself with artifical intelligence, pencil drawing -  generated with* [Dall E 2](https://openai.com/dall-e-2/)
 
 
-# Example usage
+## Quick example
 ```python
-from dynamic_cnn import Qconv, Qpool, Qfree
+from hierarqcal import Qconv, Qpool, Qfree
 qcnn = Qfree(8) + (Qconv(stride=1) + Qpool(filter="right")) * 3
 ```
 $\text{QCNN:}$
@@ -21,7 +21,7 @@ $\text{QCNN:}$
 
 ```python
 ### Reverse binary tree
-from dynamic_cnn import Qconv, Qpool, Qfree
+from hierarqcal import Qconv, Qpool, Qfree
 # motif: level 1
 m1_1 = Qconv(stride=2)
 m1_2 = Qpool(filter="left")
@@ -39,16 +39,37 @@ $m^3_1\rightarrow \text{QCNN}:$
 m3_1 * 5
 ```
 ## Installation
-The package is still under development, to use it for the time being you can clone the project and install it as follow (on the `develop` branch):
+<code>HierarQcal</code> will be published soon! For the time being you can install it as follows:
+
+Clone the project and run the following commands (on the `develop` branch):
 ```bash
 cd path/to/project/
 pip install -r requirements_core.txt
+# Based on the quantum computing framework you use, choose one of:
 pip install .[cirq]
-``` 
-You only need numpy to use the core functionality, the other packages that gets installed are for visualization of the graphs (matplotlib and networkx) and the circuits (google's Cirq). The latter will be removed as a requirement soon.
+# or
+pip install .[qiskit]
+# or
+pip install .[pennylane]
+```
+The package is quantum computing framework independent, there are helper functions for Cirq, Qiskit and Pennylane to represent the circuits in their respective frameworks. You can also use the the package independent of any framework, to do this install it with:
+```bash
+pip install .
+```
 
-## Usage
-See `examples/examples_cirq.ipynb` for some basic usage.
+## Tutorial and Documentation
+There are quickstart tutorials for each major Quantum computing framework: 
+ - [HierarQcal Cirq Tutorial](./examples/examples_cirq.ipynb)
+ - [HierarQcal Qiskit Tutorial](./examples/examples_pennylane.ipynb) 
+ - [HierarQcal Pennylane Tutorial](./examples/examples_pennylane.ipynb). 
+ 
+ For more detailed usage see the [documentation](http://www.hierarqcal.github.io/).
+
+## Contributing
+We welcome contributions to the project. Please see the [contribution guidelines](./CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) for more information.
+
+## License
+BSD 3-Clause "New" or "Revised" License, see [LICENSE](LICENSE.txt) for more information.
 
 ## Citation
 ```latex
