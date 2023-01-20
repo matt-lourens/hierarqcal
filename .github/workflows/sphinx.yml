@@ -8,8 +8,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-        run: |
-          pip install -e .[cirq,pennylane,qiskit]
+      run: |
+        pip install -r requirements_core.txt
+        pip install .[cirq,pennylane,qiskit]
     - name: Build HTML
       uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
