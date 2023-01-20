@@ -7,12 +7,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Build HTML
-      uses: ammaraskar/sphinx-action@master
     - name: Dependancy
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements_core.txt
+    - name: Build HTML
+      uses: ammaraskar/sphinx-action@master
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
