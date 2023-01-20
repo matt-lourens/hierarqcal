@@ -37,6 +37,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_static_path = ["_static"]
 
 sys.path.append("../../hierarqcal")
+sys.path.append("../../")
 
 # Run the bottom of this file to generate the API docs
 # sphinx-apidoc -f -E -e -M -P -o source/generated/ ../../hierarqcal/
