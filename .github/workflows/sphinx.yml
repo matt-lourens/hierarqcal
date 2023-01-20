@@ -9,6 +9,9 @@ jobs:
     - uses: actions/checkout@v3
     - name: Build HTML
       uses: ammaraskar/sphinx-action@master
+    - name: Dependancy
+      run: |
+        python -m pip install --upgrade pip
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
