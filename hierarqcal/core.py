@@ -2,7 +2,11 @@
 This module contains the core classes for the hierarqcal package. Qmotif is the base class for all motifs, Qmotifs is a sequence of motifs and Qcnn is the full quantum circuit architecture, that handles the interaction between motifs.
 
 Create a qcnn as follows:
-my_qcnn = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3
+
+.. code-block:: python
+
+    from hierarqcal import Qfree, Qconv, Qpool
+    my_qcnn = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3
 
 The above creates a qcnn that resembles a reverse binary tree architecture. There are 8 free qubits and then a convolution-pooling unit is repeated three times.
 """
@@ -29,7 +33,7 @@ class Primitive_Types(Enum):
 class Qmotif:
     """
     Quantum Circuit architectures are created by stacking motifs hierarchacially, the lowest level motifs (primitives) are building blocks for higher level ones.
-    Examples of primitives are convolution (Qconv), pooling (Qpool) and dense (Qdens) operations which inherits this class. Each motif is a directed graph with nodes
+    Examples of primitives are convolution (:py:class:`Qconv`), pooling (:py:class:`Qpool`) and dense (:py:class:`Qdense`) operations which inherits this class. Each motif is a directed graph with nodes
     Q for qubits and edges E for unitary operations applied between them, the direction of an edge being the order of interaction for the unitary. Each instance has
     pointers to its predecessor and successor.This class is for a single motif and the Qmotifs class is for a sequence of motifs stored as tuples, then sequences of
     motifs are again stored as tuples  This is to allow hiearchical stacking which in the end is one tuple of motifs.
@@ -223,8 +227,9 @@ class Qconv(Qmotif):
             Qc_l (list): List of available qubits.
             *args: Variable length argument list.
             **kwds: Arbitrary keyword arguments, such as:
-                mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses.
-                                                A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
 
         Returns:
             Qconv: Returns the updated version of itself, with correct nodes and edges.
@@ -283,8 +288,9 @@ class Qdense(Qmotif):
             Qc_l (list): List of available qubits.
             *args: Variable length argument list.
             **kwds: Arbitrary keyword arguments, such as:
-                mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses.
-                                                A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
 
         Returns:
             Qdense: Returns the updated version of itself, with correct nodes and edges.
@@ -336,8 +342,9 @@ class Qpool(Qmotif):
             Qp_l (list): List of available qubits.
             *args: Variable length argument list.
             **kwds: Arbitrary keyword arguments, such as:
-                mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses.
-                                                A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
 
         Returns:
             Qpool: Returns the updated version of itself, with correct nodes and edges.

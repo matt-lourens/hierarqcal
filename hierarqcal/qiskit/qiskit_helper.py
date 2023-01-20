@@ -1,3 +1,6 @@
+"""
+Helper functions for qiskit
+"""
 from hierarqcal.core import Primitive_Types
 import warnings
 from qiskit.circuit import Parameter, QuantumCircuit, QuantumRegister
@@ -8,7 +11,7 @@ def U(bits, symbols=None, circuit=None):
     Default convolution circuit, a simple 2 qubit circuit with a single parameter.
 
     Args:
-        bits (list(string or int)): List of qubit indices/labels, if int then the qubit will be named "q{bits[0]}" and "q{bits[1]}"
+        bits (list(string or int)): List of qubit indices/labels, if int then the qubits will be named :code:`f"q{bits[0]}" and f"q{bits[1]}"`
         symbols (tuple(Parameter)): Tuple of symbol values (rotation angles) as a Qiskit Parameter object, can be symbolic or numeric.
         circuit (qiskit.QuantumCircuit): QuantumCircuit object to add operations to, if None then a new QuantumCircuit object will be created.
 
@@ -32,7 +35,7 @@ def V(bits, symbols=None, circuit=None):
     Default pooling circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.
 
     Args:
-        bits (list(string or int)): List of qubit indices/labels, if int then the qubit will be named "q{bits[0]}" and "q{bits[1]}"
+        bits (list(string or int)): List of qubit indices/labels, if int then the qubit will be named :code:`f"q{bits[0]}" and f"q{bits[1]}"`
         symbols (tuple(Parameter)): Tuple of symbol values (rotation angles) as a Qiskit Parameter object, can be symbolic or numeric.
         circuit (qiskit.QuantumCircuit): QuantumCircuit object to add operations to, if None then a new QuantumCircuit object will be created.
 
@@ -52,17 +55,18 @@ def V(bits, symbols=None, circuit=None):
 
 def convert_graph_to_circuit_qiskit(qcnn):
     """
-    The main helper function for qiskit, it takes a qcnn(hierarqcal.Qcnn) object that describes the cicruit architecture
+    The main helper function for qiskit, it takes a qcnn(:py:class:`hierarqcal.core.Qcnn`) object that describes the cicruit architecture
     and builds a qiskit.QuantumCircuit object with the correct function mappings and symbols.
 
-    If the qubits are provided as ints then the qubit will be named "q0" and "q1", otherwise the qubits are assumed to be strings.
+    If the qubits are provided as ints then the qubit will be named :code:`"q0"` and :code:`"q1"`, otherwise the qubits are assumed to be strings.
 
     Args:
-        qcnn (hierarqcal.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
+        qcnn (hierarqcal.core.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.Qmotif)
 
     Returns:
-        circuit (qiskit.QuantumCircuit): QuantumCircuit object
-        symbols (tuple(Parameter)): Tuple of symbols (rotation angles) as a Qiskit Parameter object.
+        (tuple): Tuple containing:
+            * circuit (qiskit.QuantumCircuit): QuantumCircuit object
+            * symbols (tuple(Parameter)): Tuple of symbols (rotation angles) as a Qiskit Parameter object.
     """
     circuit = QuantumCircuit()
     for q in qcnn.tail.Q:

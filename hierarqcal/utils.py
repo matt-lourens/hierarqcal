@@ -2,11 +2,14 @@
 Utility functions for the hierarqcal package. These are mostly plotting functions.
 
 Usage:
-qcnn = Qfree(4) + Qconv(2) + Qpool(filter="inside")+ Qfree(7) + Qdense() + Qpool(filter="1000001")
-# Single motif
-fig, ax = plot_motif(qcnn.tail)
-# Full QCNN
-figs = plot_motifs(m, all_motifs= True, figsize=(4,4))
+
+.. code-block:: python
+
+    qcnn = Qfree(4) + Qconv(2) + Qpool(filter="inside") + Qfree(7) + Qdense() + Qpool(filter="1000001")
+    # Single motif
+    fig, ax = plot_motif(qcnn.tail)
+    # Full QCNN
+    figs = plot_motifs(m, all_motifs=True, figsize=(4,4))
 """
 import numpy as np
 import networkx as nx
@@ -42,8 +45,9 @@ def plot_motif(
         **kwargs: Additional keyword arguments to pass to the networkx draw function.
 
     Returns:
-        fig (matplotlib.figure.Figure): The figure object.
-        ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
+        (tuple): A tuple containing:    
+            * fig (matplotlib.figure.Figure): The figure object.
+            * ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
     """
     n_qbits = len(motif.Q)
     # Change order around a circle, this way you start at x=0 then move left around
