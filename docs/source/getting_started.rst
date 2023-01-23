@@ -4,38 +4,31 @@ Getting Started
 Installation
 ------------
 
-HierarQcal will be published soon! For the time being you can install it as follows:
+HierarQcal is hosted on [pypi](https://pypi.org/project/hierarqcal/) and can be installed via pip:
 
-Clone the project and run the following commands (on the `develop` branch):
-
-.. code-block:: console
-
-    (.venv) $ cd path/to/project/
-    (.venv) $ cd pip install -r requirements_core.txt
-
-Then based on the quantum computing framework you use, choose one of:
+Based on the quantum computing framework you use, choose one of:
 
 .. code-block:: console
 
-    (.venv) $ pip install .[cirq]
+    (.venv) $ pip install hierarqcal[cirq]
 
 or
 
 .. code-block:: console
 
-    (.venv) $ pip install .[qiskit]
+    (.venv) $ pip install hierarqcal[qiskit]
 
 or
 
 .. code-block:: console
 
-    (.venv) $ pip install .[pennylane]
+    (.venv) $ pip install hierarqcal[pennylane]
 
 or if you only want to use hierarQcal core functionality
 
 .. code-block:: console
 
-    (.venv) $ pip install .
+    (.venv) $ pip install hierarqcal
 
 The package is quantum computing framework independent, there are helper functions for Cirq, Qiskit and Pennylane to represent the circuits in their respective frameworks.
 

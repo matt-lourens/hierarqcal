@@ -1,6 +1,6 @@
 # HierarQcal
 
-<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" padding-right="10" align="left"/>
+<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" style="padding-right:10px" align="left"/>
 
 <p style="height:150px">
 **HierarQcal** is an Open-Source Python Package for Building Custom Quantum Circuits for Machine Learning. The package simplifies the process of creating general quantum convolutional neural networks (QCNN) by enabling an hierarchical design process. With HierarQcal, automatic generation of QCNN circuits is made easy, and it facilitates QCNN search space design for neural architecture search (NAS). The package includes primitives such as <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form complex QCNN circuit architectures.
@@ -39,22 +39,20 @@ $m^3_1\rightarrow \text{QCNN}:$
 m3_1 * 5
 ```
 ## Installation
-<code>HierarQcal</code> will be published soon! For the time being you can install it as follows:
+<code>HierarQcal</code> is hosted on [pypi](https://pypi.org/project/hierarqcal/) and can be installed via pip:
 
-Clone the project and run the following commands (on the `develop` branch):
 ```bash
-cd path/to/project/
-pip install -r requirements_core.txt
 # Based on the quantum computing framework you use, choose one of:
-pip install .[cirq]
+pip install hierarqcal[cirq]
 # or
-pip install .[qiskit]
+pip install hierarqcal[qiskit]
 # or
-pip install .[pennylane]
+pip install hierarqcal[pennylane]
 ```
-The package is quantum computing framework independent, there are helper functions for Cirq, Qiskit and Pennylane to represent the circuits in their respective frameworks. You can also use the the package independent of any framework, to do this install it with:
+
+The package is quantum computing framework independent, there are helper functions for Cirq, Qiskit and Pennylane to represent the circuits in their respective frameworks. You can also use the the package independent of any framework, if you want to do this just run:
 ```bash
-pip install .
+pip install hierarqcal
 ```
 
 ## Tutorial and Documentation
