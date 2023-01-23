@@ -1,6 +1,4 @@
-pip >=22.3.0
--r ../requirements_core.txt
 -e .[cirq,qiskit,pennylane]
 sphinx>=5.3.0
 sphinx_rtd_theme
-myst
+myst-nb
