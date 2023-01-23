@@ -1,6 +1,6 @@
 # HierarQcal
 
-<img src="./img/dalle_img.png" alt="dalle image" style="height:150px;padding-right:10px" align="left"/>
+<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" padding-right="10" align="left"/>
 
 <p style="height:150px">
 **HierarQcal** is an Open-Source Python Package for Building Custom Quantum Circuits for Machine Learning. The package simplifies the process of creating general quantum convolutional neural networks (QCNN) by enabling an hierarchical design process. With HierarQcal, automatic generation of QCNN circuits is made easy, and it facilitates QCNN search space design for neural architecture search (NAS). The package includes primitives such as <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form complex QCNN circuit architectures.
@@ -17,7 +17,7 @@ qcnn = Qfree(8) + (Qconv(stride=1) + Qpool(filter="right")) * 3
 ```
 $\text{QCNN:}$
 
-<img src="./img/rbt_right.png" style="border:solid 2px black;">
+<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/rbt_right.png?raw=true" style="border:solid 2px black;">
 
 ```python
 ### Reverse binary tree
@@ -32,7 +32,7 @@ m3_1 = Qfree(8) + m2_1 * 3
 ```
 $m^3_1\rightarrow \text{QCNN}:$
 
-<img src="./img/rbt_left.png" style="border:solid 2px black;">
+<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/rbt_left.png?raw=true" style="border:solid 2px black;">
 
 ```python
 # extending follows naturally, repeating the above circuit 5 times is just:
@@ -59,17 +59,17 @@ pip install .
 
 ## Tutorial and Documentation
 There are quickstart tutorials for each major Quantum computing framework: 
- - [HierarQcal Cirq Tutorial](./examples/examples_cirq.ipynb)
- - [HierarQcal Qiskit Tutorial](./examples/examples_pennylane.ipynb) 
- - [HierarQcal Pennylane Tutorial](./examples/examples_pennylane.ipynb). 
+ - [HierarQcal Cirq Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_cirq.ipynb)
+ - [HierarQcal Qiskit Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_qiskit.ipynb) 
+ - [HierarQcal Pennylane Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_pennylane.ipynb). 
  
- For more detailed usage see the [documentation](http://www.hierarqcal.github.io/).
+ For more detailed usage see the [documentation](https://matt-lourens.github.io/hierarqcal/index.html).
 
 ## Contributing
-We welcome contributions to the project. Please see the [contribution guidelines](./CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) for more information.
+We welcome contributions to the project. Please see the [contribution guidelines](https://github.com/matt-lourens/hierarqcal/blob/master/CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) for more information.
 
 ## License
-BSD 3-Clause "New" or "Revised" License, see [LICENSE](LICENSE.txt) for more information.
+BSD 3-Clause "New" or "Revised" License, see [LICENSE](https://github.com/matt-lourens/hierarqcal/blob/master/LICENSE.txt) for more information.
 
 ## Citation
 ```latex
