@@ -7,20 +7,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Dependancy
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements_core.txt
-    - name: Build HTML
-      uses: ammaraskar/sphinx-action@master
+    - uses: ammaraskar/sphinx-action@master
+      with:
+        docs-folder: "docs/"
+        pre-build-command: "pip install --upgrade pip && pip install setuptools>=62.3.2 && pip install build>=0.8.0"
+        build-command: "sphinx-build -b html source/ build/"
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
         name: html-docs
-        path: docs/build/html/
+        path: docs/build/
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3
       if: github.ref == 'refs/heads/feature/publish_docs'
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: docs/build/html
+        publish_dir: docs/build/
