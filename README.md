@@ -1,4 +1,4 @@
-# HierarQcal
+# HierarQcal 
 
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" style="padding-right:10px" align="left"/>
 
@@ -8,6 +8,10 @@
 <br/>
 
 *A robot building itself with artifical intelligence, pencil drawing -  generated with* [Dall E 2](https://openai.com/dall-e-2/)
+___
+
+
+[![Unitary Fund](https://img.shields.io/badge/Supported%20By-UNITARY%20FUND-brightgreen.svg?style=for-the-badge)](http://unitary.fund)
 
 
 ## Quick example
@@ -39,6 +43,8 @@ $m^3_1\rightarrow \text{QCNN}:$
 m3_1 * 5
 ```
 ## Installation
+[![PyPI version](https://badge.fury.io/py/hierarqcal.svg)](https://badge.fury.io/py/hierarqcal)
+
 <code>HierarQcal</code> is hosted on [pypi](https://pypi.org/project/hierarqcal/) and can be installed via pip:
 
 ```bash
