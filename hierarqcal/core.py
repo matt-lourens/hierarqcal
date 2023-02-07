@@ -32,7 +32,7 @@ class Primitive_Types(Enum):
 
 class Qmotif:
     """
-    Quantum Circuit architectures are created by stacking motifs hierarchacially, the lowest level motifs (primitives) are building blocks for higher level ones.
+    Quantum Circuit architectures are created by stacking motifs hierarchically, the lowest level motifs (primitives) are building blocks for higher level ones.
     Examples of primitives are convolution (:py:class:`Qconv`), pooling (:py:class:`Qpool`) and dense (:py:class:`Qdense`) operations which inherits this class. Each motif is a directed graph with nodes
     Q for qubits and edges E for unitary operations applied between them, the direction of an edge being the order of interaction for the unitary. Each instance has
     pointers to its predecessor and successor.This class is for a single motif and the Qmotifs class is for a sequence of motifs stored as tuples, then sequences of
