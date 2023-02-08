@@ -36,6 +36,7 @@ exclude_patterns = []
 html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_static_path = ["_static"]
+html_favicon = ".source/img/dalle_img.png"
 
 
 
@@ -49,7 +50,7 @@ copy_tree('img', '../build/img')
 
 
 sys.path.append("../../hierarqcal")
-# This should be the repositroy root
+# This should be the repository root
 sys.path.append("../../")
 sys.path.append("../")
 sys.path.append("../../../")
