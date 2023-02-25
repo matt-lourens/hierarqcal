@@ -47,7 +47,7 @@ def get_param_info_pennylane(qcnn):
     coef_indices = {}
     ind = 0
     for layer in qcnn:
-        if layer.is_default_mapping and layer.function_mapping == None:
+        if layer.is_default_mapping and layer.mapping == None:
             if layer.type in [
                 Primitive_Types.CONVOLUTION.value,
                 Primitive_Types.DENSE.value,
@@ -59,7 +59,7 @@ def get_param_info_pennylane(qcnn):
                 warnings.warn(
                     f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
                 )
-        block, block_param_count = layer.function_mapping
+        block, block_param_count = layer.mapping
         if block_param_count > 0:
             coef_indices[ind] = range(
                 total_coef_count, total_coef_count + block_param_count
@@ -85,7 +85,7 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None):
     if coef_indices == None:
         total_coef_count, coef_indices = get_param_info_pennylane(qcnn=qcnn)
     for layer in qcnn:
-        if layer.is_default_mapping and layer.function_mapping == None:
+        if layer.is_default_mapping and layer.mapping == None:
             if layer.type in [
                 Primitive_Types.CONVOLUTION.value,
                 Primitive_Types.DENSE.value,
@@ -97,7 +97,7 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None):
                 warnings.warn(
                     f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
                 )
-        block, block_param_count = layer.function_mapping
+        block, block_param_count = layer.mapping
         if coef_indices[ind] is None:
             # If layer has no associated params
             for bits in layer.E:

@@ -80,7 +80,7 @@ def convert_graph_to_circuit_qiskit(qcnn):
     symbols = ()
     for layer in qcnn:
         # get relevant function mapping
-        if layer.is_default_mapping and layer.function_mapping == None:
+        if layer.is_default_mapping and layer.mapping == None:
             if layer.type in [
                 Primitive_Types.CONVOLUTION.value,
                 Primitive_Types.DENSE.value,
@@ -92,7 +92,7 @@ def convert_graph_to_circuit_qiskit(qcnn):
                 warnings.warn(
                     f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
                 )
-        block, block_param_count = layer.function_mapping
+        block, block_param_count = layer.mapping
         # Check if new qubits were made available
         current_qs = {qr.name for qr in circuit.qregs}
         required_qs = {f"q{q}" if type(q) == int else q for q in layer.Q_avail}

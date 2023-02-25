@@ -15,9 +15,10 @@ from collections.abc import Sequence
 from enum import Enum
 import warnings
 from copy import copy, deepcopy
-from collections import deque
+from collections import deque, namedtuple
 import numpy as np
 import itertools as it
+import sympy as sp
 
 
 class Primitive_Types(Enum):
@@ -30,13 +31,19 @@ class Primitive_Types(Enum):
     DENSE = "dense"
 
 
+Default_Symbol_Counts = namedtuple(
+    "Default_Symbol_Counts", [pt.value for pt in Primitive_Types]
+)
+default_symbol_counts = Default_Symbol_Counts(1, 0, 1)
+
+
 class Qmotif:
     """
     Quantum Circuit architectures are created by stacking motifs hierarchically, the lowest level motifs (primitives) are building blocks for higher level ones.
     Examples of primitives are convolution (:py:class:`Qconv`), pooling (:py:class:`Qpool`) and dense (:py:class:`Qdense`) operations which inherits this class. Each motif is a directed graph with nodes
     Q for qubits and edges E for unitary operations applied between them, the direction of an edge being the order of interaction for the unitary. Each instance has
     pointers to its predecessor and successor.This class is for a single motif and the Qmotifs class is for a sequence of motifs stored as tuples, then sequences of
-    motifs are again stored as tuples  This is to allow hiearchical stacking which in the end is one tuple of motifs.
+    motifs are again stored as tuples  This is to allow hierarchical stacking which in the end is one tuple of motifs.
     """
 
     def __init__(
@@ -46,10 +53,17 @@ class Qmotif:
         Q_avail=[],
         next=None,
         prev=None,
-        function_mapping=None,
+        mapping=None,
+        symbols=None,
         is_default_mapping=True,
         is_operation=True,
+        share_weights=True,
     ) -> None:
+        """
+        # TODO add description of args especially the new mapping arg
+        Args:
+            mapping tuple(tuple(function, int) or Qcnn): Either a tuple containing the function to execute with it's number of parameters or a Qcnn consisting of just one operational motif   tuple the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+        """
         # Meta information
         self.is_operation = is_operation
         self.is_default_mapping = is_default_mapping
@@ -57,7 +71,9 @@ class Qmotif:
         self.Q = Q
         self.Q_avail = Q_avail
         self.E = E
-        self.function_mapping = function_mapping
+        self.mapping = mapping
+        self.symbols = symbols
+        self.share_weights = share_weights
         # pointers
         self.prev = prev
         self.next = next
@@ -119,22 +135,22 @@ class Qmotif:
 
     def set_Qavail(self, Q_avail):
         """
-        Set the available qubits Q_avail of the motif. This is usually caluclated by the previous motif in the stack, for example pooling removes qubits from being available and
-        would use this fcuntion to update the available qubits after it's action.
+        Set the available qubits Q_avail of the motif. This is usually calculated by the previous motif in the stack, for example pooling removes qubits from being available and
+        would use this function to update the available qubits after it's action.
 
         Args:
             Q_avail (list): List of available qubits.
         """
         self.Q_avail = Q_avail
 
-    def set_mapping(self, function_mapping):
+    def set_mapping(self, mapping):
         """
         Specify the unitary operations applied according to the type of motif.
 
         Args:
-            function_mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+            mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
         """
-        self.function_mapping = function_mapping
+        self.mapping = mapping
 
     def set_next(self, next):
         """
@@ -153,6 +169,24 @@ class Qmotif:
             prev (Qmotif): Previous motif in the stack.
         """
         self.prev = prev
+
+    def set_share_weights(self, share_weights):
+        """
+        Set the share_weights flag.
+
+        Args:
+            share_weights (bool): Whether to share weights within a motif.
+        """
+        self.share_weights = share_weights
+
+    def set_symbols(self, symbols):
+        """
+        Set the symbol's.
+
+        Args:
+            symbols (tuple(sympy.Symbols))
+        """
+        self.symbols = symbols
 
 
 class Qmotifs(tuple):
@@ -202,23 +236,43 @@ class Qconv(Qmotif):
     A convolution motif, used to specify convolution operations in the quantum neural network.
     """
 
-    def __init__(self, stride=1, step=1, offset=0, convolution_mapping=None):
+    def __init__(self, stride=1, step=1, offset=0, qpu=2, **kwargs):
+        """
+        Initialize a convolution motif.
+
+        Args:
+            stride (int, optional): Stride of the convolution. Defaults to 1.
+            step (int, optional): Step of the convolution. Defaults to 1.
+            offset (int, optional): Offset of the convolution. Defaults to 0.
+            qpu (int, optional): Number of qubits per unitary (nodes per edge), two means 2-qubit unitaries, three means 3-qubits unitaries and so on. Defaults to 2.
+        """
         self.type = Primitive_Types.CONVOLUTION.value
+        self.sub_type = (
+            None  # This gets updated when the motifs mapping was another motif.
+        )
         self.stride = stride
         self.step = step
         self.offset = offset
+        self.qpu = qpu
         # Specify sequence of gates:
-        if convolution_mapping is None:
-            # default convolution layer is defined as U with 1 paramater.
+        mapping = kwargs.get("mapping", None)
+        motif_symbols = None
+        if mapping is None:
+            # default convolution layer is defined as U with 1 parameter.
             is_default_mapping = True
+            # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
+            motif_symbols = sp.symbols(f"x_{0}:{1}")
         else:
             is_default_mapping = False
+            if isinstance(mapping, Qcnn):
+                motif_symbols = mapping.symbols
+            else:
+                motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
+        kwargs["symbols"] = motif_symbols
         # Initialize graph
-        super().__init__(
-            function_mapping=convolution_mapping, is_default_mapping=is_default_mapping
-        )
+        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
 
-    def __call__(self, Qc_l, *args, **kwds):
+    def __call__(self, Qc_l, *args, **kwargs):
         """
         Call the motif, this generates the edges and qubits of the motif (directed graph) based on it's available qubits.
         Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
@@ -226,7 +280,7 @@ class Qconv(Qmotif):
         Args:
             Qc_l (list): List of available qubits.
             *args: Variable length argument list.
-            **kwds: Arbitrary keyword arguments, such as:
+            **kwargs: Arbitrary keyword arguments, such as:
 
                 * mapping (tuple(function, int)):
                     Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
@@ -235,25 +289,26 @@ class Qconv(Qmotif):
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
         # Determine convolution operation
-        nq_avaiable = len(Qc_l)
-        if self.stride % nq_avaiable == 0:
+        nq_available = len(Qc_l)
+        if self.stride % nq_available == 0:
             # TODO make this clear in documentation
             # warnings.warn(
-            #     f"Stride and number of avaiable qubits can't be the same, recieved:\nstride: {self.stride}\navaiable qubits:{nq_avaiable}. Deafulting to stride of 1"
+            #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
             # )
             self.stride = 1
-        mod_nq = lambda x: x % nq_avaiable
+        mod_nq = lambda x: x % nq_available
         Ec_l = [
-            (Qc_l[mod_nq(i)], Qc_l[mod_nq(i + self.stride)])
-            for i in range(self.offset, nq_avaiable, self.step)
+            tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
+            for i in range(self.offset, nq_available, self.step)
         ]
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
+            # If there are only two edges, and they are the same, then we can remove one of them
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
         self.set_E(Ec_l)
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
-        mapping = kwds.get("mapping", None)
+        mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
         return self
@@ -264,22 +319,32 @@ class Qdense(Qmotif):
     A dense motif, it connects unitaries to all possible combinations of qubits (all possible edges given Q) in the quantum circuit.
     """
 
-    def __init__(self, permutations=False, function_mapping=None):
+    def __init__(self, qpu=2, permutations=False, **kwargs):
         self.type = Primitive_Types.DENSE.value
+        self.sub_type = (
+            None  # This gets updated when the motifs mapping was another motif.
+        )
+        self.qpu = qpu
         self.permutations = permutations
         # Specify sequence of gates:
-        if function_mapping is None:
-            # default convolution layer is defined as U with 10 paramaters.
-            # function_mapping = (U, 1) TODO remove
+        mapping = kwargs.get("mapping", None)
+        motif_symbols = None
+        if mapping is None:
+            # default convolution layer is defined as U with 1 parameter.
             is_default_mapping = True
+            # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
+            motif_symbols = sp.symbols(f"x_{0}:{1}")
         else:
             is_default_mapping = False
+            if isinstance(mapping, Qcnn):
+                motif_symbols = mapping.symbols
+            else:
+                motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
+        kwargs["symbols"] = motif_symbols
         # Initialize graph
-        super().__init__(
-            function_mapping=function_mapping, is_default_mapping=is_default_mapping
-        )
+        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
 
-    def __call__(self, Qc_l, *args, **kwds):
+    def __call__(self, Qc_l, *args, **kwargs):
         """
         Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on it's available qubits.
         Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
@@ -287,7 +352,7 @@ class Qdense(Qmotif):
         Args:
             Qc_l (list): List of available qubits.
             *args: Variable length argument list.
-            **kwds: Arbitrary keyword arguments, such as:
+            **kwargs: Arbitrary keyword arguments, such as:
 
                 * mapping (tuple(function, int)):
                     Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
@@ -297,16 +362,16 @@ class Qdense(Qmotif):
         """
         # All possible wire combinations
         if self.permutations:
-            Ec_l = list(it.permutations(Qc_l, r=2))
+            Ec_l = list(it.permutations(Qc_l, r=self.qpu))
         else:
-            Ec_l = list(it.combinations(Qc_l, r=2))
+            Ec_l = list(it.combinations(Qc_l, r=self.qpu))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
         self.set_E(Ec_l)
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
-        mapping = kwds.get("mapping", None)
+        mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
         return self
@@ -318,22 +383,39 @@ class Qpool(Qmotif):
     This motif changes the available qubits for the next motif in the stack.
     """
 
-    def __init__(self, stride=0, filter="right", pooling_mapping=None):
+    def __init__(
+        self, stride=0, filter="right", nearest_neighbor=None, qpu=2, **kwargs
+    ):
+        """
+        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
+        """
         self.type = Primitive_Types.POOLING.value
+        self.sub_type = (
+            None  # This gets updated when the motifs mapping was another motif.
+        )
         self.stride = stride
+        self.qpu = qpu  # TODO this might always have to be 2
         self.pool_filter_fn = self.get_pool_filter_fn(filter)
+        self.nearest_neighbor = nearest_neighbor
         # Specify sequence of gates:
-        if pooling_mapping is None:
-            # pooling_mapping = (V, 0) TODO remove this line
+        mapping = kwargs.get("mapping", None)
+        motif_symbols = None
+        if mapping is None:
+            # default convolution layer is defined as U with 1 parameter.
             is_default_mapping = True
+            # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
+            motif_symbols = sp.symbols(f"x_{0}:{1}")
         else:
             is_default_mapping = False
+            if isinstance(mapping, Qcnn):
+                motif_symbols = mapping.symbols
+            else:
+                motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
+        kwargs["symbols"] = motif_symbols
         # Initialize graph
-        super().__init__(
-            function_mapping=pooling_mapping, is_default_mapping=is_default_mapping
-        )
+        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
 
-    def __call__(self, Qp_l, *args, **kwds):
+    def __call__(self, Qp_l, *args, **kwargs):
         """
         Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on it's available qubits.
         Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
@@ -341,7 +423,7 @@ class Qpool(Qmotif):
         Args:
             Qp_l (list): List of available qubits.
             *args: Variable length argument list.
-            **kwds: Arbitrary keyword arguments, such as:
+            **kwargs: Arbitrary keyword arguments, such as:
 
                 * mapping (tuple(function, int)):
                     Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
@@ -353,10 +435,40 @@ class Qpool(Qmotif):
             measured_q = self.pool_filter_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
             if len(remaining_q) > 0:
-                Ep_l = [
-                    (measured_q[i], remaining_q[(i + self.stride) % len(remaining_q)])
-                    for i in range(len(measured_q))
-                ]
+                if self.nearest_neighbor != None:
+                    # TODO add neirest neighbor modulo nq
+                    if self.nearest_neighbor == "circle":
+                        Ep_l = [
+                            (
+                                Qp_l[Qp_l.index(i)],
+                                min(
+                                    remaining_q,
+                                    key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
+                                    % len(remaining_q)
+                                    // 2,
+                                ),
+                            )
+                            for i in measured_q
+                        ]
+                    elif self.nearest_neighbor == "tower":
+                        Ep_l = [
+                            (
+                                Qp_l[Qp_l.index(i)],
+                                min(
+                                    remaining_q,
+                                    key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x)),
+                                ),
+                            )
+                            for i in measured_q
+                        ]
+                else:
+                    Ep_l = [
+                        (
+                            measured_q[i],
+                            remaining_q[(i + self.stride) % len(remaining_q)],
+                        )
+                        for i in range(len(measured_q))
+                    ]
             else:
                 # No qubits were pooled
                 Ep_l = []
@@ -373,7 +485,7 @@ class Qpool(Qmotif):
         self.set_Q(Qp_l)
         self.set_E(Ep_l)
         self.set_Qavail(remaining_q)
-        mapping = kwds.get("mapping", None)
+        mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
         return self
@@ -384,7 +496,7 @@ class Qpool(Qmotif):
 
         Args:
             pool_filter (str or lambda): The filter type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
-                                            The string can also be a bitstring, i.e. "01000" which pools the 2nd qubit.
+                                            The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
                                             If a lambda function is passed, it is used as the filter function, it should work as follow: pool_filter_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
                                             the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
@@ -460,7 +572,7 @@ class Qcnn:
     It also handles function (unitary operation) mappings.
     """
 
-    def __init__(self, qubits, function_mappings={}) -> None:
+    def __init__(self, qubits, function_mappings={}, symbols=None) -> None:
         # Set available qubit
         if isinstance(qubits, Qmotif):
             self.tail = qubits
@@ -472,6 +584,41 @@ class Qcnn:
         self.mapping_counter = {
             primitive_type.value: 1 for primitive_type in Primitive_Types
         }
+        self.symbols = sp.symbols("x_0:0")
+
+    def update_symbols(self, motif, n_symbols=None, n_parent_unitaries=None):
+        mapping = motif.mapping
+        current_symbol_count = len(self.symbols)
+        if n_symbols is None:
+            # This is the normal case
+            if mapping is None:
+                n_symbols = getattr(default_symbol_counts, motif.type)
+            else:
+                n_symbols = mapping[1]
+            if motif.share_weights == True:
+                new_symbols = sp.symbols(
+                    f"x_{current_symbol_count}:{current_symbol_count+n_symbols}"
+                )
+            else:
+                n_unitaries = len(motif.E)
+                new_symbols = sp.symbols(
+                    f"x_{current_symbol_count}:{current_symbol_count+n_unitaries*n_symbols}"
+                )
+            motif.set_symbols(new_symbols)
+            self.symbols = self.symbols + new_symbols
+        else:
+            # This is the case where a sub qcnn was used as a mapping
+            if motif.share_weights == True:
+                new_symbols = sp.symbols(
+                    f"x_{current_symbol_count}:{current_symbol_count+n_symbols}"
+                )
+            else:
+                # n_map_symbols is the number of symbols that the subqcnn motif used
+                new_symbols = sp.symbols(
+                    f"x_{current_symbol_count}:{current_symbol_count+n_parent_unitaries*n_symbols}"
+                )
+            motif.set_symbols(new_symbols)
+            self.symbols = self.symbols + new_symbols
 
     def append(self, motif):
         """
@@ -484,6 +631,7 @@ class Qcnn:
             Qcnn: A new Qcnn object with the new motif added to the stack.
         """
         motif = deepcopy(motif)
+
         if motif.is_operation & motif.is_default_mapping:
             mapping = None
             # If no function mapping was provided
@@ -496,8 +644,54 @@ class Qcnn:
                     {motif.type: self.mapping_counter.get(motif.type) + 1}
                 )
             motif(self.head.Q_avail, mapping=mapping)
+            self.update_symbols(motif)
+        elif motif.is_operation & isinstance(motif.mapping, Qcnn):
+            """
+            The goal is to map a parents edges like motif.E = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 7), (6, 7, 8), (7, 8, 9), (8, 9, 1), (9, 1, 2)]
+            to the edges of the motif we want to build it from, like sub_qcnn.head.E = [(1, 2), (1, 3), (2, 3)]
+            First we need to generate the motif with a qpu equal to the tail of the sub_qcnn, then we need to map the edges of the parent motif to the edges of the child motif
+            and finally we need to update the parent motif with the new edges and nodes, it's qpu ends up with the same as the qpu of the child motif.
+            What should the parent inherit from the child? The function mapping, qpu and weights and sub types.
+            """
+            # Mapping is a Qcnn object, we only need to check the first element of the tuple, as it's either a tuple of tuples (for function mapping) or a tuple of Qcnns (for Qcnn mapping)
+            # TODO assumption only subqcnn only has 1 layer, 1 motif i.e. a Qfree tail and a Qmotif Head
+
+            # Copy sub Qcnn
+            sub_qcnn = deepcopy(
+                motif.mapping
+            )  # TODO need to do this in a loop for multiple sub qcnns
+            # TODO test sub_qcnn has less qubits than the parent qcnn
+            motif.qpu = len(sub_qcnn.tail.Q_avail)
+            # Generate edges with qpu based on sub_qcnn tail (the total number of qubits the sub qcnn acts on)
+            motif(self.head.Q_avail, mapping=sub_qcnn.head.mapping)
+            n_parent_unitaries = len(motif.E)
+            E_parent = np.array(motif.E)
+            E_child = np.array(sub_qcnn.head.E)
+            # Get the corresponding indices since the nodes are just labels
+            E_child_idx = np.searchsorted(sub_qcnn.head.Q_avail, E_child)
+            E_parent_new = [
+                tuple(parent_edge[idx])
+                for parent_edge in E_parent
+                for idx in E_child_idx
+            ]
+            # Change motifs qpu to sub_qcnns layer
+            motif.qpu = sub_qcnn.head.qpu
+            # Update symbols
+            motif(self.head.Q_avail)
+            # overwrite parent edges with new edges
+            motif.is_default_mapping = sub_qcnn.head.is_default_mapping
+            motif.set_mapping(sub_qcnn.head.mapping)
+            motif.set_E(deepcopy(E_parent_new))
+            motif.sub_type = sub_qcnn.head.type
+            self.update_symbols(
+                motif,
+                n_symbols=len(sub_qcnn.symbols),
+                n_parent_unitaries=n_parent_unitaries,
+            )
         else:
             motif(self.head.Q_avail)
+            self.update_symbols(motif)
+
         new_qcnn = deepcopy(self)
         new_qcnn.head.set_next(motif)
         new_qcnn.head = new_qcnn.head.next
@@ -627,18 +821,18 @@ class Qfree(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q) -> None:
+    def __init__(self, Q, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qfree = Q
         elif type(Q) == int:
             Qfree = [i + 1 for i in range(Q)]
         self.type = "special"
         # Initialize graph
-        super().__init__(Q=Qfree, Q_avail=Qfree, is_operation=False)
+        super().__init__(Q=Qfree, Q_avail=Qfree, is_operation=False, **kwargs)
 
     def __add__(self, other):
         """
-        Add a motif, motifs or qcnn to the stack with self.Qfree availabe qubits.
+        Add a motif, motifs or qcnn to the stack with self.Qfree available qubits.
         """
         return Qcnn(self) + other
 
@@ -649,3 +843,16 @@ class Qfree(Qmotif):
         self.set_Q(self.Q)
         self.set_Qavail(self.Q)
         return self
+
+
+# u3 = Qpool(15, filter="101101101101101")
+# m1 = Qfree(15) + u3
+# # m = Qfree(3) + Qdense(permutations=True, share_weights=False)
+# # m = Qfree(8) + Qpool(filter="right")
+# # m1 = Qfree(16) + Qconv(1, 3, 2, mapping=m)
+
+# print("alo")
+# print("ola")
+# Specific to cirq
+# import cirq
+# from cirq.contrib.svg import SVGCircuit
