@@ -301,8 +301,12 @@ class Qconv(Qmotif):
             tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
             for i in range(self.offset, nq_available, self.step)
         ]
-        if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
-            # If there are only two edges, and they are the same, then we can remove one of them
+        if (
+            len(Ec_l) == self.qpu
+            and sum([len(set(Ec_l[0]) - set(Ec_l[k])) == 0 for k in range(self.qpu)])
+            == self.qpu
+        ):
+            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
         self.set_E(Ec_l)
