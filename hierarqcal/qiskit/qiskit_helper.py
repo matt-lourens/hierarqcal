@@ -1,9 +1,11 @@
 """
 Helper functions for qiskit
 """
+import numpy as np
 from hierarqcal.core import Primitive_Types
 import warnings
 from qiskit.circuit import Parameter, QuantumCircuit, QuantumRegister
+
 
 # Default convolution circuit
 def U(bits, symbols=None, circuit=None):
@@ -69,6 +71,7 @@ def convert_graph_to_circuit_qiskit(qcnn):
             * symbols (tuple(Parameter)): Tuple of symbols (rotation angles) as a Qiskit Parameter object.
     """
     circuit = QuantumCircuit()
+    symbols = ()
     for q in qcnn.tail.Q:
         if type(q) == int:
             # If bits were provided as ints then the qubit will be named "q0" and "q1"
@@ -76,21 +79,25 @@ def convert_graph_to_circuit_qiskit(qcnn):
         else:
             # Assume bits are strings and in the correct QASM format
             circuit.add_register(QuantumRegister(1, q))
-    total_coef_count = 0
-    symbols = ()
     for layer in qcnn:
+        layer_coef_count = 0
         # get relevant function mapping
         if layer.is_default_mapping and layer.mapping == None:
-            if layer.type in [
+            type_check = layer.sub_type if layer.sub_type else layer.type
+            if type_check in [
                 Primitive_Types.CONVOLUTION.value,
                 Primitive_Types.DENSE.value,
             ]:
-                layer.set_mapping((U, 1))
-            elif layer.type in [Primitive_Types.POOLING.value]:
+                if layer.qpu == 3:
+                    # layer.set_mapping((U3, 1)) TODO
+                    pass
+                else:
+                    layer.set_mapping((U, 1))
+            elif type_check in [Primitive_Types.POOLING.value]:
                 layer.set_mapping((V, 0))
             else:
                 warnings.warn(
-                    f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
+                    f"No default function mapping for primitive type: {type_check}, please provide a mapping manually"
                 )
         block, block_param_count = layer.mapping
         # Check if new qubits were made available
@@ -100,22 +107,21 @@ def convert_graph_to_circuit_qiskit(qcnn):
         if q_diff:
             for q in q_diff:
                 circuit.add_register(QuantumRegister(1, q))
-        if block_param_count > 0:
-            layer_symbols = tuple(
-                [
-                    Parameter(f"x_{i}")
-                    for i in range(
-                        total_coef_count, total_coef_count + block_param_count, 1
-                    )
-                ]
-            )
-            symbols += layer_symbols
-            total_coef_count = total_coef_count + block_param_count
         for bits in layer.E:
             if block_param_count > 0:
-                circuit = block(bits, layer_symbols, circuit)
+                layer_symbols = layer.symbols[
+                    layer_coef_count : layer_coef_count + block_param_count
+                ]
+                if len(layer.symbols) > layer_coef_count + block_param_count:
+                    layer_coef_count = layer_coef_count + block_param_count
+                else:
+                    layer_coef_count = 0
+                # Convert layer symbols to qiskit Parameter
+                layer_symbols_q = tuple([Parameter(s.name) for s in layer_symbols])
+                symbols += layer_symbols_q
+                circuit = block(bits, np.array(layer_symbols_q), circuit)
             else:
-                # If the circuit has no paramaters then the only argument is bits
+                # If the circuit has no parameters then the only argument is bits
                 circuit = block(bits, circuit=circuit)
         # Add barrier between layers, except the last one.
         if layer.next:
