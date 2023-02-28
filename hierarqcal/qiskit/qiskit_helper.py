@@ -2,6 +2,7 @@
 Helper functions for qiskit
 """
 import numpy as np
+import sympy as sp
 from hierarqcal.core import Primitive_Types
 import warnings
 from qiskit.circuit import Parameter, QuantumCircuit, QuantumRegister
@@ -107,18 +108,37 @@ def convert_graph_to_circuit_qiskit(qcnn):
         if q_diff:
             for q in q_diff:
                 circuit.add_register(QuantumRegister(1, q))
+        layer_symbols_q = None
         for bits in layer.E:
             if block_param_count > 0:
                 layer_symbols = layer.symbols[
                     layer_coef_count : layer_coef_count + block_param_count
-                ]
+                ]                
                 if len(layer.symbols) > layer_coef_count + block_param_count:
                     layer_coef_count = layer_coef_count + block_param_count
+                    if isinstance(layer_symbols[0], sp.Symbol):
+                        # If symbols are symbolic
+                        layer_symbols_q = tuple([Parameter(s.name) for s in layer_symbols])
+                        symbols += layer_symbols_q
+                    else:
+                        # If symbols arent symbolic then we can just use them
+                        layer_symbols_q = layer_symbols
+                        symbols += tuple(layer_symbols_q)
                 else:
-                    layer_coef_count = 0
+                    layer_coef_count = 0                    
+                    if isinstance(layer_symbols[0], sp.Symbol):
+                        # If symbols are symbolic
+                        if layer_symbols_q is None:
+                            # Convert to qiskits "symbolic" Parameter class
+                            # This should only be true during first iteration of loop, for the case when the layer symbols are shared (the same)
+                            layer_symbols_q = tuple([Parameter(s.name) for s in layer_symbols])
+                            symbols += layer_symbols_q
+                    else:
+                        # If symbols arent symbolic then we can just use them
+                        layer_symbols_q = layer_symbols
+                        symbols += tuple(layer_symbols_q)
+
                 # Convert layer symbols to qiskit Parameter
-                layer_symbols_q = tuple([Parameter(s.name) for s in layer_symbols])
-                symbols += layer_symbols_q
                 circuit = block(bits, np.array(layer_symbols_q), circuit)
             else:
                 # If the circuit has no parameters then the only argument is bits
