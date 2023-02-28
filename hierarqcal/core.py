@@ -624,6 +624,34 @@ class Qcnn:
             motif.set_symbols(new_symbols)
             self.symbols = self.symbols + new_symbols
 
+    def init_symbols(self, values=None, uniform_range=(0, 2 * np.pi)):
+        # If values is None, then the values will be initialise uniformly based on the range given in init_uniform
+        # If values is a dictionary, then the keys should be the symbols and the values should be the values to substitute
+        # If values is a list/array/tuple, then the values will be substituted in the order of self.symbols
+
+        if values is None:
+            values = np.random.uniform(*uniform_range, size=len(self.symbols))
+            self.symbols = values
+        elif isinstance(values, dict):
+            values = self.symbols.subs(values)
+        elif isinstance(values, (list, tuple, np.ndarray)):
+            # First check that the length of values is the same as the number of symbols
+            if len(values) != len(self.symbols):
+                raise ValueError(
+                    f"values must be the same length as the number of symbols ({len(self.symbols)})"
+                )
+            # Substitute the values in the order of self.symbols
+            self.symbols = np.array(values)
+        else:
+            raise ValueError(
+                "values must be None, a dictionary, or a list/tuple/array of values"
+            )
+        # Update the symbols in each motif
+        cur_symbol_count = 0
+        for motif in self:
+            motif.set_symbols(self.symbols[cur_symbol_count:cur_symbol_count + len(motif.symbols)])
+            cur_symbol_count = cur_symbol_count + len(motif.symbols)
+        
     def append(self, motif):
         """
         Add a motif to the stack of motifs and update it (call to generate nodes and edges) according to the action of the previous motifs in the stack.
