@@ -139,7 +139,7 @@ def convert_graph_to_circuit_qiskit(qcnn):
                         symbols += tuple(layer_symbols_q)
 
                 # Convert layer symbols to qiskit Parameter
-                circuit = block(bits, np.array(layer_symbols_q), circuit)
+                circuit = block(bits, layer_symbols_q, circuit)
             else:
                 # If the circuit has no parameters then the only argument is bits
                 circuit = block(bits, circuit=circuit)
