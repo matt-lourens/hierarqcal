@@ -234,9 +234,12 @@ class Qmotifs(tuple):
 class Qconv(Qmotif):
     """
     A convolution motif, used to specify convolution operations in the quantum neural network.
+    TODO implement open boundary for dense and pooling also + tests
     """
 
-    def __init__(self, stride=1, step=1, offset=0, qpu=2, **kwargs):
+    def __init__(
+        self, stride=1, step=1, offset=0, qpu=2, boundary="periodic", **kwargs
+    ):
         """
         Initialize a convolution motif.
 
@@ -254,6 +257,7 @@ class Qconv(Qmotif):
         self.step = step
         self.offset = offset
         self.qpu = qpu
+        self.boundary = boundary
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         motif_symbols = None
@@ -296,11 +300,27 @@ class Qconv(Qmotif):
             #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
             # )
             self.stride = 1
-        mod_nq = lambda x: x % nq_available
-        Ec_l = [
-            tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
-            for i in range(self.offset, nq_available, self.step)
-        ]
+        if self.boundary == "open":
+            mod_nq = lambda x: x % nq_available
+            Ec_l = [
+                tuple(
+                    (
+                        Qc_l[i + j * self.stride]
+                        for j in range(self.qpu)
+                        if i + j * self.stride < nq_available
+                    )
+                )
+                for i in range(self.offset, nq_available, self.step)
+            ]
+            # Remove all that is not "complete"
+            Ec_l = [edge for edge in Ec_l if len(edge) == self.qpu]
+
+        else:
+            mod_nq = lambda x: x % nq_available
+            Ec_l = [
+                tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
+                for i in range(self.offset, nq_available, self.step)
+            ]
         if (
             len(Ec_l) == self.qpu
             and sum([len(set(Ec_l[0]) - set(Ec_l[k])) == 0 for k in range(self.qpu)])
@@ -634,24 +654,50 @@ class Qcnn:
             self.symbols = values
         elif isinstance(values, dict):
             values = self.symbols.subs(values)
-        elif isinstance(values, (list, tuple, np.ndarray)):
+        else:
             # First check that the length of values is the same as the number of symbols
             if len(values) != len(self.symbols):
                 raise ValueError(
                     f"values must be the same length as the number of symbols ({len(self.symbols)})"
                 )
             # Substitute the values in the order of self.symbols
-            self.symbols = np.array(values)
+            self.symbols = values
+        # Update the symbols in each motif
+        cur_symbol_count = 0
+        for primitive in self:
+            primitive.symbols = self.symbols[
+                cur_symbol_count : cur_symbol_count + len(primitive.symbols)
+            ]
+            # motif.set_symbols(self.symbols[cur_symbol_count:cur_symbol_count + len(motif.symbols)])
+            cur_symbol_count = cur_symbol_count + len(primitive.symbols)
+
+    def update_motif_symbols(self, motif, values=None, uniform_range=(0, 2 * np.pi)):
+        # Symbols need to be numeric at this point, TODO add test, or find a better way to handle them
+
+        if values is None:
+            values = np.random.uniform(*uniform_range, size=len(motif.symbols))
+            motif.set_symbols(values)
+        elif isinstance(values, (list, tuple, np.ndarray)):
+            # First check that the length of values is the same as the number of symbols
+            if len(values) != len(motif.symbols):
+                raise ValueError(
+                    f"values must be the same length as the number of symbols ({len(motif.symbols)})"
+                )
+            # Substitute the values in the order of self.symbols
+            motif.set_symbols(values)
         else:
             raise ValueError(
                 "values must be None, a dictionary, or a list/tuple/array of values"
             )
-        # Update the symbols in each motif
+
+        # Update overall symbols based on motifs
         cur_symbol_count = 0
-        for motif in self:
-            motif.set_symbols(self.symbols[cur_symbol_count:cur_symbol_count + len(motif.symbols)])
-            cur_symbol_count = cur_symbol_count + len(motif.symbols)
-        
+        for tmp_motif in self:
+            self.symbols[
+                cur_symbol_count : cur_symbol_count + len(tmp_motif.symbols)
+            ] = tmp_motif.symbols
+            cur_symbol_count = cur_symbol_count + len(tmp_motif.symbols)
+
     def append(self, motif):
         """
         Add a motif to the stack of motifs and update it (call to generate nodes and edges) according to the action of the previous motifs in the stack.
@@ -788,6 +834,13 @@ class Qcnn:
         while motif.next is not None:
             motif = motif.next(motif.Q_avail)
 
+    def copy(self):
+        """
+        Returns:
+            Qcnn: A copy of the current Qcnn object.
+        """
+        return deepcopy(self)
+
     def __add__(self, other):
         """
         Add a motif, motifs or qcnn to the stack.
@@ -877,14 +930,11 @@ class Qfree(Qmotif):
         return self
 
 
-# u3 = Qpool(15, filter="101101101101101")
-# m1 = Qfree(15) + u3
-# # m = Qfree(3) + Qdense(permutations=True, share_weights=False)
-# # m = Qfree(8) + Qpool(filter="right")
-# # m1 = Qfree(16) + Qconv(1, 3, 2, mapping=m)
+# import torch
 
-# print("alo")
-# print("ola")
-# Specific to cirq
-# import cirq
-# from cirq.contrib.svg import SVGCircuit
+
+# motif = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3
+# w = torch.randn(len(motif.symbols), requires_grad=True)
+# motif.init_symbols(w)
+# print("Yo")
+# %%
