@@ -71,7 +71,7 @@ def get_param_info_pennylane(qcnn):
     return total_coef_count, coef_indices
 
 
-def execute_circuit_pennylane(qcnn, params, coef_indices=None):
+def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
     """
     The main helper function for pennylane, it takes a qcnn(:py:class:`hierarqcal.core.Qcnn`) object that describes the cicruit architecture
     and executes the function mappings in the correct order with the correct parameters/symbols.
@@ -80,6 +80,7 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None):
         qcnn (hierarqcal.core.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (:py:class:`hierarqcal.core.Qmotif`)
         params (tuple(float)): Tuple of symbol values (rotation angles)
         coef_indices (dict): Dictionary of indices for each motif, if None, it will be calculated automatically
+        barriers (bool): If True, barriers will be inserted between each motif
     """
     ind = 0
     if coef_indices == None:
@@ -106,3 +107,5 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None):
             for bits in layer.E:
                 block(bits=bits, symbols=params[coef_indices[ind]])
         ind = ind + 1
+        if barriers:
+            qml.Barrier(wires=layer.Q_avail)
