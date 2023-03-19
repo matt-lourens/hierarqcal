@@ -321,6 +321,8 @@ class Qconv(Qmotif):
                 tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
                 for i in range(self.offset, nq_available, self.step)
             ]
+            # Remove all that is not "complete", i.e. contain duplicates
+            Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.qpu]
         if (
             len(Ec_l) == self.qpu
             and sum([len(set(Ec_l[0]) - set(Ec_l[k])) == 0 for k in range(self.qpu)])
@@ -412,6 +414,7 @@ class Qpool(Qmotif):
     ):
         """
         TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
+        TODO Open, Periodic boundary
         """
         self.type = Primitive_Types.POOLING.value
         self.sub_type = (
@@ -419,8 +422,8 @@ class Qpool(Qmotif):
         )
         self.stride = stride
         self.qpu = qpu  # TODO this might always have to be 2
-        self.pool_filter_fn = self.get_pool_filter_fn(filter)
         self.nearest_neighbor = nearest_neighbor
+        self.filter = filter
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         motif_symbols = None
@@ -456,11 +459,12 @@ class Qpool(Qmotif):
             Qpool: Returns the updated version of itself, with correct nodes and edges.
         """
         if len(Qp_l) > 1:
+            self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
             measured_q = self.pool_filter_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
             if len(remaining_q) > 0:
                 if self.nearest_neighbor != None:
-                    # TODO add neirest neighbor modulo nq
+                    # TODO add nearest neighbor modulo nq
                     if self.nearest_neighbor == "circle":
                         Ep_l = [
                             (
@@ -514,7 +518,7 @@ class Qpool(Qmotif):
             self.set_mapping(mapping)
         return self
 
-    def get_pool_filter_fn(self, pool_filter):
+    def get_pool_filter_fn(self, pool_filter, Qp_l=[]):
         """
         Get the filter function for the pooling operation.
 
@@ -524,8 +528,9 @@ class Qpool(Qmotif):
                                             If a lambda function is passed, it is used as the filter function, it should work as follow: pool_filter_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
                                             the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
+            Qp_l (list): List of available qubits.
         """
-        if type(pool_filter) is str:
+        if isinstance(pool_filter,str):
             # Mapping words to the filter type
             if pool_filter == "left":
                 # 0 1 2 3 4 5 6 7
@@ -579,11 +584,22 @@ class Qpool(Qmotif):
                 # For example "01001" removes idx 1 and 4 or qubit 2 and 5
                 # The important thing here is for pool filter to be the same length as the current number of qubits
                 # TODO add functionality to either pad or infer a filter from a string such as "101"
-                pool_filter_fn = lambda arr: [
-                    item
-                    for item, indicator in zip(arr, pool_filter)
-                    if indicator == "1"
-                ]
+                if len(pool_filter) == len(Qp_l):
+                    pool_filter_fn = lambda arr: [
+                        item
+                        for item, indicator in zip(arr, pool_filter)
+                        if indicator == "1"
+                    ]
+                else:
+                    # Attempt to use the filter as a base pattern
+                    # TODO explain in docs and maybe print a warning
+                    # For example "101" will be used as "10110110" if there are 8 qubits
+                    base = pool_filter * (len(Qp_l) // len(pool_filter))
+                    base = base[: len(Qp_l)]
+                    pool_filter_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
+
         else:
             pool_filter_fn = pool_filter
         return pool_filter_fn
@@ -899,6 +915,14 @@ class Qcnn:
                 yield current
             current = current.next
 
+    def __repr__(self) -> str:
+        description = ""
+        current = self.tail
+        while current is not None:
+            if current.is_operation:
+                description+=f"{repr(vars(current))}\n"
+            current = current.next
+        return description
 
 class Qfree(Qmotif):
     """
@@ -934,7 +958,7 @@ class Qfree(Qmotif):
 
 
 # motif = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3
-# w = torch.randn(len(motif.symbols), requires_grad=True)
+# repr(motif)
 # motif.init_symbols(w)
 # print("Yo")
 # %%
