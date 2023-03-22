@@ -17,6 +17,16 @@ def V(bits, symbols=None):
     """
     qml.CNOT(wires=[bits[0], bits[1]])
 
+def V3(bits, symbols=None):
+    """
+    Default pooling circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.
+
+    Args:
+        bits (list): List of qubit indices/labels
+        symbols (tuple(float)): Tuple of symbol values (rotation angles).
+    """
+    qml.CNOT(wires=[bits[0], bits[1]])
+    qml.CNOT(wires=[bits[2], bits[1]])
 
 def U(bits, symbols=None):
     """
@@ -109,3 +119,31 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
         ind = ind + 1
         if barriers:
             qml.Barrier(wires=layer.Q_avail)
+
+
+# #import pennylane as qml
+# from hierarqcal.core import Qcnn, Qfree, Qconv, Qpool, Qdense
+# import numpy as np
+
+
+# # Specify QNode
+# dev = qml.device("default.qubit", wires=[i + 1 for i in range(8)])
+
+
+# @qml.qnode(dev)
+# def circuit(motif, params):
+#     response_wire = motif.head.Q_avail[-1]  # This is the 'last' available qubit
+#     execute_circuit_pennylane(motif, params)  # This executes the compute graph in order
+#     return qml.expval(qml.PauliZ(response_wire))
+
+
+# # Specify drawer
+# qml.drawer.use_style("black_white")
+# # Get param info
+# motif = Qfree(15)+ Qpool(1, filter="101", step=3, qpu=3, mapping=(V3,0), boundary="open")
+# total_coef_count, coef_indices = get_param_info_pennylane(motif)
+# params = np.random.uniform(0, np.pi, total_coef_count)
+
+# # Draw
+# fig, ax = qml.draw_mpl(circuit)(motif, params)
+# print("Oppa!")

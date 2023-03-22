@@ -238,9 +238,18 @@ class Qconv(Qmotif):
     """
 
     def __init__(
-        self, stride=1, step=1, offset=0, qpu=2, boundary="periodic", **kwargs
+        self,
+        stride=1,
+        step=1,
+        offset=0,
+        qpu=2,
+        boundary="periodic",
+        edge_order=[1],
+        **kwargs,
     ):
         """
+        TODO determine if boundary is the best name for this, or if it should be called something else.
+        TODO docstring for edge order, importantly it's based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge
         Initialize a convolution motif.
 
         Args:
@@ -258,6 +267,7 @@ class Qconv(Qmotif):
         self.offset = offset
         self.qpu = qpu
         self.boundary = boundary
+        self.edge_order = edge_order
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         motif_symbols = None
@@ -331,6 +341,15 @@ class Qconv(Qmotif):
             # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
+        # Set order of edges
+        if 0 in self.edge_order:
+            # Raise error if 0 is in edge order
+            raise ValueError(
+                "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
+            )
+        Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
+        Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
+        Ec_l = Ec_l_ordered + Ec_l_rest
         self.set_E(Ec_l)
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
@@ -345,13 +364,14 @@ class Qdense(Qmotif):
     A dense motif, it connects unitaries to all possible combinations of qubits (all possible edges given Q) in the quantum circuit.
     """
 
-    def __init__(self, qpu=2, permutations=False, **kwargs):
+    def __init__(self, qpu=2, permutations=False, edge_order=[1], **kwargs):
         self.type = Primitive_Types.DENSE.value
         self.sub_type = (
             None  # This gets updated when the motifs mapping was another motif.
         )
         self.qpu = qpu
         self.permutations = permutations
+        self.edge_order = edge_order
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         motif_symbols = None
@@ -394,6 +414,15 @@ class Qdense(Qmotif):
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
+        # Set order of edges
+        if 0 in self.edge_order:
+            # Raise error if 0 is in edge order
+            raise ValueError(
+                "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
+            )
+        Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
+        Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
+        Ec_l = Ec_l_ordered + Ec_l_rest
         self.set_E(Ec_l)
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
@@ -410,7 +439,16 @@ class Qpool(Qmotif):
     """
 
     def __init__(
-        self, stride=0, filter="right", nearest_neighbor=None, qpu=2, **kwargs
+        self,
+        stride=0,
+        filter="right",
+        nearest_neighbor=None,
+        step=1,
+        offset=0,
+        boundary="periodic",
+        qpu=2,
+        edge_order=[1],
+        **kwargs,
     ):
         """
         TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
@@ -421,9 +459,13 @@ class Qpool(Qmotif):
             None  # This gets updated when the motifs mapping was another motif.
         )
         self.stride = stride
+        self.step = step
+        self.offset = offset
+        self.boundary = boundary
         self.qpu = qpu  # TODO this might always have to be 2
         self.nearest_neighbor = nearest_neighbor
         self.filter = filter
+        self.edge_order = edge_order
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         motif_symbols = None
@@ -459,48 +501,95 @@ class Qpool(Qmotif):
             Qpool: Returns the updated version of itself, with correct nodes and edges.
         """
         if len(Qp_l) > 1:
-            self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
-            measured_q = self.pool_filter_fn(Qp_l)
-            remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            if len(remaining_q) > 0:
-                if self.nearest_neighbor != None:
-                    # TODO add nearest neighbor modulo nq
-                    if self.nearest_neighbor == "circle":
+            if self.qpu==2:
+                self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
+                measured_q = self.pool_filter_fn(Qp_l)
+                remaining_q = [q for q in Qp_l if not (q in measured_q)]
+                if len(remaining_q) > 0:
+                    if self.nearest_neighbor != None:
+                        # TODO add nearest neighbor modulo nq
+                        if self.nearest_neighbor == "circle":
+                            Ep_l = [
+                                (
+                                    Qp_l[Qp_l.index(i)],
+                                    min(
+                                        remaining_q,
+                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
+                                        % len(remaining_q)
+                                        // 2,
+                                    ),
+                                )
+                                for i in measured_q
+                            ]
+                        elif self.nearest_neighbor == "tower":
+                            Ep_l = [
+                                (
+                                    Qp_l[Qp_l.index(i)],
+                                    min(
+                                        remaining_q,
+                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x)),
+                                    ),
+                                )
+                                for i in measured_q
+                            ]
+                    else:
                         Ep_l = [
                             (
-                                Qp_l[Qp_l.index(i)],
-                                min(
-                                    remaining_q,
-                                    key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
-                                    % len(remaining_q)
-                                    // 2,
-                                ),
+                                measured_q[i],
+                                remaining_q[(i + self.stride) % len(remaining_q)],
                             )
-                            for i in measured_q
-                        ]
-                    elif self.nearest_neighbor == "tower":
-                        Ep_l = [
-                            (
-                                Qp_l[Qp_l.index(i)],
-                                min(
-                                    remaining_q,
-                                    key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x)),
-                                ),
-                            )
-                            for i in measured_q
+                            for i in range(len(measured_q))
                         ]
                 else:
-                    Ep_l = [
-                        (
-                            measured_q[i],
-                            remaining_q[(i + self.stride) % len(remaining_q)],
-                        )
-                        for i in range(len(measured_q))
-                    ]
+                    # No qubits were pooled
+                    Ep_l = []
+                    remaining_q = Qp_l
             else:
-                # No qubits were pooled
-                Ep_l = []
-                remaining_q = Qp_l
+                # TODO maybe generalize better qpu > 2, currently my idea is that the filter string should completely
+                # specify the form of the n qubit unitary, that is length of filter string should equal qpu.
+                if isinstance(self.filter,str):
+                    if len(self.filter) != self.qpu:
+                        raise ValueError(
+                            f"Filter string should be of length {self.qpu}, if it is a string."
+                        )
+                    nq_available = len(Qp_l)
+                if self.stride % nq_available == 0:
+                    self.stride = 1
+                # We generate edges the same way as convolutions
+                if self.boundary == "open":
+                    mod_nq = lambda x: x % nq_available
+                    Ep_l = [
+                        tuple(
+                            (
+                                Qp_l[i + j * self.stride]
+                                for j in range(self.qpu)
+                                if i + j * self.stride < nq_available
+                            )
+                        )
+                        for i in range(self.offset, nq_available, self.step)
+                    ]
+                    # Remove all that is not "complete"
+                    Ep_l = [edge for edge in Ep_l if len(edge) == self.qpu]
+
+                else:
+                    mod_nq = lambda x: x % nq_available
+                    Ep_l = [
+                        tuple((Qp_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
+                        for i in range(self.offset, nq_available, self.step)
+                    ]
+                    # Remove all that is not "complete", i.e. contain duplicates
+                    Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.qpu]
+                if (
+                    len(Ep_l) == self.qpu
+                    and sum([len(set(Ep_l[0]) - set(Ep_l[k])) == 0 for k in range(self.qpu)])
+                    == self.qpu
+                ):
+                    # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+                    Ep_l = [Ep_l[0]]
+                # Then we apply the filter to record which edges go away
+                self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
+                measured_q = self.pool_filter_fn(Qp_l)
+                remaining_q = [q for q in Qp_l if not (q in measured_q)]
 
         else:
             # raise ValueError(
@@ -511,6 +600,15 @@ class Qpool(Qmotif):
             Ep_l = []
             remaining_q = Qp_l
         self.set_Q(Qp_l)
+        # Set order of edges
+        if 0 in self.edge_order:
+            # Raise error if 0 is in edge order
+            raise ValueError(
+                "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
+            )
+        Ep_l_ordered = [Ep_l[i - 1] for i in self.edge_order if i - 1 < len(Ep_l)]
+        Ep_l_rest = [edge for edge in Ep_l if edge not in Ep_l_ordered]
+        Ep_l = Ep_l_ordered + Ep_l_rest
         self.set_E(Ep_l)
         self.set_Qavail(remaining_q)
         mapping = kwargs.get("mapping", None)
@@ -530,7 +628,7 @@ class Qpool(Qmotif):
                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
             Qp_l (list): List of available qubits.
         """
-        if isinstance(pool_filter,str):
+        if isinstance(pool_filter, str):
             # Mapping words to the filter type
             if pool_filter == "left":
                 # 0 1 2 3 4 5 6 7
@@ -920,9 +1018,10 @@ class Qcnn:
         current = self.tail
         while current is not None:
             if current.is_operation:
-                description+=f"{repr(vars(current))}\n"
+                description += f"{repr(vars(current))}\n"
             current = current.next
         return description
+
 
 class Qfree(Qmotif):
     """
@@ -954,11 +1053,6 @@ class Qfree(Qmotif):
         return self
 
 
-# import torch
 
 
-# motif = Qfree(8) + (Qconv(1) + Qpool(filter="right")) * 3
-# repr(motif)
-# motif.init_symbols(w)
-# print("Yo")
 # %%
