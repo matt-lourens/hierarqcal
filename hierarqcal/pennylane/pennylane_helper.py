@@ -17,6 +17,7 @@ def V(bits, symbols=None):
     """
     qml.CNOT(wires=[bits[0], bits[1]])
 
+
 def V3(bits, symbols=None):
     """
     Default pooling circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.
@@ -27,6 +28,7 @@ def V3(bits, symbols=None):
     """
     qml.CNOT(wires=[bits[0], bits[1]])
     qml.CNOT(wires=[bits[2], bits[1]])
+
 
 def U(bits, symbols=None):
     """
@@ -71,10 +73,25 @@ def get_param_info_pennylane(qcnn):
                 )
         block, block_param_count = layer.mapping
         if block_param_count > 0:
-            coef_indices[ind] = range(
-                total_coef_count, total_coef_count + block_param_count
-            )
-            total_coef_count = total_coef_count + block_param_count
+            if len(layer.symbols) > block_param_count:
+                # If layer is a sub qcnn
+                ranges = tuple()
+                current_symbol_count = 0
+                for bits in layer.E:
+                    ranges += (
+                        range(total_coef_count, total_coef_count + block_param_count),
+                    )
+                    total_coef_count = total_coef_count + block_param_count
+                    current_symbol_count += block_param_count
+                    if current_symbol_count >= len(layer.symbols):
+                        break
+                coef_indices[ind] = ranges
+
+            else:
+                coef_indices[ind] = range(
+                    total_coef_count, total_coef_count + block_param_count
+                )
+                total_coef_count = total_coef_count + block_param_count
         else:
             coef_indices[ind] = None
         ind = ind + 1
@@ -114,8 +131,19 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
             for bits in layer.E:
                 block(bits=bits, symbols=None)
         else:
-            for bits in layer.E:
-                block(bits=bits, symbols=params[coef_indices[ind]])
+            if len(layer.symbols) > block_param_count:
+                # If layer is a sub qcnn, same as coef_indices[ind] is a tuple of ranges
+                # TODO do this better, I think all coef indices should be tuples
+                sub_ind = 0
+                for bits in layer.E:
+                    block(bits=bits, symbols=params[coef_indices[ind][sub_ind]])
+                    sub_ind += 1
+                    if sub_ind == len(coef_indices[ind]):
+                        # If we have reached the last range, we start from the beginning again
+                        sub_ind = 0
+            else:
+                for bits in layer.E:
+                    block(bits=bits, symbols=params[coef_indices[ind]])
         ind = ind + 1
         if barriers:
             qml.Barrier(wires=layer.Q_avail)
