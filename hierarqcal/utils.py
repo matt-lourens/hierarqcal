@@ -27,6 +27,7 @@ def plot_motif(
     node_small=150,
     edge_width=1.5,
     figsize=(4, 4),
+    font_size=15,
     **kwargs,
 ):
     """
@@ -45,7 +46,7 @@ def plot_motif(
         **kwargs: Additional keyword arguments to pass to the networkx draw function.
 
     Returns:
-        (tuple): A tuple containing:    
+        (tuple): A tuple containing:
             * fig (matplotlib.figure.Figure): The figure object.
             * ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
     """
@@ -84,16 +85,25 @@ def plot_motif(
         raise NotImplementedError(f"No plot specified for {motif} motif")
 
     fig, ax = plt.subplots(1, 1, figsize=figsize)
+    # Draw nodes and edges without labels
     nx.draw(
         nx_graph,
         pos,
-        with_labels=True,
+        with_labels=False,
         node_size=node_sizes,
         edge_color="#000000",
         edgecolors="#000000",
         node_color=node_colour,
         width=edge_width,
         **kwargs,
+    )
+
+    # Draw node labels with custom font size
+    nx.draw_networkx_labels(
+        nx_graph,
+        pos,
+        labels={n: n for n in nx_graph.nodes()},
+        font_size=font_size,
     )
     return fig, ax
 
@@ -152,6 +162,7 @@ from IPython.display import HTML
 import io
 import base64
 
+
 # See https://stackoverflow.com/questions/21754976/ipython-notebook-arrange-plots-horizontally
 class FlowLayout(object):
     """A class / object to display plots in a horizontal / flow layout below a cell"""
@@ -185,3 +196,58 @@ class FlowLayout(object):
     def PassHtmlToCell(self):
         """Final step - display the accumulated HTML"""
         display(HTML(self.sHtml))
+
+
+# === Testing ===
+# for stride in [1,3,5,7]:
+#     m = Qfree(8) + Qconv(stride)
+#     fig, ax = plot_motif(m.head, font_size=15, node_large=700, edge_width=1.8)
+#     fig.savefig(f"/home/matt/Downloads/stride_{stride}.svg", format="svg")
+# print("Apastionat")
+# # %%
+# import hypernetx as hnx
+# import itertools as it
+# # 1,3,0
+# # 1,3,2
+# # 9q 3,1,0
+
+# stride=3
+# step=1
+# offset=0
+# boundary="open"
+# m = Qfree(9) + Qconv(stride, step, offset, qpu=3, boundary="open")
+# # plot_motif(m.head)
+# motif = m.head
+# n_qbits = len(motif.Q)
+# # Change order around a circle, this way you start at x=0 then move left around
+# theta_0 = 1 / 4  # specify vector(0,1) as start
+# theta_step = -1 / n_qbits
+# pos = {
+#     label: np.array(
+#         [
+#             np.cos(2 * np.pi * (theta_0 + ind * theta_step)),
+#             np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
+#         ]
+#     )
+#     for label, ind in zip(motif.Q, range(n_qbits))
+# }
+# H = hnx.Hypergraph(m.head.E)
+# H._add_nodes_from(motif.Q)
+# fig, ax = plt.subplots()
+# hnx.drawing.draw(
+#     H,
+#     pos=pos,
+#     with_edge_labels=False,
+#     node_radius=3.5,
+#     node_labels_kwargs={"ha": "center", "fontsize": 15},
+#     nodes_kwargs={"facecolors": "#0096ff", "edgecolors": "black", "linewidths": 1.4},
+#     edges_kwargs={"edgecolors":  plt.cm.tab10(7), "linewidths": 2, "dr":0.03},
+# )
+# # Set title of plot
+# ax.set_title(f"Stride: {stride}, Step: {step}, Offset: {offset}")
+# # Save fig svg
+# fig.savefig(f"/home/matt/Downloads/stride_{stride}_step_{step}_offset_{offset}.svg", format="svg")
+
+# # # %%
+# # # "edgecolors": "#FFA500",
+
