@@ -358,6 +358,17 @@ class Qconv(Qmotif):
             self.set_mapping(mapping)
         return self
 
+    def __eq__(self, other):
+        if isinstance(other, Qconv):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+            for attr, value in self_attrs.items():
+                if attr not in other_attrs or other_attrs[attr] != value:
+                    return False
+
+            return True
+        return False
+
 
 class Qdense(Qmotif):
     """
@@ -431,6 +442,16 @@ class Qdense(Qmotif):
             self.set_mapping(mapping)
         return self
 
+    def __eq__(self, other):
+        if isinstance(other, Qdense):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+            for attr, value in self_attrs.items():
+                if attr not in other_attrs or other_attrs[attr] != value:
+                    return False
+            return True
+        return False
+
 
 class Qpool(Qmotif):
     """
@@ -501,7 +522,7 @@ class Qpool(Qmotif):
             Qpool: Returns the updated version of itself, with correct nodes and edges.
         """
         if len(Qp_l) > 1:
-            if self.qpu==2:
+            if self.qpu == 2:
                 self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
                 measured_q = self.pool_filter_fn(Qp_l)
                 remaining_q = [q for q in Qp_l if not (q in measured_q)]
@@ -527,7 +548,9 @@ class Qpool(Qmotif):
                                     Qp_l[Qp_l.index(i)],
                                     min(
                                         remaining_q,
-                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x)),
+                                        key=lambda x: abs(
+                                            Qp_l.index(i) - Qp_l.index(x)
+                                        ),
                                     ),
                                 )
                                 for i in measured_q
@@ -547,10 +570,10 @@ class Qpool(Qmotif):
             else:
                 # TODO maybe generalize better qpu > 2, currently my idea is that the filter string should completely
                 # specify the form of the n qubit unitary, that is length of filter string should equal qpu.
-                if isinstance(self.filter,str):
+                if isinstance(self.filter, str):
                     if len(self.filter) != self.qpu:
                         raise ValueError(
-                            f"Filter string should be of length {self.qpu}, if it is a string."
+                            f"Filter string should be of length qpu {self.qpu}, if it is a string."
                         )
                     nq_available = len(Qp_l)
                 if self.stride % nq_available == 0:
@@ -574,21 +597,25 @@ class Qpool(Qmotif):
                 else:
                     mod_nq = lambda x: x % nq_available
                     Ep_l = [
-                        tuple((Qp_l[mod_nq(i + j * self.stride)] for j in range(self.qpu)))
+                        tuple(
+                            (Qp_l[mod_nq(i + j * self.stride)] for j in range(self.qpu))
+                        )
                         for i in range(self.offset, nq_available, self.step)
                     ]
                     # Remove all that is not "complete", i.e. contain duplicates
                     Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.qpu]
                 if (
                     len(Ep_l) == self.qpu
-                    and sum([len(set(Ep_l[0]) - set(Ep_l[k])) == 0 for k in range(self.qpu)])
+                    and sum(
+                        [len(set(Ep_l[0]) - set(Ep_l[k])) == 0 for k in range(self.qpu)]
+                    )
                     == self.qpu
                 ):
                     # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
                     Ep_l = [Ep_l[0]]
                 # Then we apply the filter to record which edges go away
                 self.pool_filter_fn = self.get_pool_filter_fn(self.filter, Qp_l)
-                measured_q = self.pool_filter_fn(Qp_l)
+                measured_q = [qubit for edge in Ep_l for qubit in self.pool_filter_fn(edge)]
                 remaining_q = [q for q in Qp_l if not (q in measured_q)]
 
         else:
@@ -701,6 +728,19 @@ class Qpool(Qmotif):
         else:
             pool_filter_fn = pool_filter
         return pool_filter_fn
+
+    def __eq__(self, other):
+        if isinstance(other, Qpool):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+
+            for attr, value in self_attrs.items():
+                if not (attr == "pool_filter_fn"):
+                    if attr not in other_attrs or other_attrs[attr] != value:
+                        return False
+
+            return True
+        return False
 
 
 class Qcnn:
@@ -1022,6 +1062,14 @@ class Qcnn:
             current = current.next
         return description
 
+    def __eq__(self, other):
+        if isinstance(other, Qcnn):
+            for layer_self, layer_other in zip(self, other):
+                if not (layer_self == layer_other):
+                    return False
+            return True
+        return False
+
 
 class Qfree(Qmotif):
     """
@@ -1051,8 +1099,6 @@ class Qfree(Qmotif):
         self.set_Q(self.Q)
         self.set_Qavail(self.Q)
         return self
-
-
 
 
 # %%
