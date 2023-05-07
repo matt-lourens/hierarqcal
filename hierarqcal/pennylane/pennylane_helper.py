@@ -62,11 +62,11 @@ def get_param_info_pennylane(qcnn):
     for layer in qcnn:
         if layer.is_default_mapping and layer.mapping == None:
             if layer.type in [
-                Primitive_Types.CONVOLUTION.value,
-                Primitive_Types.DENSE.value,
+                Primitive_Types.CYCLE.value,
+                Primitive_Types.PERMUTE.value,
             ]:
                 layer.set_mapping((U, 1))
-            elif layer.type in [Primitive_Types.POOLING.value]:
+            elif layer.type in [Primitive_Types.MASK.value]:
                 layer.set_mapping((V, 0))
             else:
                 warnings.warn(
@@ -213,31 +213,36 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
 # #     qml.CNOT(wires=[bits[3], bits[2]])
 
 
-# # from hierarqcal.core import Primitive_Types, Qconv, Qfree, Qpool
-# # import numpy as np
+# from hierarqcal.core import Primitive_Types, Qconv, Qfree, Qpool
+# import numpy as np
 
-# # nq = 16
-# # dev = qml.device("default.qubit", wires=[i + 1 for i in range(nq)])
+# nq = 4
+# dev = qml.device("default.qubit", wires=[i + 1 for i in range(nq)])
 
 
-# # @qml.qnode(dev)
-# # def circuit(motif, params):
-# #     response_wire = motif.head.Q_avail[-1]  # This is the 'last' available qubit
-# #     execute_circuit_pennylane(motif, params)  # This executes the compute graph in order
-# #     return qml.expval(qml.PauliZ(response_wire))
+# @qml.qnode(dev)
+# def circuit(motif, params):
+#     response_wire = motif.head.Q_avail[-1]  # This is the 'last' available qubit
+#     execute_circuit_pennylane(motif, params)  # This executes the compute graph in order
+#     return qml.expval(qml.PauliZ(response_wire))
 
 
 # # m1_1 = Qconv(stride=1, step=2, offset=1, boundary="open", mapping=(U, 0))
 # # m2_1 = Qpool(stride=1, step=4, filter="1001", mapping=(V, 0), boundary="open", qpu=4)
 # # m3_1 = Qconv(1, 2, 0, boundary="open", mapping=(U, 0))
 # # m1_2 = m2_1 + m3_1
-# # motif = Qfree(16) + m1_1 + m1_2 * 3
 
-# # # # Get param info
-# # total_coef_count, coef_indices = get_param_info_pennylane(motif)
-# # params = np.random.uniform(0, np.pi, total_coef_count)
+# motif = Qfree(4) + Qconv(1)
 
-# # # Draw
-# # fig, ax = qml.draw_mpl(circuit)(motif, params)
-# # # Save to svg
-# # # fig.savefig(f"/home/matt/Downloads/MERA_GRant.svg", format="svg")
+# # # Get param info
+# total_coef_count, coef_indices = get_param_info_pennylane(motif)
+# params = np.random.uniform(0, np.pi, total_coef_count)
+
+# # Draw
+# fig, ax = qml.draw_mpl(circuit)(motif, params)
+# # Save to svg
+# # fig.savefig(f"/home/matt/Downloads/MERA_GRant.svg", format="svg")
+
+# Change figsisze
+
+# fig.set_size_inches(10, 10)

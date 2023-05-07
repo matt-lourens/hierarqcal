@@ -5,7 +5,7 @@ Usage:
 
 .. code-block:: python
 
-    qcnn = Qfree(4) + Qconv(2) + Qpool(filter="inside") + Qfree(7) + Qdense() + Qpool(filter="1000001")
+    qcnn = Qfree(4) + Qcycle(2) + Qmask(filter="inside") + Qfree(7) + Qpermute() + Qmask(filter="1000001")
     # Single motif
     fig, ax = plot_motif(qcnn.tail)
     # Full QCNN
@@ -14,7 +14,7 @@ Usage:
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from .core import Qconv, Qpool, Qdense, Qfree
+from .core import Qcycle, Qmask, Qpermute, Qfree
 
 
 def plot_motif(
@@ -34,7 +34,7 @@ def plot_motif(
     Plot a motif in its directed graph representation
 
     Args:
-        motif (Qmotif): The motif to plot, such as Qconv, Qpool or Qdense.
+        motif (Qmotif): The motif to plot, such as Qcycle, Qmask or Qpermute.
         conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
         pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
         dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
@@ -66,16 +66,16 @@ def plot_motif(
     nx_graph = nx.DiGraph()
     nx_graph.add_nodes_from(motif.Q)
     nx_graph.add_edges_from(motif.E)
-    if isinstance(motif, Qconv):
+    if isinstance(motif, Qcycle):
         node_sizes = [node_large for q in motif.Q]
         node_colour = conv_color
-    elif isinstance(motif, Qpool):
+    elif isinstance(motif, Qmask):
         node_sizes = [
             node_small if (q in [i for (i, j) in motif.E]) else node_large
             for q in motif.Q
         ]
         node_colour = pool_color
-    elif isinstance(motif, Qdense):
+    elif isinstance(motif, Qpermute):
         node_sizes = [node_large for q in motif.Q]
         node_colour = dense_colour
     elif isinstance(motif, Qfree):
@@ -154,6 +154,7 @@ def plot_motifs(
             plt.close()
     oPlot.PassHtmlToCell()
     return figs
+    
 
 
 import matplotlib.pyplot as plt
@@ -200,7 +201,7 @@ class FlowLayout(object):
 
 # === Testing ===
 # for stride in [1,3,5,7]:
-#     m = Qfree(8) + Qconv(stride)
+#     m = Qfree(8) + Qcycle(stride)
 #     fig, ax = plot_motif(m.head, font_size=15, node_large=700, edge_width=1.8)
 #     fig.savefig(f"/home/matt/Downloads/stride_{stride}.svg", format="svg")
 # print("Apastionat")
@@ -215,7 +216,7 @@ class FlowLayout(object):
 # step=1
 # offset=0
 # boundary="open"
-# m = Qfree(9) + Qconv(stride, step, offset, qpu=3, boundary="open")
+# m = Qfree(9) + Qcycle(stride, step, offset, qpu=3, boundary="open")
 # # plot_motif(m.head)
 # motif = m.head
 # n_qbits = len(motif.Q)
