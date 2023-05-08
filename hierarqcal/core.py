@@ -87,7 +87,6 @@ class Qmotif:
         Q=[],
         E=[],
         Q_avail=[],
-        arity=2,
         edge_order=[1],
         next=None,
         prev=None,
@@ -112,7 +111,6 @@ class Qmotif:
         self.Q = Q
         self.Q_avail = Q_avail
         self.E = E
-        self.arity = arity
         self.edge_order = edge_order
         # higher level graph
         self.mapping = mapping
@@ -123,6 +121,20 @@ class Qmotif:
         # pointers
         self.prev = prev
         self.next = next
+        # Handle mappings
+        if self.is_default_mapping:
+            self.arity = 2
+        else:
+            if isinstance(self.mapping, Qhierarchy):
+                # If mapping was specified as sub-hierarchy, convert it to a qunitary
+                new_mapping = Qunitary(
+                    function=None,
+                    n_symbols=self.mapping.n_symbols,
+                    arity=len(self.mapping.tail.Q),
+                )
+                new_mapping.function = create_function(self.mapping)
+                self.mapping = new_mapping
+            self.arity = self.mapping.arity
 
     def __add__(self, other):
         """
@@ -271,19 +283,27 @@ class Qmotif:
                     f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
                 )
         self.edge_mapping = []
-        if isinstance(self.mapping, Qhierarchy):
-            # TODO mention in docs that both should function the same way and maybe at some point we don't need to split things like this
-            self.mapping.set_symbols(symbols)
-        elif isinstance(self.mapping, Qunitary):
-            idx = 0
-            for edge in self.E:
-                tmp_mapping = deepcopy(self.mapping)
-                tmp_mapping.set_edge(edge)
-                tmp_mapping.set_symbols(symbols[idx : idx + self.mapping.n_symbols])
-                if not (self.share_weights):
-                    idx += self.mapping.n_symbols
-                self.edge_mapping.append(tmp_mapping)
+        idx = 0
+        for edge in self.E:
+            tmp_mapping = deepcopy(self.mapping)
+            tmp_mapping.set_edge(edge)
+            tmp_mapping.set_symbols(symbols[idx : idx + self.mapping.n_symbols])
+            if not (self.share_weights):
+                idx += self.mapping.n_symbols
+            self.edge_mapping.append(tmp_mapping)
         self.n_symbols = len(symbols)
+
+
+def create_function(qhierarchy):
+    def function(bits, symbols=None):
+        qhierarchy.update_Q(bits)
+        if not (symbols is None):
+            qhierarchy.set_symbols(symbols)
+        for layer in qhierarchy:
+            for unitary in layer.edge_mapping:
+                unitary.function(unitary.edge, unitary.symbols)
+
+    return function
 
 
 class Qmotifs(tuple):
@@ -486,25 +506,24 @@ class Qpermute(Qmotif):
 
     def __init__(self, combinations=True, **kwargs):
         self.type = Primitive_Types.PERMUTE.value
-        self.sub_type = (
-            None  # This gets updated when the motifs mapping was another motif.
-        )
+        self.sub_type = None  # This gets updated when the motifs mapping was another motif. TODO might not need this anymore
         self.combinations = combinations
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
-        motif_symbols = None
-        if mapping is None:
-            # default convolution layer is defined as U with 1 parameter.
-            is_default_mapping = True
-            # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
-            motif_symbols = sp.symbols(f"x_{0}:{1}")
-        else:
-            is_default_mapping = False
-            if isinstance(mapping, Qhierarchy):
-                motif_symbols = mapping.symbols
-            else:
-                motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
-        kwargs["symbols"] = motif_symbols
+        is_default_mapping = True if mapping is None else False
+        # motif_symbols = None
+        # if mapping is None:
+        #     # default convolution layer is defined as U with 1 parameter.
+        #     is_default_mapping = True
+        #     # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
+        #     motif_symbols = sp.symbols(f"x_{0}:{1}")
+        # else:
+        #     is_default_mapping = False
+        #     if isinstance(mapping, Qhierarchy):
+        #         motif_symbols = mapping.symbols
+        #     else:
+        #         motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
+        # kwargs["symbols"] = motif_symbols
         # Initialize graph
         super().__init__(is_default_mapping=is_default_mapping, **kwargs)
 
@@ -541,12 +560,15 @@ class Qpermute(Qmotif):
         Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
         Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
         Ec_l = Ec_l_ordered + Ec_l_rest
-        self.set_E(Ec_l)
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
+        # It is important that set_E gets called last, as sets of symbol creation for the motif
+        self.set_E(Ec_l)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_symbols(start_idx=start_idx)
         return self
 
     def __eq__(self, other):
@@ -1079,49 +1101,49 @@ class Qhierarchy:
                 )
             motif(self.head.Q_avail, mapping=mapping)
             # self.update_symbols(motif) TODO
-        elif motif.is_operation & isinstance(motif.mapping, Qhierarchy):
-            """
-            The goal is to map a parents edges like motif.E = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 7), (6, 7, 8), (7, 8, 9), (8, 9, 1), (9, 1, 2)]
-            to the edges of the motif we want to build it from, like sub_Qhierarchy.head.E = [(1, 2), (1, 3), (2, 3)]
-            First we need to generate the motif with a arity equal to the tail of the sub_Qhierarchy, then we need to map the edges of the parent motif to the edges of the child motif
-            and finally we need to update the parent motif with the new edges and nodes, it's arity ends up with the same as the arity of the child motif.
-            What should the parent inherit from the child? The function mapping, arity and weights and sub types.
-            """
-            # Mapping is a Qhierarchy object, we only need to check the first element of the tuple, as it's either a tuple of tuples (for function mapping) or a tuple of Qhierarchys (for Qhierarchy mapping)
-            # TODO assumption only subQhierarchy only has 1 layer, 1 motif i.e. a Qfree tail and a Qmotif Head
+        # elif motif.is_operation & isinstance(motif.mapping, Qhierarchy):
+        #     """
+        #     The goal is to map a parents edges like motif.E = [(1, 2, 3), (2, 3, 4), (3, 4, 5), (4, 5, 6), (5, 6, 7), (6, 7, 8), (7, 8, 9), (8, 9, 1), (9, 1, 2)]
+        #     to the edges of the motif we want to build it from, like sub_Qhierarchy.head.E = [(1, 2), (1, 3), (2, 3)]
+        #     First we need to generate the motif with a arity equal to the tail of the sub_Qhierarchy, then we need to map the edges of the parent motif to the edges of the child motif
+        #     and finally we need to update the parent motif with the new edges and nodes, it's arity ends up with the same as the arity of the child motif.
+        #     What should the parent inherit from the child? The function mapping, arity and weights and sub types.
+        #     """
+        #     # Mapping is a Qhierarchy object, we only need to check the first element of the tuple, as it's either a tuple of tuples (for function mapping) or a tuple of Qhierarchys (for Qhierarchy mapping)
+        #     # TODO assumption only subQhierarchy only has 1 layer, 1 motif i.e. a Qfree tail and a Qmotif Head
 
-            # Copy sub Qhierarchy
-            sub_hierarchy = deepcopy(
-                motif.mapping
-            )  # TODO need to do this in a loop for multiple sub hierarchies
-            # TODO test sub_hierarchy has less qubits than the parent hierarchy
-            motif.arity = len(sub_hierarchy.tail.Q_avail)
-            # Generate edges with arity based on sub_hierarchy tail (the total number of qubits the sub hierarchy acts on)
-            motif(self.head.Q_avail, mapping=sub_hierarchy.head.mapping)
-            n_parent_unitaries = len(motif.E)
-            E_parent = np.array(motif.E)
-            E_child = np.array(sub_hierarchy.head.E)
-            # Get the corresponding indices since the nodes are just labels
-            E_child_idx = np.searchsorted(sub_hierarchy.head.Q_avail, E_child)
-            E_parent_new = [
-                tuple(parent_edge[idx])
-                for parent_edge in E_parent
-                for idx in E_child_idx
-            ]
-            # Change motifs arity to sub_hierarchys layer
-            motif.arity = sub_hierarchy.head.arity
-            # Update symbols
-            motif(self.head.Q_avail)
-            # overwrite parent edges with new edges
-            motif.is_default_mapping = sub_hierarchy.head.is_default_mapping
-            motif.set_mapping(sub_hierarchy.head.mapping)
-            motif.set_E(deepcopy(E_parent_new))
-            motif.sub_type = sub_hierarchy.head.type
-            # self.update_symbols(
-            #     motif,
-            #     n_symbols=len(sub_hierarchy.symbols),
-            #     n_parent_unitaries=n_parent_unitaries,
-            # ) TODO
+        #     # Copy sub Qhierarchy
+        #     sub_hierarchy = deepcopy(
+        #         motif.mapping
+        #     )  # TODO need to do this in a loop for multiple sub hierarchies
+        #     # TODO test sub_hierarchy has less qubits than the parent hierarchy
+        #     motif.arity = len(sub_hierarchy.tail.Q_avail)
+        #     # Generate edges with arity based on sub_hierarchy tail (the total number of qubits the sub hierarchy acts on)
+        #     motif(self.head.Q_avail, mapping=sub_hierarchy.head.mapping)
+        #     n_parent_unitaries = len(motif.E)
+        #     E_parent = np.array(motif.E)
+        #     E_child = np.array(sub_hierarchy.head.E)
+        #     # Get the corresponding indices since the nodes are just labels
+        #     E_child_idx = np.searchsorted(sub_hierarchy.head.Q_avail, E_child)
+        #     E_parent_new = [
+        #         tuple(parent_edge[idx])
+        #         for parent_edge in E_parent
+        #         for idx in E_child_idx
+        #     ]
+        #     # Change motifs arity to sub_hierarchys layer
+        #     motif.arity = sub_hierarchy.head.arity
+        #     # Update symbols
+        #     motif(self.head.Q_avail)
+        #     # overwrite parent edges with new edges
+        #     motif.is_default_mapping = sub_hierarchy.head.is_default_mapping
+        #     motif.set_mapping(sub_hierarchy.head.mapping)
+        #     motif.set_E(deepcopy(E_parent_new))
+        #     motif.sub_type = sub_hierarchy.head.type
+        #     # self.update_symbols(
+        #     #     motif,
+        #     #     n_symbols=len(sub_hierarchy.symbols),
+        #     #     n_parent_unitaries=n_parent_unitaries,
+        #     # ) TODO
         else:
             n_symbols = len([_ for _ in self.get_symbols()])
             motif(self.head.Q_avail, start_idx=n_symbols)
@@ -1161,7 +1183,9 @@ class Qhierarchy:
         # ensure immutability
         other_hierarchy = deepcopy(hierarchy)
         new_hierarchy = deepcopy(self)
-        other_hierarchy.update_Q(new_hierarchy.head.Q_avail)
+        other_hierarchy.update_Q(
+            new_hierarchy.head.Q_avail, start_idx=new_hierarchy.n_symbols
+        )
         new_hierarchy.head.set_next(other_hierarchy.tail)
         new_hierarchy.head = other_hierarchy.head
         return new_hierarchy
@@ -1181,7 +1205,7 @@ class Qhierarchy:
             new_qcnn = new_qcnn.merge(hierarchy)
         return new_qcnn
 
-    def update_Q(self, Q):
+    def update_Q(self, Q, start_idx=0):
         """
         Update the number of available qubits for the hierarchy and update the rest of the stack accordingly.
 
@@ -1189,10 +1213,9 @@ class Qhierarchy:
             Q (list(int or string)): The list of available qubits.
         """
         motif = self.tail(Q)
-        # symbol_count = 0    TODO do we use this function?
         while motif.next is not None:
-            motif = (motif.next(motif.Q_avail),)  # start_idx=symbol_count)
-            # symbol_count= len(motif.get_symbols())
+            motif = motif.next(motif.Q_avail, start_idx=start_idx)
+            start_idx += motif.n_symbols
 
     def copy(self):
         """
@@ -1227,8 +1250,8 @@ class Qfree(Qmotif):
         """
         Calling Qfree doesn't do anything new, just returns the object.
         """
-        self.set_Q(self.Q)
-        self.set_Qavail(self.Q)
+        self.set_Q(Q)
+        self.set_Qavail(Q)
         return self
 
 

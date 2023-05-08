@@ -118,7 +118,7 @@ def get_param_info_pennylane(qcnn):
 #         if barriers:
 #             qml.Barrier(wires=layer.Q_avail)
 
-def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
+def execute_circuit_pennylane(qcnn, symbols=None, coef_indices=None, barriers=True):
     """
     The main helper function for pennylane, it takes a qcnn(:py:class:`hierarqcal.core.Qcnn`) object that describes the cicruit architecture
     and executes the function mappings in the correct order with the correct parameters/symbols.
@@ -129,6 +129,8 @@ def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
         coef_indices (dict): Dictionary of indices for each motif, if None, it will be calculated automatically
         barriers (bool): If True, barriers will be inserted between each motif
     """
+    if not(symbols is None):
+        qcnn.set_symbols(symbols)
     for layer in qcnn:
         if layer.is_default_mapping and layer.mapping == None:
             if layer.type in [
