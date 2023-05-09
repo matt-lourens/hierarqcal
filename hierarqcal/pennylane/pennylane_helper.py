@@ -4,7 +4,7 @@ Helper functions for cirq
 import warnings
 from sympy import symbols, lambdify
 import pennylane as qml
-from .pennylane_circuits import u2, v2, v3, v4
+from .pennylane_circuits import U2, V2
 from hierarqcal.core import Primitive_Types
 
 
@@ -132,18 +132,21 @@ def execute_circuit_pennylane(qcnn, symbols=None, coef_indices=None, barriers=Tr
     if not(symbols is None):
         qcnn.set_symbols(symbols)
     for layer in qcnn:
-        if layer.is_default_mapping and layer.mapping == None:
+        if layer.is_default_mapping:
             if layer.type in [
-                Primitive_Types.CONVOLUTION.value,
-                Primitive_Types.DENSE.value,
+                Primitive_Types.CYCLE,
+                Primitive_Types.PERMUTE,
             ]:
-                layer.set_mapping(u2)
-            elif layer.type in [Primitive_Types.POOLING.value]:
-                layer.set_mapping(v2)
+                unitary_function = U2
+            elif layer.type in [Primitive_Types.MASK]:
+                unitary_function = V2
             else:
                 warnings.warn(
                     f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
                 )
+            # Give all edge mappings correct default unitary
+            for unitary in layer.edge_mapping:
+                    unitary.function = unitary_function
         for unitary in layer.edge_mapping:
             unitary.function(bits=unitary.edge, symbols=unitary.symbols)
         if barriers:

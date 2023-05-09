@@ -5,7 +5,7 @@ Usage:
 
 .. code-block:: python
 
-    qcnn = Qfree(4) + Qcycle(2) + Qmask(filter="inside") + Qfree(7) + Qpermute() + Qmask(filter="1000001")
+    qcnn = Qinit(4) + Qcycle(2) + Qmask(filter="inside") + Qinit(7) + Qpermute() + Qmask(filter="1000001")
     # Single motif
     fig, ax = plot_motif(qcnn.tail)
     # Full QCNN
@@ -14,7 +14,7 @@ Usage:
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from .core import Qcycle, Qmask, Qpermute, Qfree
+from .core import Qcycle, Qmask, Qpermute, Qinit
 
 
 def plot_motif(
@@ -22,7 +22,7 @@ def plot_motif(
     conv_color="#0096ff",
     pool_color="#ff7e79",
     dense_colour="#a9449d",
-    qfree_colour="#92a9bd",
+    qinit_colour="#92a9bd",
     node_large=400,
     node_small=150,
     edge_width=1.5,
@@ -38,7 +38,7 @@ def plot_motif(
         conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
         pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
         dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
-        qfree_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
+        qinit_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
         node_large (int, optional): The size of the nodes for non pooled qubits. Defaults to 400.
         node_small (int, optional): The size of the nodes for the pooled qubits. Defaults to 150.
         edge_width (float, optional): The width of the edges. Defaults to 1.5.
@@ -78,9 +78,9 @@ def plot_motif(
     elif isinstance(motif, Qpermute):
         node_sizes = [node_large for q in motif.Q]
         node_colour = dense_colour
-    elif isinstance(motif, Qfree):
+    elif isinstance(motif, Qinit):
         node_sizes = [node_large for q in motif.Q]
-        node_colour = qfree_colour
+        node_colour = qinit_colour
     else:
         raise NotImplementedError(f"No plot specified for {motif} motif")
 
@@ -114,7 +114,7 @@ def plot_motifs(
     conv_color="#0096ff",
     pool_color="#ff7e79",
     dense_colour="#a9449d",
-    qfree_colour="#92a9bd",
+    qinit_colour="#92a9bd",
     **kwargs,
 ):
     """
@@ -126,7 +126,7 @@ def plot_motifs(
         conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
         pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
         dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
-        qfree_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
+        qinit_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
         **kwargs: Additional keyword arguments to pass to the networkx draw function.
 
     Returns:
@@ -138,7 +138,7 @@ def plot_motifs(
         motif = qcnn.tail
         while motif is not None:
             fig, ax = plot_motif(
-                motif, conv_color, pool_color, dense_colour, qfree_colour, **kwargs
+                motif, conv_color, pool_color, dense_colour, qinit_colour, **kwargs
             )
             motif = motif.next
             oPlot.add_plot(ax)
@@ -147,7 +147,7 @@ def plot_motifs(
     else:
         for motif in qcnn:
             fig, ax = plot_motif(
-                motif, conv_color, pool_color, dense_colour, qfree_colour, **kwargs
+                motif, conv_color, pool_color, dense_colour, qinit_colour, **kwargs
             )
             oPlot.add_plot(ax)
             figs.append(fig)
@@ -201,7 +201,7 @@ class FlowLayout(object):
 
 # === Testing ===
 # for stride in [1,3,5,7]:
-#     m = Qfree(8) + Qcycle(stride)
+#     m = Qinit(8) + Qcycle(stride)
 #     fig, ax = plot_motif(m.head, font_size=15, node_large=700, edge_width=1.8)
 #     fig.savefig(f"/home/matt/Downloads/stride_{stride}.svg", format="svg")
 # print("Apastionat")
@@ -216,7 +216,7 @@ class FlowLayout(object):
 # step=1
 # offset=0
 # boundary="open"
-# m = Qfree(9) + Qcycle(stride, step, offset, qpu=3, boundary="open")
+# m = Qinit(9) + Qcycle(stride, step, offset, qpu=3, boundary="open")
 # # plot_motif(m.head)
 # motif = m.head
 # n_qbits = len(motif.Q)

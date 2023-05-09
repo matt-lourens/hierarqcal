@@ -1,4 +1,4 @@
-from .core import Qcycle, Qpermute, Qmask, Qfree, Qhierarchy, Qmotifs, Qmotif, Qunitary
+from .core import Qcycle, Qpermute, Qmask, Qinit, Qhierarchy, Qmotifs, Qmotif, Qunitary
 from .utils import plot_motifs, plot_motif
 
 __all__ = [
@@ -6,7 +6,7 @@ __all__ = [
     "Qcycle",
     "Qpermute",
     "Qmask",
-    "Qfree",
+    "Qinit",
     "Qunitary",
     "Qmotif",
     "Qmotifs",
