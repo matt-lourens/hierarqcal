@@ -150,7 +150,7 @@ def execute_circuit_pennylane(qcnn, symbols=None, coef_indices=None, barriers=Tr
         for unitary in layer.edge_mapping:
             unitary.function(bits=unitary.edge, symbols=unitary.symbols)
         if barriers:
-            qml.Barrier(wires=layer.Q_avail)
+            qml.Barrier(wires=qcnn.tail.Q_avail)
 
         
 

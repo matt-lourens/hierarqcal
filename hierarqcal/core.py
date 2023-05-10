@@ -268,7 +268,7 @@ class Qmotif:
             share_weights (bool): Whether to share weights within a motif.
         """
         self.share_weights = share_weights
-    
+
     def set_is_operation(self, is_operation):
         """
         Set the is_operation flag.
@@ -293,7 +293,7 @@ class Qmotif:
         Args:
             symbols (tuple(sympy.Symbols))
         """
-        if not(self.mapping is None):
+        if not (self.mapping is None):
             if symbols is None:
                 symbols = sp.symbols(
                     f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
@@ -412,7 +412,7 @@ class Qcycle(Qmotif):
         Returns:
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
-        # Determine convolution operation
+        # Determine cycle operation
         nq_available = len(Qc_l)
         if self.stride % nq_available == 0:
             # TODO make this clear in documentation
@@ -566,18 +566,9 @@ class Qpermute(Qmotif):
         return False
 
 
-class Qmask(Qmotif):
-    """
-    A pooling motif, it pools qubits together based (some controlled operation where the control is not used for the rest of the circuit).
-    This motif changes the available qubits for the next motif in the stack.
-    """
-
+class Qmask_Base(Qmotif):
     def __init__(
         self,
-        stride=0,
-        step=1,
-        offset=0,
-        boundary="periodic",
         pattern="right",  # nearest_circle, nearest_tower, nearest_square, right, left, up, down, lambda function
         **kwargs,
     ):
@@ -587,16 +578,151 @@ class Qmask(Qmotif):
         """
         self.type = Primitive_Types.MASK
         self.pattern = pattern
+        super().__init__(**kwargs)
+
+    def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
+        mapping = kwargs.get("mapping", None)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_Q(Q)
+        self.set_Qavail(remaining_q)
+        if mapping:
+            self.set_mapping(mapping)
+        self.set_is_operation(is_operation)
+        self.set_E(E)
+        self.set_symbols(start_idx=start_idx)
+
+    def get_mask_pattern_fn(self, mask_pattern, Qp_l=[]):
+        """
+        Get the pattern function for the pooling operation.
+
+        Args:
+            mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
+                                            The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
+                                            If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
+                                            the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
+                                            meaning the same kind of pattern will be applied as the list grows or shrinks.
+            Qp_l (list): List of available qubits.
+        """
+        if isinstance(mask_pattern, str):
+            # Mapping words to the pattern type
+            if mask_pattern == "left":
+                # 0 1 2 3 4 5 6 7
+                # x x x x
+                mask_pattern_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
+            elif mask_pattern == "right":
+                # 0 1 2 3 4 5 6 7
+                #         x x x x
+                mask_pattern_fn = lambda arr: arr[len(arr) // 2  : len(arr): 1]
+            elif mask_pattern == "even":
+                # 0 1 2 3 4 5 6 7
+                # x   x   x   x
+                mask_pattern_fn = lambda arr: arr[0::2]
+            elif mask_pattern == "odd":
+                # 0 1 2 3 4 5 6 7
+                #   x   x   x   x
+                mask_pattern_fn = lambda arr: arr[1::2]
+            elif mask_pattern == "inside":
+                # 0 1 2 3 4 5 6 7
+                #     x x x x
+                mask_pattern_fn = (
+                    lambda arr: arr[
+                        len(arr) // 2
+                        - len(arr) // 4 : len(arr) // 2
+                        + len(arr) // 4 : 1
+                    ]
+                    if len(arr) > 2
+                    else [arr[1]]
+                )  # inside
+            elif mask_pattern == "outside":
+                # 0 1 2 3 4 5 6 7
+                # x x         x x
+                mask_pattern_fn = (
+                    lambda arr: [
+                        item
+                        for item in arr
+                        if not (
+                            item
+                            in arr[
+                                len(arr) // 2
+                                - len(arr) // 4 : len(arr) // 2
+                                + len(arr) // 4 : 1
+                            ]
+                        )
+                    ]
+                    if len(arr) > 2
+                    else [arr[0]]
+                )  # outside
+            else:
+                # Assume pattern is in form contains a string specifying which indices to remove
+                # For example "01001" removes idx 1 and 4 or qubit 2 and 5
+                # The important thing here is for pool pattern to be the same length as the current number of qubits
+                if len(mask_pattern) == len(Qp_l):
+                    mask_pattern_fn = lambda arr: [
+                        item
+                        for item, indicator in zip(arr, mask_pattern)
+                        if indicator == "1"
+                    ]
+                else:
+                    # Attempt to use the pattern as a base pattern
+                    # TODO explain in docs and maybe print a warning
+                    # For example "101" will be used as "10110110" if there are 8 qubits
+                    if any("*" == c for c in mask_pattern):
+                        # Wildcard pattern
+                        n_ones = mask_pattern.count("1")
+                        n_zeros = len(Qp_l) - n_ones
+                        if n_zeros <= 0:
+                            # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
+                            base = "0" * len(Qp_l)
+                        else:
+                            base = mask_pattern.replace("*", "0" * n_zeros)
+                        mask_pattern_fn = lambda arr: [
+                            item
+                            for item, indicator in zip(arr, base)
+                            if indicator == "1"
+                        ]
+                    else:
+                        # If there are no wildcard characters, then we assume that the pattern is a base pattern
+                        # and we will repeat it until it is the same length as the current number of qubits
+                        base = mask_pattern * (len(Qp_l) // len(mask_pattern))
+                        base = base[: len(Qp_l)]
+                        mask_pattern_fn = lambda arr: [
+                            item
+                            for item, indicator in zip(arr, base)
+                            if indicator == "1"
+                        ]
+
+        else:
+            mask_pattern_fn = mask_pattern
+        return mask_pattern_fn
+
+
+class Qmask(Qmask_Base):
+    """
+    A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
+    This motif changes the available qubits for the next motif in the stack.
+    """
+
+    def __init__(
+        self,
+        pattern="right",  # nearest_circle, nearest_tower, nearest_square, right, left, up, down, lambda function
+        stride=0,
+        step=1,
+        offset=0,
+        boundary="periodic",
+        **kwargs,
+    ):
+        """
+        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
+        TODO Open, Periodic boundary
+        """
         self.stride = stride
         self.step = step
         self.offset = offset
-        self.boundary = boundary        
-        # Specify sequence of gates:
+        self.boundary = boundary
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
-        # kwargs["symbols"] = motif_symbols
         # Initialize graph
-        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+        super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -622,26 +748,28 @@ class Qmask(Qmotif):
         # Then check if there is a associated untitary, if there is:
         #   If arity is 2 we have some predifined patterns + the general pattern functionality
         #       Predifined: right, left, inside, outside, even, odd, nearest_circle, nearest_tower
-        #   If arity is more, then we just have general pattern functionality 
+        #   If arity is more, then we just have general pattern functionality
         # General pattern works as follows:
         # Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
         # Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
         # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
         # of masked ones, so that we enable deffered measurement.
         # The most general usage is providing your own filter function
-        # TODO add this to docs and explain how to provide own filter function. 
+        # TODO add this to docs and explain how to provide own filter function.
+        is_operation = False
         if len(Qp_l) > 1:
             # Check if predifined pattern was provided
             self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            Ep_l=[]
-            is_operation = False
+            Ep_l = []
             # Check if there is a unitary associated with the motif
-            if not(self.mapping is None):
+            if not (self.mapping is None):
                 is_operation = True
                 # All below generates edges for associated unitaries
-                if isinstance(self.pattern, str) and not(all((c in ('0','1') for c in self.pattern))):                
+                if isinstance(self.pattern, str) and not (
+                    all((c in ("0", "1") for c in self.pattern))
+                ):
                     if len(remaining_q) > 0:
                         # TODO add nearest neighbor modulo nq
                         if self.pattern == "nearest_circle":
@@ -663,7 +791,9 @@ class Qmask(Qmotif):
                                     Qp_l[Qp_l.index(i)],
                                     min(
                                         remaining_q,
-                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x)),
+                                        key=lambda x: abs(
+                                            Qp_l.index(i) - Qp_l.index(x)
+                                        ),
                                     ),
                                 )
                                 for i in measured_q
@@ -748,117 +878,10 @@ class Qmask(Qmotif):
             # TODO make clear in documentation, no pooling is done if 1 qubit remain
             Ep_l = []
             remaining_q = Qp_l
-        self.set_Q(Qp_l)
-        # Set order of edges
-        
-        self.set_Qavail(remaining_q)
-        mapping = kwargs.get("mapping", None)
-        if mapping:
-            self.set_mapping(mapping)
-        self.set_is_operation(is_operation)
-        self.set_E(Ep_l)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_symbols(start_idx=start_idx)
+        super().__call__(
+            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+        )
         return self
-
-    def get_mask_pattern_fn(self, mask_pattern, Qp_l=[]):
-        """
-        Get the pattern function for the pooling operation.
-
-        Args:
-            mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
-                                            The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
-                                            If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
-                                            the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
-                                            meaning the same kind of pattern will be applied as the list grows or shrinks.
-            Qp_l (list): List of available qubits.
-        """
-        if isinstance(mask_pattern, str):
-            # Mapping words to the pattern type
-            if mask_pattern == "left":
-                # 0 1 2 3 4 5 6 7
-                # x x x x
-                mask_pattern_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
-            elif mask_pattern == "right":
-                # 0 1 2 3 4 5 6 7
-                #         x x x x
-                mask_pattern_fn = lambda arr: arr[len(arr) : len(arr) // 2 - 1 : -1]
-            elif mask_pattern == "even":
-                # 0 1 2 3 4 5 6 7
-                # x   x   x   x
-                mask_pattern_fn = lambda arr: arr[0::2]
-            elif mask_pattern == "odd":
-                # 0 1 2 3 4 5 6 7
-                #   x   x   x   x
-                mask_pattern_fn = lambda arr: arr[1::2]
-            elif mask_pattern == "inside":
-                # 0 1 2 3 4 5 6 7
-                #     x x x x
-                mask_pattern_fn = (
-                    lambda arr: arr[
-                        len(arr) // 2
-                        - len(arr) // 4 : len(arr) // 2
-                        + len(arr) // 4 : 1
-                    ]
-                    if len(arr) > 2
-                    else [arr[1]]
-                )  # inside
-            elif mask_pattern == "outside":
-                # 0 1 2 3 4 5 6 7
-                # x x         x x
-                mask_pattern_fn = (
-                    lambda arr: [
-                        item
-                        for item in arr
-                        if not (
-                            item
-                            in arr[
-                                len(arr) // 2
-                                - len(arr) // 4 : len(arr) // 2
-                                + len(arr) // 4 : 1
-                            ]
-                        )
-                    ]
-                    if len(arr) > 2
-                    else [arr[0]]
-                )  # outside
-            else:
-                # Assume pattern is in form contains a string specifying which indices to remove
-                # For example "01001" removes idx 1 and 4 or qubit 2 and 5
-                # The important thing here is for pool pattern to be the same length as the current number of qubits
-                if len(mask_pattern) == len(Qp_l):
-                    mask_pattern_fn = lambda arr: [
-                        item
-                        for item, indicator in zip(arr, mask_pattern)
-                        if indicator == "1"
-                    ]
-                else:
-                    # Attempt to use the pattern as a base pattern
-                    # TODO explain in docs and maybe print a warning
-                    # For example "101" will be used as "10110110" if there are 8 qubits
-                    if (any('*'==c for c in mask_pattern)):
-                        # Wildcard pattern
-                        n_ones = mask_pattern.count('1')
-                        n_zeros = len(Qp_l) - n_ones
-                        if n_zeros < 0:
-                            # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                            base = '0'*len(Qp_l)
-                        base = mask_pattern.replace('*', '0'*n_zeros)
-                        mask_pattern_fn = lambda arr: [
-                            item for item, indicator in zip(arr, base) if indicator == "1"
-                        ]
-                    else:
-                        # If there are no wildcard characters, then we assume that the pattern is a base pattern
-                        # and we will repeat it until it is the same length as the current number of qubits
-                        base = mask_pattern * (len(Qp_l) // len(mask_pattern))
-                        base = base[: len(Qp_l)]
-                        mask_pattern_fn = lambda arr: [
-                            item for item, indicator in zip(arr, base) if indicator == "1"
-                        ]
-
-        else:
-            mask_pattern_fn = mask_pattern
-        return mask_pattern_fn
 
     def __eq__(self, other):
         if isinstance(other, Qmask):
@@ -872,6 +895,35 @@ class Qmask(Qmotif):
 
             return True
         return False
+
+
+class Qunmask(Qmask_Base):
+    def __init__(
+        self,
+        *args,
+        **kwargs,
+    ):
+        """
+        TODO possibility to give masking motif to undo
+        """
+        # Initialize graph
+        super().__init__(*args, **kwargs)
+
+    def __call__(self, Qp_l, *args, **kwargs):
+        """
+        TODO
+        """
+        q_initial = kwargs.get("q_initial", None)
+        is_operation = False
+        Ep_l = []
+        self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, q_initial)
+        unmasked_q = self.mask_pattern_fn(q_initial)
+        unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
+        new_avail_q = Qp_l + unique_unmasked
+        super().__call__(
+            Q=Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
+        )
+        return self
 
 
 class Qhierarchy:
@@ -1118,7 +1170,7 @@ class Qhierarchy:
             else:
                 # If no function mapping was provided
                 mapping = getattr(Default_Mappings, motif.type.name).value
-            motif(self.head.Q_avail, mapping=mapping)
+            motif(self.head.Q_avail, mapping=mapping, q_initial=self.tail.Q)
             # self.update_symbols(motif) TODO
         # elif motif.is_operation & isinstance(motif.mapping, Qhierarchy):
         #     """
@@ -1165,7 +1217,7 @@ class Qhierarchy:
         #     # ) TODO
         else:
             n_symbols = len([_ for _ in self.get_symbols()])
-            motif(self.head.Q_avail, start_idx=n_symbols)
+            motif(self.head.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q)
             # self.update_symbols(motif) TODO
 
         new_hierarchy = deepcopy(self)
@@ -1233,7 +1285,7 @@ class Qhierarchy:
         """
         motif = self.tail(Q)
         while motif.next is not None:
-            motif = motif.next(motif.Q_avail, start_idx=start_idx)
+            motif = motif.next(motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q)
             start_idx += motif.n_symbols
 
     def copy(self):
