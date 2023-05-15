@@ -134,4 +134,4 @@ dmypy.json
 .vscode/
 
 # debugging
-playtest.py
+playtest*

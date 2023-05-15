@@ -7,118 +7,23 @@ import pennylane as qml
 from .pennylane_circuits import U2, V2
 from hierarqcal.core import Primitive_Types
 
+def get_pennylane_default_unitary(layer):
+    if layer.type in [
+        Primitive_Types.CYCLE,
+        Primitive_Types.PERMUTE,
+    ]:
+        unitary_function = U2
+    elif layer.type in [Primitive_Types.MASK]:
+        unitary_function = V2
+    else:
+        warnings.warn(
+            f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
+        )
+    # Give all edge mappings correct default unitary
+    return unitary_function
 
 
-
-
-def get_param_info_pennylane(qcnn):
-    """
-    Helper function that returns the total number of parameters and a dictionary that maps the parameter indices to the motifs (in the order they occur).
-
-    Args:
-        qcnn (hierarqcal.core.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.core.Qmotif)
-
-    Returns:
-        (tuple): Tuple containing:
-
-            * total_coef_count (int): Total number of parameters.
-            * coef_indices (dict): Dictionary that maps the parameter indices to the motifs (in the order they occur).
-
-    """
-    total_coef_count = 0
-    coef_indices = {}
-    ind = 0
-    for layer in qcnn:
-        if layer.is_default_mapping and layer.mapping == None:
-            if layer.type in [
-                Primitive_Types.CYCLE.value,
-                Primitive_Types.PERMUTE.value,
-            ]:
-                layer.set_mapping((U, 1))
-            elif layer.type in [Primitive_Types.MASK.value]:
-                layer.set_mapping((V, 0))
-            else:
-                warnings.warn(
-                    f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
-                )
-        block, block_param_count = layer.mapping
-        if block_param_count > 0:
-            if len(layer.symbols) > block_param_count:
-                # If layer is a sub qcnn
-                ranges = tuple()
-                current_symbol_count = 0
-                for bits in layer.E:
-                    ranges += (
-                        range(total_coef_count, total_coef_count + block_param_count),
-                    )
-                    total_coef_count = total_coef_count + block_param_count
-                    current_symbol_count += block_param_count
-                    if current_symbol_count >= len(layer.symbols):
-                        break
-                coef_indices[ind] = ranges
-
-            else:
-                coef_indices[ind] = range(
-                    total_coef_count, total_coef_count + block_param_count
-                )
-                total_coef_count = total_coef_count + block_param_count
-        else:
-            coef_indices[ind] = None
-        ind = ind + 1
-    return total_coef_count, coef_indices
-
-
-# def execute_circuit_pennylane(qcnn, params, coef_indices=None, barriers=True):
-#     """
-#     The main helper function for pennylane, it takes a qcnn(:py:class:`hierarqcal.core.Qcnn`) object that describes the cicruit architecture
-#     and executes the function mappings in the correct order with the correct parameters/symbols.
-
-#     Args:
-#         qcnn (hierarqcal.core.Qcnn): Qcnn object that describes the circuit architecture, consists of a sequence of motifs (:py:class:`hierarqcal.core.Qmotif`)
-#         params (tuple(float)): Tuple of symbol values (rotation angles)
-#         coef_indices (dict): Dictionary of indices for each motif, if None, it will be calculated automatically
-#         barriers (bool): If True, barriers will be inserted between each motif
-#     """
-#     ind = 0
-#     if coef_indices == None:
-#         total_coef_count, coef_indices = get_param_info_pennylane(qcnn=qcnn)
-#     for layer in qcnn:
-#         if layer.is_default_mapping and layer.mapping == None:
-#             if layer.type in [
-#                 Primitive_Types.CONVOLUTION.value,
-#                 Primitive_Types.DENSE.value,
-#             ]:
-#                 layer.set_mapping((U, 1))
-#             elif layer.type in [Primitive_Types.POOLING.value]:
-#                 layer.set_mapping((V, 0))
-#             else:
-#                 warnings.warn(
-#                     f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
-#                 )
-#         block, block_param_count = layer.mapping
-#         if coef_indices[ind] is None:
-#             # If layer has no associated params
-#             for bits in layer.E:
-#                 block(bits=bits, symbols=None)
-#         else:
-#             if len(layer.symbols) > block_param_count:
-#                 # If layer is a sub qcnn, same as coef_indices[ind] is a tuple of ranges
-#                 # TODO do this better, I think all coef indices should be tuples
-#                 sub_ind = 0
-#                 for bits in layer.E:
-#                     block(bits=bits, symbols=params[coef_indices[ind][sub_ind]])
-#                     sub_ind += 1
-#                     if sub_ind == len(coef_indices[ind]):
-#                         # If we have reached the last range, we start from the beginning again
-#                         sub_ind = 0
-#             else:
-#                 for bits in layer.E:
-#                     block(bits=bits, symbols=params[coef_indices[ind]])
-#         ind = ind + 1
-#         if barriers:
-#             qml.Barrier(wires=layer.Q_avail)
-
-def execute_circuit_pennylane(qcnn, symbols=None, coef_indices=None, barriers=True):
+def execute_circuit_pennylane(hierq, symbols=None, barriers=True):
     """
     The main helper function for pennylane, it takes a qcnn(:py:class:`hierarqcal.core.Qcnn`) object that describes the cicruit architecture
     and executes the function mappings in the correct order with the correct parameters/symbols.
@@ -129,30 +34,18 @@ def execute_circuit_pennylane(qcnn, symbols=None, coef_indices=None, barriers=Tr
         coef_indices (dict): Dictionary of indices for each motif, if None, it will be calculated automatically
         barriers (bool): If True, barriers will be inserted between each motif
     """
-    if not(symbols is None):
-        qcnn.set_symbols(symbols)
-    for layer in qcnn:
+    if not (symbols is None):
+        hierq.set_symbols(symbols)
+    for layer in hierq:
+        # If layer is default mapping we need to set it to pennylane default
         if layer.is_default_mapping:
-            if layer.type in [
-                Primitive_Types.CYCLE,
-                Primitive_Types.PERMUTE,
-            ]:
-                unitary_function = U2
-            elif layer.type in [Primitive_Types.MASK]:
-                unitary_function = V2
-            else:
-                warnings.warn(
-                    f"No default function mapping for primitive type: {layer.type}, please provide a mapping manually"
-                )
-            # Give all edge mappings correct default unitary
-            for unitary in layer.edge_mapping:
-                    unitary.function = unitary_function
+            pennylane_default_unitary = get_pennylane_default_unitary(layer)
+            layer.set_edge_mapping(pennylane_default_unitary)
         for unitary in layer.edge_mapping:
             unitary.function(bits=unitary.edge, symbols=unitary.symbols)
         if barriers:
-            qml.Barrier(wires=qcnn.tail.Q_avail)
+            qml.Barrier(wires=hierq.tail.Q_avail)
 
-        
 
 # def UU(bits, symbols=None):
 #     """
