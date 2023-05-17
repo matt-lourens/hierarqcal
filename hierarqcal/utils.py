@@ -5,42 +5,44 @@ Usage:
 
 .. code-block:: python
 
-    qcnn = Qinit(4) + Qcycle(2) + Qmask(filter="inside") + Qinit(7) + Qpermute() + Qmask(filter="1000001")
+    hierq = Qinit(4) + Qcycle(2) + Qmask(pattern="inside") + Qinit(7) + Qpermute() + Qmask(filter="1000001")
     # Single motif
-    fig, ax = plot_motif(qcnn.tail)
-    # Full QCNN
-    figs = plot_motifs(m, all_motifs=True, figsize=(4,4))
+    fig, ax = plot_motif(hierq.tail)
+    # Plot all motif
+    figs = plot_motifs(hierq, all_motifs=True, figsize=(4,4))
 """
 import numpy as np
-import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.path import Path
 from .core import Qcycle, Qmask, Qpermute, Qinit
 
 
 def plot_motif(
-    motif,
-    conv_color="#0096ff",
-    pool_color="#ff7e79",
-    dense_colour="#a9449d",
-    qinit_colour="#92a9bd",
-    node_large=400,
-    node_small=150,
+    primitive,
+    cycle_color="#0096ff",
+    mask_color="#ff7e79",
+    permute_colour="#a9449d",
+    init_colour="#92a9bd",
+    node_large=0.1,  # radius of node
+    node_small=0.05,  # radius of node
     edge_width=1.5,
     figsize=(4, 4),
     font_size=15,
+    start_angle=0,  # given in 2 pi radians. 1/4 is 90 degrees, 1/2 is 180 degrees, 1 is 360 degrees
     **kwargs,
 ):
     """
-    Plot a motif in its directed graph representation
+    Plot a primitive in its directed graph representation
 
     Args:
-        motif (Qmotif): The motif to plot, such as Qcycle, Qmask or Qpermute.
-        conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
-        pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
-        dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
-        qinit_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
-        node_large (int, optional): The size of the nodes for non pooled qubits. Defaults to 400.
-        node_small (int, optional): The size of the nodes for the pooled qubits. Defaults to 150.
+        primitive (Qmotif): The primitive to plot, such as Qcycle, Qmask or Qpermute.
+        cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
+        mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
+        permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
+        init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
+        node_large (int, optional): The size of the nodes for non masked qubits. Defaults to 400.
+        node_small (int, optional): The size of the nodes for the masked qubits. Defaults to 150.
         edge_width (float, optional): The width of the edges. Defaults to 1.5.
         figsize (tuple, optional): The size of the figure. Defaults to (4, 4).
         **kwargs: Additional keyword arguments to pass to the networkx draw function.
@@ -50,9 +52,26 @@ def plot_motif(
             * fig (matplotlib.figure.Figure): The figure object.
             * ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
     """
-    n_qbits = len(motif.Q)
+    n_qbits = len(primitive.Q)
+    if isinstance(primitive, Qcycle):
+        node_radi = [node_large for q in primitive.Q]
+        node_colour = cycle_color
+    elif isinstance(primitive, Qmask):
+        node_radi = [
+            node_large if q in primitive.Q_avail else node_small for q in primitive.Q
+        ]
+        node_colour = mask_color
+    elif isinstance(primitive, Qpermute):
+        node_radi = [node_large for q in primitive.Q]
+        node_colour = permute_colour
+    elif isinstance(primitive, Qinit):
+        node_radi = [node_large for q in primitive.Q]
+        node_colour = init_colour
+    else:
+        raise NotImplementedError(f"No plot specified for {primitive} primitive")
+
     # Change order around a circle, this way you start at x=0 then move left around
-    theta_0 = 2 / 8  # specify vector(0,1) as start
+    theta_0 = start_angle  # specify vector(1,0) as start
     theta_step = 1 / n_qbits
     pos = {
         label: np.array(
@@ -61,194 +80,121 @@ def plot_motif(
                 np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
             ]
         )
-        for label, ind in zip(motif.Q, range(n_qbits))
+        for label, ind in zip(primitive.Q, range(n_qbits))
     }
-    nx_graph = nx.DiGraph()
-    nx_graph.add_nodes_from(motif.Q)
-    nx_graph.add_edges_from(motif.E)
-    if isinstance(motif, Qcycle):
-        node_sizes = [node_large for q in motif.Q]
-        node_colour = conv_color
-    elif isinstance(motif, Qmask):
-        node_sizes = [
-            node_small if (q in [i for (i, j) in motif.E]) else node_large
-            for q in motif.Q
-        ]
-        node_colour = pool_color
-    elif isinstance(motif, Qpermute):
-        node_sizes = [node_large for q in motif.Q]
-        node_colour = dense_colour
-    elif isinstance(motif, Qinit):
-        node_sizes = [node_large for q in motif.Q]
-        node_colour = qinit_colour
-    else:
-        raise NotImplementedError(f"No plot specified for {motif} motif")
-
     fig, ax = plt.subplots(1, 1, figsize=figsize)
-    # Draw nodes and edges without labels
-    nx.draw(
-        nx_graph,
-        pos,
-        with_labels=False,
-        node_size=node_sizes,
-        edge_color="#000000",
-        edgecolors="#000000",
-        node_color=node_colour,
-        width=edge_width,
-        **kwargs,
-    )
+    eps = 0.01
+    plt.xlim(-1 - node_large - eps, 1 + node_large + eps)
+    plt.ylim(-1 - node_large - eps, 1 + node_large + eps)
+    for (q, p), r in zip(pos.items(), node_radi):
+        ax.add_patch(
+            patches.Circle(
+                p, radius=r, edgecolor="black", facecolor=node_colour, linewidth=1.5
+            )
+        )
+        ax.text(
+            p[0],
+            p[1],
+            str(q),
+            color="black",
+            fontsize=font_size,
+            ha="center",
+            va="center",
+        )
+    # Add edges
+    for edge in primitive.E:
+        # Get vector from soruce to edge of targets boundary
+        if len(edge) == 1:
+            # TODO implement loop
+            raise NotImplementedError(
+                f"Plotting f{len(edge)}-ary edges are not implemented yet"
+            )
+        if len(edge) == 2:
+            ket_0 = np.array([1, 0])
+            ket_1 = np.array([0, 1])
+            ket_s = np.array(pos[edge[0]])  # source vector
+            ket_t = np.array(pos[edge[1]])  # target vector
+            t_radius = node_radi[primitive.Q.index(edge[1])]
+            ket_d = ket_t - ket_s  # source to target vector
+            scale_factor = (np.sqrt(np.dot(ket_d, ket_d)) - (t_radius)) / np.sqrt(
+                np.dot(ket_d, ket_d)
+            )
+            ket_t = ket_s + (scale_factor) * ket_d
+            s_xy = np.array([np.dot(ket_0, ket_s), np.dot(ket_1, ket_s)])
+            t_xy = np.array([np.dot(ket_0, ket_t), np.dot(ket_1, ket_t)])
 
-    # Draw node labels with custom font size
-    nx.draw_networkx_labels(
-        nx_graph,
-        pos,
-        labels={n: n for n in nx_graph.nodes()},
-        font_size=font_size,
-    )
+            arrow = patches.FancyArrowPatch(
+                s_xy,
+                t_xy,
+                mutation_scale=30,
+                arrowstyle=patches.ArrowStyle(
+                    "-|>", head_length= 2*t_radius, head_width= t_radius
+                ),
+                lw=edge_width,
+                fc="black",
+                zorder=-1,
+            )
+            ax.add_patch(arrow)
+        else:
+            # TODO hyper graph visual (rubber band)
+            raise NotImplementedError(
+                f"Plotting {len(edge)}-ary edges are not implemented yet"
+            )
+        ax.set_aspect("equal", "box")
+        # remove the x and y axis
+        ax.axis("off")
+
+        # remove the box around the plot
+        for spine in ax.spines.values():
+            spine.set_visible(False)
+
+        # make the plot tight
+        fig.tight_layout()
+
     return fig, ax
 
 
 def plot_motifs(
-    qcnn,
+    hierq,
     all_motifs=False,
-    conv_color="#0096ff",
-    pool_color="#ff7e79",
-    dense_colour="#a9449d",
-    qinit_colour="#92a9bd",
+    cycle_color="#0096ff",
+    mask_color="#ff7e79",
+    permute_colour="#a9449d",
+    init_colour="#92a9bd",
     **kwargs,
 ):
     """
-    Plot all motifs in a Qcnn object
+    Plot all motifs in a Hierarchical object
 
     Args:
-        qcnn (Qcnn): The Qcnn object to plot.
-        all_motifs (bool, optional): Whether to plot all motifs in the Qcnn object or just the operational ones. Defaults to False (just operations)
-        conv_color (str, optional): The colour of nodes for convolution motifs. Defaults to "#0096ff".
-        pool_color (str, optional): The colour of nodes for pooling motifs. Defaults to "#ff7e79".
-        dense_colour (str, optional): The colour of nodes for dense motifs. Defaults to "#a9449d".
-        qinit_colour (str, optional): The colour of nodes for free motifs. Defaults to "#92a9bd".
+        hierq (Hierarchical): The Hierarchical object to plot.
+        all_motifs (bool, optional): Whether to plot all motifs in the Hierarchical object or just the operational ones. Defaults to False (just operations)
+        cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
+        mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
+        permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
+        init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
         **kwargs: Additional keyword arguments to pass to the networkx draw function.
 
     Returns:
         figs (list): A list of matplotlib figure objects.
     """
-    oPlot = FlowLayout()
     figs = []
     if all_motifs:
-        motif = qcnn.tail
+        motif = hierq.tail
         while motif is not None:
             fig, ax = plot_motif(
-                motif, conv_color, pool_color, dense_colour, qinit_colour, **kwargs
+                motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
             )
             motif = motif.next
-            oPlot.add_plot(ax)
+            # oPlot.add_plot(ax)
             figs.append(fig)
             plt.close()
     else:
-        for motif in qcnn:
+        for motif in hierq:
             fig, ax = plot_motif(
-                motif, conv_color, pool_color, dense_colour, qinit_colour, **kwargs
+                motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
             )
-            oPlot.add_plot(ax)
+            # oPlot.add_plot(ax)
             figs.append(fig)
             plt.close()
-    oPlot.PassHtmlToCell()
     return figs
-    
-
-
-import matplotlib.pyplot as plt
-import numpy as np
-from IPython.display import HTML
-import io
-import base64
-
-
-# See https://stackoverflow.com/questions/21754976/ipython-notebook-arrange-plots-horizontally
-class FlowLayout(object):
-    """A class / object to display plots in a horizontal / flow layout below a cell"""
-
-    def __init__(self):
-        # string buffer for the HTML: initially some CSS; images to be appended
-        self.sHtml = """
-        <style>
-        .floating-box {
-        display: inline-block;
-        margin: 10px;
-        border: 2px solid #000000;  
-        }
-        </style>
-        """
-
-    def add_plot(self, oAxes):
-        """Saves a PNG representation of a Matplotlib Axes object"""
-        Bio = io.BytesIO()  # bytes buffer for the plot
-        fig = oAxes.get_figure()
-        fig.canvas.print_png(Bio)  # make a png of the plot in the buffer
-
-        # encode the bytes as string using base 64
-        sB64Img = base64.b64encode(Bio.getvalue()).decode()
-        self.sHtml += (
-            '<div class="floating-box">'
-            + '<img src="data:image/png;base64,{}\n">'.format(sB64Img)
-            + "</div>"
-        )
-
-    def PassHtmlToCell(self):
-        """Final step - display the accumulated HTML"""
-        display(HTML(self.sHtml))
-
-
-# === Testing ===
-# for stride in [1,3,5,7]:
-#     m = Qinit(8) + Qcycle(stride)
-#     fig, ax = plot_motif(m.head, font_size=15, node_large=700, edge_width=1.8)
-#     fig.savefig(f"/home/matt/Downloads/stride_{stride}.svg", format="svg")
-# print("Apastionat")
-# # %%
-# import hypernetx as hnx
-# import itertools as it
-# # 1,3,0
-# # 1,3,2
-# # 9q 3,1,0
-
-# stride=3
-# step=1
-# offset=0
-# boundary="open"
-# m = Qinit(9) + Qcycle(stride, step, offset, qpu=3, boundary="open")
-# # plot_motif(m.head)
-# motif = m.head
-# n_qbits = len(motif.Q)
-# # Change order around a circle, this way you start at x=0 then move left around
-# theta_0 = 1 / 4  # specify vector(0,1) as start
-# theta_step = -1 / n_qbits
-# pos = {
-#     label: np.array(
-#         [
-#             np.cos(2 * np.pi * (theta_0 + ind * theta_step)),
-#             np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
-#         ]
-#     )
-#     for label, ind in zip(motif.Q, range(n_qbits))
-# }
-# H = hnx.Hypergraph(m.head.E)
-# H._add_nodes_from(motif.Q)
-# fig, ax = plt.subplots()
-# hnx.drawing.draw(
-#     H,
-#     pos=pos,
-#     with_edge_labels=False,
-#     node_radius=3.5,
-#     node_labels_kwargs={"ha": "center", "fontsize": 15},
-#     nodes_kwargs={"facecolors": "#0096ff", "edgecolors": "black", "linewidths": 1.4},
-#     edges_kwargs={"edgecolors":  plt.cm.tab10(7), "linewidths": 2, "dr":0.03},
-# )
-# # Set title of plot
-# ax.set_title(f"Stride: {stride}, Step: {step}, Offset: {offset}")
-# # Save fig svg
-# fig.savefig(f"/home/matt/Downloads/stride_{stride}_step_{step}_offset_{offset}.svg", format="svg")
-
-# # # %%
-# # # "edgecolors": "#FFA500",
-
