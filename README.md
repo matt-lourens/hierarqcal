@@ -3,7 +3,7 @@
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" style="padding-right:10px" align="left"/>
 
 <p style="height:150px">
-**HierarQcal** is an Open-Source Python Package for Building Custom Quantum Circuits for Machine Learning. The package simplifies the process of creating general quantum convolutional neural networks (QCNN) by enabling an hierarchical design process. With HierarQcal, automatic generation of QCNN circuits is made easy, and it facilitates QCNN search space design for neural architecture search (NAS). The package includes primitives such as <code>Qconv, Qpool, Qdense, Qfree </code> that can be stacked together hierarchically to form complex QCNN circuit architectures.
+<b>HierarQcal</b> is an open-source Python package that simplifies the generation of custom quantum circuits for Neural Architecture Search (NAS). It provides a dynamic data structure for hierarchical circuit representations, enabling intuitive circuit composition and search space design. For example, it may be used to generate Quantum Convolutional Neural Networks (QCNNs) by stacking together primitives like <code>Qconv, Qpool, Qdense, and Qfree</code> hierarchically to form complex QCNN circuit architectures. The package is framework-agnostic and includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to efficiently explore and optimize quantum circuit architectures. 
 </p>
 <br/>
 
