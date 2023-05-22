@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HierarQcal Overview &mdash; HierarQcal 2023 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/dalle_img.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Core functionality tutorial" href="core_tutorial.html" />
+    <link rel="prev" title="Getting Started" href="../getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HierarQcal
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../getting_started.html#basic-usage">Basic usage</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">HierarQcal Overview</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#binary-trees">Binary trees</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mera-from-grant-et-al">MERA from Grant et al.</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sub-motif-as-a-mapping-for-a-motif">Sub motif as a mapping for a motif</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parameter-management">Parameter management</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#masking">Masking</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#specifying-unitaries">Specifying unitaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="core_tutorial.html">Core functionality tutorial</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HierarQcal</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../getting_started.html">Getting Started</a></li>
+      <li class="breadcrumb-item active">HierarQcal Overview</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/quickstart.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="hierarqcal-overview">
+<h1>HierarQcal Overview<a class="headerlink" href="#hierarqcal-overview" title="Permalink to this heading">¶</a></h1>
+<img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" width="300" align="left" style="padding-right:10px">
+<p style="height:150px">
+<b>HierarQcal</b> is a quantum circuit builder that simplifies circuit design, composition, generation, scaling, and parameter management. It provides an intuitive and dynamic data structure for constructing computation graphs hierarchically. This enables the generation of complex quantum circuit architectures, which is particularly useful for Neural Architecture Search (NAS), where an algorithm can determine the most efficient circuit architecture for a specific task and hardware. HierarQcal also facilitates the creation of hierarchical quantum circuits, such as those resembling tensor tree networks or MERA, with a single line of code. The package is open-source and framework-agnostic, it includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to explore and optimize quantum circuit architectures. 
+</p>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<p><em>A robot building itself with artificial intelligence, pencil drawing -  generated with</em> <a class="reference external" href="https://openai.com/dall-e-2/">Dall E 2</a></p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sympy</span> <span class="k">as</span> <span class="nn">sp</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">hierarqcal</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Qhierarchy</span><span class="p">,</span>
+    <span class="n">Qcycle</span><span class="p">,</span>
+    <span class="n">Qpermute</span><span class="p">,</span>
+    <span class="n">Qmask</span><span class="p">,</span>
+    <span class="n">Qunmask</span><span class="p">,</span>
+    <span class="n">Qinit</span><span class="p">,</span>
+    <span class="n">Qmotif</span><span class="p">,</span>
+    <span class="n">Qmotifs</span><span class="p">,</span>
+    <span class="n">plot_motifs</span><span class="p">,</span>
+    <span class="n">plot_motif</span><span class="p">,</span>
+    <span class="n">Qunitary</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">backend</span> <span class="o">=</span> <span class="s2">&quot;qiskit&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">qiskit</span>
+    <span class="kn">from</span> <span class="nn">hierarqcal.qiskit.qiskit_circuits</span> <span class="kn">import</span> <span class="n">V2</span><span class="p">,</span> <span class="n">U2</span><span class="p">,</span> <span class="n">V4</span>
+
+    <span class="k">def</span> <span class="nf">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hierq</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;qiskit&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">circuit</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">output</span><span class="o">=</span><span class="s2">&quot;mpl&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cirq&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">cirq</span>
+    <span class="kn">from</span> <span class="nn">cirq.contrib.svg</span> <span class="kn">import</span> <span class="n">SVGCircuit</span>
+    <span class="kn">from</span> <span class="nn">hierarqcal.cirq.cirq_circuits</span> <span class="kn">import</span> <span class="n">V2</span><span class="p">,</span> <span class="n">U2</span><span class="p">,</span> <span class="n">V4</span>
+    <span class="kn">import</span> <span class="nn">logging</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s1">&#39;matplotlib.font_manager&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">def</span> <span class="nf">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">hierq</span><span class="p">(</span><span class="n">backend</span><span class="o">=</span><span class="s2">&quot;cirq&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SVGCircuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pennylane&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">pennylane</span> <span class="k">as</span> <span class="nn">qml</span>
+    <span class="kn">from</span> <span class="nn">hierarqcal.pennylane.pennylane_circuits</span> <span class="kn">import</span> <span class="n">V2</span><span class="p">,</span> <span class="n">U2</span><span class="p">,</span> <span class="n">V4</span>
+
+    <span class="k">def</span> <span class="nf">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">):</span>
+        <span class="n">dev</span> <span class="o">=</span> <span class="n">qml</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;default.qubit&quot;</span><span class="p">,</span> <span class="n">wires</span><span class="o">=</span><span class="n">hierq</span><span class="o">.</span><span class="n">tail</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+
+        <span class="nd">@qml</span><span class="o">.</span><span class="n">qnode</span><span class="p">(</span><span class="n">dev</span><span class="p">)</span>
+        <span class="k">def</span> <span class="nf">circuit</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="n">hierq</span><span class="o">.</span><span class="n">get_symbols</span><span class="p">(),</span> <span class="kc">False</span><span class="p">),</span> <span class="n">sp</span><span class="o">.</span><span class="n">Symbol</span><span class="p">):</span>
+                <span class="c1"># Pennylane doesn&#39;t support symbolic parameters, so if no symbols were set (i.e. they are still symbolic), we initialize them randomly</span>
+                <span class="n">hierq</span><span class="o">.</span><span class="n">set_symbols</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">hierq</span><span class="o">.</span><span class="n">n_symbols</span><span class="p">))</span>
+            <span class="n">hierq</span><span class="p">(</span>
+                <span class="n">backend</span><span class="o">=</span><span class="s2">&quot;pennylane&quot;</span>
+            <span class="p">)</span>  <span class="c1"># This executes the compute graph in order</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">qml</span><span class="o">.</span><span class="n">expval</span><span class="p">(</span><span class="n">qml</span><span class="o">.</span><span class="n">PauliZ</span><span class="p">(</span><span class="n">wire</span><span class="p">))</span> <span class="k">for</span> <span class="n">wire</span> <span class="ow">in</span> <span class="n">hierq</span><span class="o">.</span><span class="n">tail</span><span class="o">.</span><span class="n">Q</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">circuit</span>
+
+    <span class="k">def</span> <span class="nf">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">qml</span><span class="o">.</span><span class="n">draw_mpl</span><span class="p">(</span><span class="n">circuit</span><span class="p">)(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">u2</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">U2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">v2</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">V2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">v4</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">V4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="binary-trees">
+<h2>Binary trees<a class="headerlink" href="#binary-trees" title="Permalink to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/3a15cdbb92d08f2d1e83f23d28ad2e373067f2ab33e91f3e5ae7cd32773ddc0d.png" src="../_images/3a15cdbb92d08f2d1e83f23d28ad2e373067f2ab33e91f3e5ae7cd32773ddc0d.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;outside&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/4f61ee51a4e7d3491bad9c1eb15b1bb5b27794331d37ca8db27c8b54f6ee02e6.png" src="../_images/4f61ee51a4e7d3491bad9c1eb15b1bb5b27794331d37ca8db27c8b54f6ee02e6.png" />
+</div>
+</div>
+</div>
+<div class="section" id="mera-from-grant-et-al">
+<h2>MERA from Grant et al.<a class="headerlink" href="#mera-from-grant-et-al" title="Permalink to this heading">¶</a></h2>
+<p>The Multi-scale Entanglement Renormalization Ansatz (MERA) architecture from <a class="reference external" href="https://www.nature.com/articles/s41534-018-0116-9">Hierarchical quantum classifiers, Grant et al.</a>. We generate a N-qubit MERA circuit, change N to 4,8,16,32 to see how simple scaling the same circuit design is. Note that v4 is a 4-qubit unitary, which illustrates how primitves can handle N-qubit unitaries.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">N</span><span class="o">=</span><span class="mi">16</span>
+<span class="n">m1_1</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="n">m2_1</span> <span class="o">=</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1001&quot;</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v4</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="n">m3_1</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="n">m1_2</span> <span class="o">=</span> <span class="n">m2_1</span> <span class="o">+</span> <span class="n">m3_1</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="n">N</span><span class="p">)</span> <span class="o">+</span> <span class="n">m1_1</span> <span class="o">+</span> <span class="n">m1_2</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">N</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># Draw the circuit</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/ac4e0909c7da413772250132ec0173a20aac836841e9e6910d552c65ec6712ea.png" src="../_images/ac4e0909c7da413772250132ec0173a20aac836841e9e6910d552c65ec6712ea.png" />
+</div>
+</div>
+</div>
+<div class="section" id="sub-motif-as-a-mapping-for-a-motif">
+<h2>Sub motif as a mapping for a motif<a class="headerlink" href="#sub-motif-as-a-mapping-for-a-motif" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="a-cycle-of-cycles">
+<h3>A cycle of cycles<a class="headerlink" href="#a-cycle-of-cycles" title="Permalink to this heading">¶</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">m1</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/20688d86f69aee8b248d5d635cf626c966e3120294ff798b624d747dcaf05028.png" src="../_images/20688d86f69aee8b248d5d635cf626c966e3120294ff798b624d747dcaf05028.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/62a258e81189a5474bae62dcc7e28d1fea55fb45dec0afb263855252f79025ce.png" src="../_images/62a258e81189a5474bae62dcc7e28d1fea55fb45dec0afb263855252f79025ce.png" />
+</div>
+</div>
+</div>
+<div class="section" id="a-cycle-of-cycles-of-permutations">
+<h3>A cycle of cycles of permutations<a class="headerlink" href="#a-cycle-of-cycles-of-permutations" title="Permalink to this heading">¶</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">subsub</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qpermute</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">combinations</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">subsub</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/5725785d2007ac55f6f8ac29cca18c6702790dd999fdec9e2be176ccaa5ca2f4.png" src="../_images/5725785d2007ac55f6f8ac29cca18c6702790dd999fdec9e2be176ccaa5ca2f4.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sub</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span>
+    <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">subsub</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span>
+<span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">sub</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/3de72fa95f409986c60174d813342ba9bf7f06740bd8945e00d4128dbc152160.png" src="../_images/3de72fa95f409986c60174d813342ba9bf7f06740bd8945e00d4128dbc152160.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">22</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">sub</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/eb19f6bb696247fa1c92763e4315e4201217cb39b559aff172d16307d0aea7e9.png" src="../_images/eb19f6bb696247fa1c92763e4315e4201217cb39b559aff172d16307d0aea7e9.png" />
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="parameter-management">
+<h2>Parameter management<a class="headerlink" href="#parameter-management" title="Permalink to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/6ecec0e6b9a3585637b976f47d3b09b47616d01515e9dc8811d6592b5be40880.png" src="../_images/6ecec0e6b9a3585637b976f47d3b09b47616d01515e9dc8811d6592b5be40880.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/daf2d5a73df6c168f58758c06885c81fe2353679071b64fc0d75a56b112395db.png" src="../_images/daf2d5a73df6c168f58758c06885c81fe2353679071b64fc0d75a56b112395db.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/91bb8b2766e28de0dd7db6641650afa475d0bd178c64b21d89a601311198e38d.png" src="../_images/91bb8b2766e28de0dd7db6641650afa475d0bd178c64b21d89a601311198e38d.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/62a258e81189a5474bae62dcc7e28d1fea55fb45dec0afb263855252f79025ce.png" src="../_images/62a258e81189a5474bae62dcc7e28d1fea55fb45dec0afb263855252f79025ce.png" />
+</div>
+</div>
+<div class="section" id="specifying-rotational-angles">
+<h3>Specifying rotational angles<a class="headerlink" href="#specifying-rotational-angles" title="Permalink to this heading">¶</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">m1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">m1</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="n">share_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">hierq</span><span class="o">.</span><span class="n">set_symbols</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">hierq</span><span class="o">.</span><span class="n">n_symbols</span><span class="p">))</span>
+<span class="nb">list</span><span class="p">(</span><span class="n">hierq</span><span class="o">.</span><span class="n">get_symbols</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[4.8907597293094485, 2.2241460602725085]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/c6de23b4886e339e929db8ad49de645fadeb32e2356626612b6f0dbaf57eb240.png" src="../_images/c6de23b4886e339e929db8ad49de645fadeb32e2356626612b6f0dbaf57eb240.png" />
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="masking">
+<h2>Masking<a class="headerlink" href="#masking" title="Permalink to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qunmask</span><span class="p">(</span><span class="s2">&quot;previous&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/94baf476f3362811d7dc677bcdfa6a45983235113d08b102101b4a036726bdf0.png" src="../_images/94baf476f3362811d7dc677bcdfa6a45983235113d08b102101b4a036726bdf0.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1**1&quot;</span><span class="p">,</span> <span class="n">connection_type</span><span class="o">=</span><span class="s2">&quot;nearest_tower&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/09552850fe7ec09c5923987d0ebed78e3d774eca798906ea007177394d492875.png" src="../_images/09552850fe7ec09c5923987d0ebed78e3d774eca798906ea007177394d492875.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1**1&quot;</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">connection_type</span><span class="o">=</span><span class="s2">&quot;cycle&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span><span class="o">*</span><span class="mi">4</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/2301382c4f9248d35b8574429b90f969258f504afe81c4f85823837a92fc889c.png" src="../_images/2301382c4f9248d35b8574429b90f969258f504afe81c4f85823837a92fc889c.png" />
+</div>
+</div>
+</div>
+<div class="section" id="specifying-unitaries">
+<h2>Specifying unitaries<a class="headerlink" href="#specifying-unitaries" title="Permalink to this heading">¶</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
+    <span class="k">def</span> <span class="nf">anz1</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        
+        <span class="c1"># Assume bits are strings and in the correct QASM format</span>
+        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">crz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">x</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">crx</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">circuit</span>
+
+    <span class="k">def</span> <span class="nf">anz2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Assume bits are strings and in the correct QASM format</span>
+        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">ry</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">ry</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">circuit</span>
+
+<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cirq&quot;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">cirq</span>
+    <span class="c1"># Masking circuit</span>
+    <span class="k">def</span> <span class="nf">anz1</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span><span class="o">.</span><span class="n">controlled_by</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rx</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span><span class="o">.</span><span class="n">controlled_by</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">circuit</span>
+
+    <span class="c1"># Cycle circuit</span>
+    <span class="k">def</span> <span class="nf">anz2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">ry</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">ry</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">q0</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">circuit</span>
+
+<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pennylane&quot;</span><span class="p">:</span>
+    <span class="c1"># Masking circuit</span>
+    <span class="k">def</span> <span class="nf">anz1</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">CRZ</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">PauliX</span><span class="p">(</span><span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">CRX</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+
+    <span class="c1"># Cycle circuit</span>
+    <span class="k">def</span> <span class="nf">anz2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">RZ</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">RZ</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">RY</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">RY</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="n">qml</span><span class="o">.</span><span class="n">RZ</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+
+<span class="n">u</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">anz2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">anz1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ansatz_1</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">ansatz_1</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/263f3be348e3f44a5069fa24e4fe3d8f4e78b03694e1a039df9aec492a079c54.png" src="../_images/263f3be348e3f44a5069fa24e4fe3d8f4e78b03694e1a039df9aec492a079c54.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ansatz_2</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v</span><span class="p">)</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">ansatz_2</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/7e28224244fd8f18467901bc1cceb0356ff6c2192bffb0f0c6eed28b2a059293.png" src="../_images/7e28224244fd8f18467901bc1cceb0356ff6c2192bffb0f0c6eed28b2a059293.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/93a4c3ab99887063f7e67dc83e6adabd1bc4e2f5a61b1eea5bcdf3fa7db313f0.png" src="../_images/93a4c3ab99887063f7e67dc83e6adabd1bc4e2f5a61b1eea5bcdf3fa7db313f0.png" />
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_tutorial.html" class="btn btn-neutral float-right" title="Core functionality tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Matt Lourens.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

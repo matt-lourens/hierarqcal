@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HierarQcal Core &mdash; HierarQcal 2023 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -50,45 +49,69 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="api.html">API Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">HierarQcal Core</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Default_Mappings"><code class="docutils literal notranslate"><span class="pre">Default_Mappings</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Default_Mappings.CYCLE"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.CYCLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Default_Mappings.MASK"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Default_Mappings.PERMUTE"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.PERMUTE</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Primitive_Types"><code class="docutils literal notranslate"><span class="pre">Primitive_Types</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.CONVOLUTION"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.CONVOLUTION</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.DENSE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.DENSE</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.POOLING"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.POOLING</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.CYCLE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.CYCLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.INIT"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.INIT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.MASK"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.MASK</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Primitive_Types.PERMUTE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.PERMUTE</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qcnn"><code class="docutils literal notranslate"><span class="pre">Qcnn</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.__add__"><code class="docutils literal notranslate"><span class="pre">Qcnn.__add__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.__mul__"><code class="docutils literal notranslate"><span class="pre">Qcnn.__mul__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.append"><code class="docutils literal notranslate"><span class="pre">Qcnn.append()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.extend"><code class="docutils literal notranslate"><span class="pre">Qcnn.extend()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.extmerge"><code class="docutils literal notranslate"><span class="pre">Qcnn.extmerge()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.merge"><code class="docutils literal notranslate"><span class="pre">Qcnn.merge()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcnn.update_Q"><code class="docutils literal notranslate"><span class="pre">Qcnn.update_Q()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qcycle"><code class="docutils literal notranslate"><span class="pre">Qcycle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qcycle.__call__"><code class="docutils literal notranslate"><span class="pre">Qcycle.__call__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qconv"><code class="docutils literal notranslate"><span class="pre">Qconv</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qconv.__call__"><code class="docutils literal notranslate"><span class="pre">Qconv.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qhierarchy"><code class="docutils literal notranslate"><span class="pre">Qhierarchy</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.__add__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__add__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.__call__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.__mul__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__mul__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.append"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.copy"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.extend"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.extend()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.extmerge"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.extmerge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.get_symbols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.get_unitary_function"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.get_unitary_function()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.merge"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.merge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.set_symbols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qhierarchy.update_Q"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.update_Q()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qdense"><code class="docutils literal notranslate"><span class="pre">Qdense</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qdense.__call__"><code class="docutils literal notranslate"><span class="pre">Qdense.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qinit"><code class="docutils literal notranslate"><span class="pre">Qinit</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qinit.__add__"><code class="docutils literal notranslate"><span class="pre">Qinit.__add__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qinit.__call__"><code class="docutils literal notranslate"><span class="pre">Qinit.__call__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qfree"><code class="docutils literal notranslate"><span class="pre">Qfree</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qfree.__add__"><code class="docutils literal notranslate"><span class="pre">Qfree.__add__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qfree.__call__"><code class="docutils literal notranslate"><span class="pre">Qfree.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qmask"><code class="docutils literal notranslate"><span class="pre">Qmask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmask.__call__"><code class="docutils literal notranslate"><span class="pre">Qmask.__call__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qmask_Base"><code class="docutils literal notranslate"><span class="pre">Qmask_Base</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmask_Base.__call__"><code class="docutils literal notranslate"><span class="pre">Qmask_Base.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmask_Base.get_mask_pattern_fn"><code class="docutils literal notranslate"><span class="pre">Qmask_Base.get_mask_pattern_fn()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qmotif"><code class="docutils literal notranslate"><span class="pre">Qmotif</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.__add__"><code class="docutils literal notranslate"><span class="pre">Qmotif.__add__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.__mul__"><code class="docutils literal notranslate"><span class="pre">Qmotif.__mul__()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.append"><code class="docutils literal notranslate"><span class="pre">Qmotif.append()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qmotif.get_symbols()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_E"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_E()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_Q"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_Q()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_Qavail"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_Qavail()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_arity"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_arity()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_edge_mapping"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_edge_mapping()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_edge_order"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_edge_order()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_is_operation"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_is_operation()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_mapping"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_mapping()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_next"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_next()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_prev"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_prev()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_share_weights"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_share_weights()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotif.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_symbols()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qmotifs"><code class="docutils literal notranslate"><span class="pre">Qmotifs</span></code></a><ul>
@@ -96,9 +119,19 @@
 <li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qmotifs.__mul__"><code class="docutils literal notranslate"><span class="pre">Qmotifs.__mul__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qpool"><code class="docutils literal notranslate"><span class="pre">Qpool</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qpool.__call__"><code class="docutils literal notranslate"><span class="pre">Qpool.__call__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qpool.get_pool_filter_fn"><code class="docutils literal notranslate"><span class="pre">Qpool.get_pool_filter_fn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qpermute"><code class="docutils literal notranslate"><span class="pre">Qpermute</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qpermute.__call__"><code class="docutils literal notranslate"><span class="pre">Qpermute.__call__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qunitary"><code class="docutils literal notranslate"><span class="pre">Qunitary</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qunitary.__call__"><code class="docutils literal notranslate"><span class="pre">Qunitary.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qunitary.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qunitary.get_symbols()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qunitary.set_edge"><code class="docutils literal notranslate"><span class="pre">Qunitary.set_edge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qunitary.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qunitary.set_symbols()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.core.Qunmask"><code class="docutils literal notranslate"><span class="pre">Qunmask</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hierarqcal.core.Qunmask.__call__"><code class="docutils literal notranslate"><span class="pre">Qunmask.__call__()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -136,190 +169,96 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-hierarqcal.core">
+  <div class="section" id="module-hierarqcal.core">
 <span id="hierarqcal-core"></span><h1>HierarQcal Core<a class="headerlink" href="#module-hierarqcal.core" title="Permalink to this heading">¶</a></h1>
-<p>This module contains the core classes for the hierarqcal package. Qmotif is the base class for all motifs, Qmotifs is a sequence of motifs and Qcnn is the full quantum circuit architecture, that handles the interaction between motifs.</p>
-<p>Create a qcnn as follows:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hierarqcal</span> <span class="kn">import</span> <span class="n">Qfree</span><span class="p">,</span> <span class="n">Qconv</span><span class="p">,</span> <span class="n">Qpool</span>
-<span class="n">my_qcnn</span> <span class="o">=</span> <span class="n">Qfree</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qconv</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qpool</span><span class="p">(</span><span class="nb">filter</span><span class="o">=</span><span class="s2">&quot;right&quot;</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3</span>
+<p>This module contains the core classes for the hierarqcal package. <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a> is the base class for all primitives, it’s a directed graph functioning as the building block for higher level motifs. <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qhierarchy</span></code></a> is the full compute graph / architecture of the quantum circuit, it manages the interaction between motifs, their execution and symbol distribuition.</p>
+<p>Create a hierarchical circuit as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hierarqcal</span> <span class="kn">import</span> <span class="n">Qinit</span><span class="p">,</span> <span class="n">Qcycle</span><span class="p">,</span> <span class="n">Qmask</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">))</span> <span class="o">*</span> <span class="mi">3</span>
 </pre></div>
 </div>
-<p>The above creates a qcnn that resembles a reverse binary tree architecture. There are 8 free qubits and then a convolution-pooling unit is repeated three times.</p>
+<p>The above creates a circuit that resembles a reverse binary tree architecture. There are 8 initial qubits and then a cycle-masking unit is repeated three times.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.core.Default_Mappings">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Default_Mappings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Default_Mappings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enum for default mappings</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hierarqcal.core.Default_Mappings.CYCLE">
+<span class="sig-name descname"><span class="pre">CYCLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;hierarqcal.core.Qunitary</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#hierarqcal.core.Default_Mappings.CYCLE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hierarqcal.core.Default_Mappings.MASK">
+<span class="sig-name descname"><span class="pre">MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#hierarqcal.core.Default_Mappings.MASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hierarqcal.core.Default_Mappings.PERMUTE">
+<span class="sig-name descname"><span class="pre">PERMUTE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;hierarqcal.core.Qunitary</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#hierarqcal.core.Default_Mappings.PERMUTE" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Primitive_Types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Primitive_Types" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
-<p>Enum for primitive types</p>
+<p>Enum for primitive types.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.CONVOLUTION">
-<span class="sig-name descname"><span class="pre">CONVOLUTION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'convolution'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.CONVOLUTION" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.CYCLE">
+<span class="sig-name descname"><span class="pre">CYCLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cycle'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.CYCLE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.DENSE">
-<span class="sig-name descname"><span class="pre">DENSE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'dense'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.DENSE" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.INIT">
+<span class="sig-name descname"><span class="pre">INIT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'init'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.INIT" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.POOLING">
-<span class="sig-name descname"><span class="pre">POOLING</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'pooling'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.POOLING" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.MASK">
+<span class="sig-name descname"><span class="pre">MASK</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'mask'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.MASK" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="hierarqcal.core.Primitive_Types.PERMUTE">
+<span class="sig-name descname"><span class="pre">PERMUTE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'permute'</span></em><a class="headerlink" href="#hierarqcal.core.Primitive_Types.PERMUTE" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qcnn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qubits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>The main class that manages the “stack” of motifs, it handles the interaction between successive motifs and when a motifs are added to the stack,
-it updates all the others accordingly. An object of this class fully captures the architectural information of a Quantum convolutional neural network.
-It also handles function (unitary operation) mappings.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qcycle">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qcycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
+<p>A cycle motif, spreads unitaries in a ladder structure accross the circuit
+TODO implement open boundary for dense and pooling also + tests</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.__add__">
-<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.__add__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a motif, motifs or qcnn to the stack.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a><em>, </em><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><em>Qcnn</em></a><em>, </em><em>Sequence</em><em>(</em><a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a><em>)</em>) – The motif, motifs or qcnn to add to the stack.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the motif(s) added to the stack.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.__mul__">
-<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.__mul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Repeat the qcnn a number of times. If a motif(s) is provided, it is added to the stack.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<em>int</em><em>, </em><a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a><em>, </em><em>Sequence</em><em>(</em><a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a><em>)</em>) – The number of times to repeat the qcnn or the motif(s) to add to the stack.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the motif(s) added to the stack.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.append">
-<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">motif</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.append" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a motif to the stack of motifs and update it (call to generate nodes and edges) according to the action of the previous motifs in the stack.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>motif</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – The motif to add to the stack.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the new motif added to the stack.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.extend">
-<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">motifs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.extend" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add and update a list of motifs to the current stack of motifs call each to generate their nodes and edges according to the action of the previous motifs in the stack.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>motifs</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs"><em>Qmotifs</em></a>) – A tuple of motifs to add to the stack.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the motifs added to the stack.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.extmerge">
-<span class="sig-name descname"><span class="pre">extmerge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qcnns</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.extmerge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge a list of Qcnn objects by adding the head of each one to the tail of the previous one. All are copied to ensure immutability.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>qcnns</strong> (<a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><em>Qcnn</em></a>) – A list of Qcnn objects to merge with the current one.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the list merged.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.merge">
-<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qcnn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge two Qcnn objects by adding the head of the second one to the tail of the first one. Both are copied to ensure immutability.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>qcnn</strong> (<a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><em>Qcnn</em></a>) – The Qcnn object to merge with the current one.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A new Qcnn object with the two merged.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn">Qcnn</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qcnn.update_Q">
-<span class="sig-name descname"><span class="pre">update_Q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcnn.update_Q" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the number of available qubits for the qcnn and update the rest of the stack accordingly.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Q</strong> (<em>list</em><em>(</em><em>int</em><em> or </em><em>string</em><em>)</em>) – The list of available qubits.</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="hierarqcal.core.Qconv">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qconv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convolution_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qconv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
-<p>A convolution motif, used to specify convolution operations in the quantum neural network.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qconv.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qc_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qconv.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Qcycle.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qc_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qcycle.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call the motif, this generates the edges and qubits of the motif (directed graph) based on it’s available qubits.
 Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>Qc_l</strong> (<em>list</em>) – List of available qubits.</p></li>
 <li><p><strong>*args</strong> – Variable length argument list.</p></li>
-<li><p><strong>**kwds</strong> – <p>Arbitrary keyword arguments, such as:</p>
+<li><p><strong>**kwargs</strong> – Arbitrary keyword arguments, such as:</p>
 <ul>
 <li><dl class="simple">
-<dt>mapping (tuple(function, int)):</dt><dd><p>Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) &lt;- theta is a symbol for the gate.</p>
+<dt>mapping (tuple(function, int)): TODO update this docstring, it’s not a tuple anymore.</dt><dd><p>Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) &lt;- theta is a symbol for the gate.</p>
 </dd>
 </dl>
 </li>
 </ul>
-</p></li>
+</li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Returns the updated version of itself, with correct nodes and edges.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qconv" title="hierarqcal.core.Qconv">Qconv</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Qconv</p>
 </dd>
 </dl>
 </dd></dl>
@@ -327,21 +266,199 @@ Each time a motif in the stack changes, a loop runs through the stack from the b
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="hierarqcal.core.Qdense">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qdense</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">permutations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qdense" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
-<p>A dense motif, it connects unitaries to all possible combinations of qubits (all possible edges given Q) in the quantum circuit.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qhierarchy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qubits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_mappings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The main class that manages the “stack” of motifs, it handles the interaction between successive motifs and when a motifs are added to the stack,
+it updates all the others accordingly. An object of this class fully captures the architectural information of a hierarchical quantum circuit.
+It also handles function (unitary operation) mappings.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qdense.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qc_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qdense.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.__add__">
+<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a motif, motifs or hierarchy to the stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Qmotif, Qhierarchy, Sequence(Qmotif)</em>) – The motif, motifs or hierarchy to add to the stack.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the motif(s) added to the stack.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call self as a function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.__mul__">
+<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.__mul__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Repeat the hierarchy a number of times. If a motif(s) is provided, it is added to the stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>int, Qmotif, Sequence(Qmotif)</em>) – The number of times to repeat the hierarchy or the motif(s) to add to the stack.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the motif(s) added to the stack.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">motif</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.append" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a motif to the stack of motifs and update it (call to generate nodes and edges) according to the action of the previous motifs in the stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>motif</strong> (<em>Qmotif</em>) – The motif to add to the stack.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the new motif added to the stack.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.copy" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A copy of the current Qhierarchy object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.extend">
+<span class="sig-name descname"><span class="pre">extend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">motifs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add and update a list of motifs to the current stack of motifs call each to generate their nodes and edges according to the action of the previous motifs in the stack.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>motifs</strong> (<em>Qmotifs</em>) – A tuple of motifs to add to the stack.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the motifs added to the stack.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.extmerge">
+<span class="sig-name descname"><span class="pre">extmerge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierarchies</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.extmerge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge a list of Qhierarchy objects by adding the head of each one to the tail of the previous one. All are copied to ensure immutability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hierarchies</strong> (<em>Qhierarchy</em>) – A list of Qhierarchy objects to merge with the current one.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the list merged.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.get_symbols">
+<span class="sig-name descname"><span class="pre">get_symbols</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.get_symbols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.get_unitary_function">
+<span class="sig-name descname"><span class="pre">get_unitary_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.get_unitary_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert the Qhierarchy into a function that can be called.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierarchy</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Merge two Qhierarchy objects by adding the head of the second one to the tail of the first one. Both are copied to ensure immutability.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hierarchy</strong> (<em>Qhierarchy</em>) – The Qhierarchy object to merge with the current one.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A new Qhierarchy object with the two merged.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy">Qhierarchy</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.set_symbols">
+<span class="sig-name descname"><span class="pre">set_symbols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.set_symbols" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qhierarchy.update_Q">
+<span class="sig-name descname"><span class="pre">update_Q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qhierarchy.update_Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the number of available qubits for the hierarchy and update the rest of the stack accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Q</strong> (<em>list(int or string)</em>) – The list of available qubits.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.core.Qinit">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qinit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qinit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
+<p>Qinit motif, represents a freeing up qubit for the QCNN, that is making qubits available for future operations. All Qhierarchy objects start with a Qinit motif.
+It is a special motif that has no edges and is not an operation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qinit.__add__">
+<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qinit.__add__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a motif, motifs or hierarchy to the stack with self.Qinit available qubits.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qinit.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qinit.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calling TODO add explanation just returns the object. Kwargs and Args are ignored, it just ensures that Qinit can be called the same way operational motifs can.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qmask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connection_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cycle'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'periodic'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmask_Base" title="hierarqcal.core.Qmask_Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmask_Base</span></code></a></p>
+<p>A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
+This motif changes the available qubits for the next motif in the stack.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmask.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qp_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmask.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on it’s available qubits.
 Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>Qc_l</strong> (<em>list</em>) – List of available qubits.</p></li>
+<li><p><strong>Qp_l</strong> (<em>list</em>) – List of available qubits.</p></li>
 <li><p><strong>*args</strong> – Variable length argument list.</p></li>
-<li><p><strong>**kwds</strong> – <p>Arbitrary keyword arguments, such as:</p>
+<li><p><strong>**kwargs</strong> – Arbitrary keyword arguments, such as:</p>
 <ul>
 <li><dl class="simple">
 <dt>mapping (tuple(function, int)):</dt><dd><p>Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) &lt;- theta is a symbol for the gate.</p>
@@ -349,14 +466,14 @@ Each time a motif in the stack changes, a loop runs through the stack from the b
 </dl>
 </li>
 </ul>
-</p></li>
+</li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Returns the updated version of itself, with correct nodes and edges.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qdense" title="hierarqcal.core.Qdense">Qdense</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Qpool</p>
 </dd>
 </dl>
 </dd></dl>
@@ -364,47 +481,70 @@ Each time a motif in the stack changes, a loop runs through the stack from the b
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="hierarqcal.core.Qfree">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qfree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qfree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
-<p>Qfree motif, represents a freeing up qubit for the QCNN, that is making qubits available for future operations. All Qcnn objects start with a Qfree motif.
-It is a special motif that has no edges and is not an operation.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qmask_Base">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qmask_Base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pattern</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmask_Base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qfree.__add__">
-<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qfree.__add__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a motif, motifs or qcnn to the stack with self.Qfree availabe qubits.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qmask_Base.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remaining_q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_operation</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmask_Base.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call self as a function.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qfree.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qfree.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calling Qfree doesn’t do anything new, just returns the object.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qmask_Base.get_mask_pattern_fn">
+<span class="sig-name descname"><span class="pre">get_mask_pattern_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mask_pattern</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Qp_l</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmask_Base.get_mask_pattern_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the pattern function for the pooling operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mask_pattern</strong> (<em>str or lambda</em>) – The pattern type, can be “left”, “right”, “even”, “odd”, “inside” or “outside” which corresponds to a specific pattern (see comments in code below).
+The string can also be a bit string, i.e. “01000” which pools the 2nd qubit.
+If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -&gt; [0,1,2,3], i.e.
+the function returns a sublist of the input list based on some pattern. What’s nice about passing a function is that it can be list length independent,
+meaning the same kind of pattern will be applied as the list grows or shrinks.</p></li>
+<li><p><strong>Qp_l</strong> (<em>list</em>) – List of available qubits.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qmotif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_avail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">function_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_default_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qmotif</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">E</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q_avail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edge_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[1]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">next</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prev</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_default_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_operation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">share_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Quantum Circuit architectures are created by stacking motifs hierarchically, the lowest level motifs (primitives) are building blocks for higher level ones.
-Examples of primitives are convolution (<a class="reference internal" href="#hierarqcal.core.Qconv" title="hierarqcal.core.Qconv"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qconv</span></code></a>), pooling (<a class="reference internal" href="#hierarqcal.core.Qpool" title="hierarqcal.core.Qpool"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qpool</span></code></a>) and dense (<a class="reference internal" href="#hierarqcal.core.Qdense" title="hierarqcal.core.Qdense"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qdense</span></code></a>) operations which inherits this class. Each motif is a directed graph with nodes
-Q for qubits and edges E for unitary operations applied between them, the direction of an edge being the order of interaction for the unitary. Each instance has
-pointers to its predecessor and successor.This class is for a single motif and the Qmotifs class is for a sequence of motifs stored as tuples, then sequences of
-motifs are again stored as tuples  This is to allow hiearchical stacking which in the end is one tuple of motifs.</p>
+<p>Hierarchical circuit architectures are created by stacking motifs, the lowest level motifs (primitives) are building blocks for higher level ones. Examples of primitives are cycles (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qcycle" title="hierarqcal.core.Qcycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qcycle</span></code></a>), masks (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmask_Base" title="hierarqcal.core.Qmask_Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmask_Base</span></code></a>), and permutations (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qpermute" title="hierarqcal.core.Qpermute"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qpermute</span></code></a>). Each motif is a directed graph with nodes Q representing qubits and edges E unitary operations applied between them. The direction of an edge is the order of interaction for the unitary. Each instance has pointers to its predecessor and successor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Q</strong> (<em>list</em><em>, </em><em>optional</em>) – Qubit labels of the motif. Defaults to [].</p></li>
+<li><p><strong>E</strong> (<em>list</em><em>, </em><em>optional</em>) – Edges of the motif. Defaults to [].</p></li>
+<li><p><strong>Q_avail</strong> (<em>list</em><em>, </em><em>optional</em>) – Available qubits of the motif. This is calculated by the previous motif in the stack. Defaults to [].</p></li>
+<li><p><strong>edge_order</strong> (<em>list</em><em>, </em><em>optional</em>) – Order of unitaries applied. Defaults to [1].</p></li>
+<li><p><strong>next</strong> (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a>, optional) – Next motif in the stack. Defaults to None.</p></li>
+<li><p><strong>prev</strong> (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a><em>, </em><em>optional</em>) – Previous motif in the stack. Defaults to None.</p></li>
+<li><p><strong>mapping</strong> (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qunitary" title="hierarqcal.core.Qunitary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qunitary</span></code></a> or <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qhierarchy</span></code></a>, optional) – Either a <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qunitary" title="hierarqcal.core.Qunitary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qunitary</span></code></a> instance or a <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qhierarchy" title="hierarqcal.core.Qhierarchy"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qhierarchy</span></code></a> that will be converted to an <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qunitary" title="hierarqcal.core.Qunitary"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qunitary</span></code></a> object. Defaults to None.</p></li>
+<li><p><strong>symbols</strong> (<em>list</em><em>, </em><em>optional</em>) – List of symbol values (rotation angles). Each element in the list can be a sympy symbol, complex number, or qiskit parameter. Defaults to None.</p></li>
+<li><p><strong>is_default_mapping</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to determine if default mapping is used. Defaults to True.</p></li>
+<li><p><strong>is_operation</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to determine if the motif is an operation. Defaults to True.</p></li>
+<li><p><strong>share_weights</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag to determine if weights are shared within a motif. Defaults to True.</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif.__add__">
 <span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.__add__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add two motifs together, this  appends them next to each other in a tuple.</p>
+<dd><p>Append an other motif to the current one: self + other = (self, other).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – Motif to append to current motif (self).</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Qmotif</em>) – Motif to append to current motif (self).</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -412,16 +552,16 @@ motifs are again stored as tuples  This is to allow hiearchical stacking which i
 <dl class="py method">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif.__mul__">
 <span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.__mul__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Repeat motif “other” times.</p>
+<dd><p>Repeat motif “other” times: self * other = (self, self, …, self). Other is an int.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>other</strong> (<em>int</em>) – Number of times to repeat motif.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A tuple of motifs: (self, self, …, self), where each is a new object copied from the original.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -429,16 +569,27 @@ motifs are again stored as tuples  This is to allow hiearchical stacking which i
 <dl class="py method">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif.append">
 <span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.append" title="Permalink to this definition">¶</a></dt>
-<dd><p>Append motif to current motif.</p>
+<dd><p>Append an other motif to the current one: self + other = (self, other).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – Motif to append to current motif (self).</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Qmotif</em>) – Motif to append to current motif (self).</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.get_symbols">
+<span class="sig-name descname"><span class="pre">get_symbols</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.get_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the symbols of the motif. If share_weights is True, then symbols are obtained from the first edge_mapping. Otherwise, symbols are obtained from each edge_mapping.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Yields</dt>
+<dd class="field-odd"><p><em>symbols (List) or None</em> – List of symbols or None if no edge_mapping.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -448,8 +599,8 @@ motifs are again stored as tuples  This is to allow hiearchical stacking which i
 <span class="sig-name descname"><span class="pre">set_E</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_E" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the edges E of the motif.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>E</strong> (<em>list</em><em>(</em><em>tuples</em><em>)</em>) – List of edges.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>E</strong> (<em>list(tuples)</em>) – List of edges, where each edge is a tuple of qubit labels (self.Q).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -459,8 +610,8 @@ motifs are again stored as tuples  This is to allow hiearchical stacking which i
 <span class="sig-name descname"><span class="pre">set_Q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_Q" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the qubit labels Q of the motif.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>Q</strong> (<em>list</em><em>(</em><em>int</em><em> or </em><em>string</em><em>)</em>) – List of qubit labels.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Q</strong> (<em>list(int or string)</em>) – List of qubit labels.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -468,22 +619,65 @@ motifs are again stored as tuples  This is to allow hiearchical stacking which i
 <dl class="py method">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_Qavail">
 <span class="sig-name descname"><span class="pre">set_Qavail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q_avail</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_Qavail" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the available qubits Q_avail of the motif. This is usually caluclated by the previous motif in the stack, for example pooling removes qubits from being available and
-would use this fcuntion to update the available qubits after it’s action.</p>
+<dd><p>Set the number of available qubits Q_avail for the motif. This gets calculated by the previous motif in the stack, for example the :py:class:Qmask motif would mask qubits and use this function to update the available qubits after it’s action. Example: if Q = [1,2,3,4] and Qmask(“right”) is applied then Q_avail = [1,2].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>Q_avail</strong> (<em>list</em>) – List of available qubits.</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_arity">
+<span class="sig-name descname"><span class="pre">set_arity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arity</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_arity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the arity of the motif (qubits per unitary/ nodes per edge).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arity</strong> (<em>int</em>) – Number of qubits per unitary</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_edge_mapping">
+<span class="sig-name descname"><span class="pre">set_edge_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unitary_function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_edge_mapping" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maps each edge to a unitary function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>edge_mapping</strong> (<em>function</em>) – function for each edge.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_edge_order">
+<span class="sig-name descname"><span class="pre">set_edge_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge_order</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_edge_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the edge order of the motif (order of unitaries applied). [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. For example, if self.E = [(1,2),(7,3),(5,2)] then self.edge_order = [1,2,3] means the unitaries are applied in the order (1,2),(7,3),(5,2). If self.edge_order = [2,1,3] then the unitaries are applied in the order (7,3),(1,2),(5,2). If self.edge_order = [3] then the unitaries are applied in the order (5,2),(1,2),(7,3),.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>edge_order</strong> (<em>list(int)</em>) – List of edge orders.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_is_operation">
+<span class="sig-name descname"><span class="pre">set_is_operation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_operation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_is_operation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the is_operation flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>is_operation</strong> (<em>bool</em>) – Whether the motif is an operation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_mapping">
-<span class="sig-name descname"><span class="pre">set_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function_mapping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_mapping" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">set_mapping</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mapping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_mapping" title="Permalink to this definition">¶</a></dt>
 <dd><p>Specify the unitary operations applied according to the type of motif.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>function_mapping</strong> (<em>tuple</em><em>(</em><em>function</em><em>, </em><em>int</em><em>)</em>) – Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) &lt;- theta is a symbol for the gate.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mapping</strong> (<em>Qhierarchy or Qunitary</em>) – Unitary operation applied to the motif.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -493,8 +687,8 @@ would use this fcuntion to update the available qubits after it’s action.</p>
 <span class="sig-name descname"><span class="pre">set_next</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">next</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_next" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the next motif in the stack.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>next</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – Next motif in the stack.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>next</strong> (<em>Qmotif</em>) – Next motif in the stack.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -504,8 +698,33 @@ would use this fcuntion to update the available qubits after it’s action.</p>
 <span class="sig-name descname"><span class="pre">set_prev</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prev</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_prev" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the previous motif in the stack.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>prev</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – Previous motif in the stack.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prev</strong> (<em>Qmotif</em>) – Previous motif in the stack.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_share_weights">
+<span class="sig-name descname"><span class="pre">set_share_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">share_weights</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_share_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the share_weights flag.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>share_weights</strong> (<em>bool</em>) – Whether to share weights within a motif.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qmotif.set_symbols">
+<span class="sig-name descname"><span class="pre">set_symbols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotif.set_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the symbol’s.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbols</strong> (<em>list</em>) – List of symbols to set.</p></li>
+<li><p><strong>start_idx</strong> (<em>int</em>) – Starting index of symbols, this is used when :py:class:Qhierarchy updates the stack, it loops through each motif counting symbols, at each motif it updates the symbols (inderectly calls this function) and send the current count as starting inde so that correct sympy symbol indices are used.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -522,14 +741,14 @@ would use this fcuntion to update the available qubits after it’s action.</p>
 <span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotifs.__add__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add two tuples of motifs together.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs"><em>Qmotifs</em></a><em> or </em><a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><em>Qmotif</em></a>) – Multiple motifs or singe motif to add to current sequence of motifs.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>other</strong> (<em>Qmotifs or Qmotif</em>) – Multiple motifs or singe motif to add to current sequence of motifs.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A single tuple of the motifs that were added, These are copies of the original motifs, since tuples are immutable.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -539,16 +758,16 @@ would use this fcuntion to update the available qubits after it’s action.</p>
 <span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qmotifs.__mul__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Repeat motifs “other” times.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>other</strong> (<em>int</em>) – Number of times to repeat motifs.</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A tuple of motifs: (self, self, …, self), where each is a new object copied from the original.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotifs" title="hierarqcal.core.Qmotifs">Qmotifs</a>(tuple)</p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>ValueError</strong> – Only integers are allowed for multiplication.</p>
 </dd>
 </dl>
@@ -557,22 +776,21 @@ would use this fcuntion to update the available qubits after it’s action.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="hierarqcal.core.Qpool">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qpool</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'right'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pooling_mapping</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qpool" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
-<p>A pooling motif, it pools qubits together based (some controlled operation where the control is not used for the rest of the circuit).
-This motif changes the available qubits for the next motif in the stack.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qpermute">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qpermute</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">combinations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qpermute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmotif</span></code></a></p>
+<p>A dense motif, it connects unitaries to all possible combinations of qubits (all possible edges given Q) in the quantum circuit.</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qpool.__call__">
-<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qp_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qpool.__call__" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="hierarqcal.core.Qpermute.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qc_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qpermute.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on it’s available qubits.
 Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>Qp_l</strong> (<em>list</em>) – List of available qubits.</p></li>
+<li><p><strong>Qc_l</strong> (<em>list</em>) – List of available qubits.</p></li>
 <li><p><strong>*args</strong> – Variable length argument list.</p></li>
-<li><p><strong>**kwds</strong> – <p>Arbitrary keyword arguments, such as:</p>
+<li><p><strong>**kwargs</strong> – Arbitrary keyword arguments, such as:</p>
 <ul>
 <li><dl class="simple">
 <dt>mapping (tuple(function, int)):</dt><dd><p>Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) &lt;- theta is a symbol for the gate.</p>
@@ -580,36 +798,70 @@ Each time a motif in the stack changes, a loop runs through the stack from the b
 </dl>
 </li>
 </ul>
-</p></li>
+</li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p>Returns the updated version of itself, with correct nodes and edges.</p>
 </dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#hierarqcal.core.Qpool" title="hierarqcal.core.Qpool">Qpool</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Qdense</p>
 </dd>
 </dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunitary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qunitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunitary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class for all unitary operations, the main purpose is to store the operation, its arity and parameters (symbols) for later use.
+# TODO add support for function as matrix</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunitary.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunitary.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call self as a function.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="hierarqcal.core.Qpool.get_pool_filter_fn">
-<span class="sig-name descname"><span class="pre">get_pool_filter_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pool_filter</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qpool.get_pool_filter_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the filter function for the pooling operation.</p>
+<dt class="sig sig-object py" id="hierarqcal.core.Qunitary.get_symbols">
+<span class="sig-name descname"><span class="pre">get_symbols</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunitary.get_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get symbols for this unitary.</p>
+<p>Returns: List of symbols</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunitary.set_edge">
+<span class="sig-name descname"><span class="pre">set_edge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edge</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunitary.set_edge" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunitary.set_symbols">
+<span class="sig-name descname"><span class="pre">set_symbols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunitary.set_symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set symbols for this unitary.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pool_filter</strong> (<em>str</em><em> or </em><em>lambda</em>) – The filter type, can be “left”, “right”, “even”, “odd”, “inside” or “outside” which corresponds to a specific pattern (see comments in code below).
-The string can also be a bitstring, i.e. “01000” which pools the 2nd qubit.
-If a lambda function is passed, it is used as the filter function, it should work as follow: pool_filter_fn([0,1,2,3,4,5,6,7]) -&gt; [0,1,2,3], i.e.
-the function returns a sublist of the input list based on some pattern. What’s nice about passing a function is that it can be list length independent,
-meaning the same kind of pattern will be applied as the list grows or shrinks.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>symbols</strong> (<em>list</em>) – List of symbols</p>
 </dd>
 </dl>
 </dd></dl>
 
 </dd></dl>
 
-</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunmask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">hierarqcal.core.</span></span><span class="sig-name descname"><span class="pre">Qunmask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunmask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmask_Base" title="hierarqcal.core.Qmask_Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Qmask_Base</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="hierarqcal.core.Qunmask.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Qp_l</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.core.Qunmask.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 
 
            </div>

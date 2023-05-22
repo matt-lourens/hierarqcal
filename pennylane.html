@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pennylane Helper &mdash; HierarQcal 2023 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -53,10 +52,8 @@
 <li class="toctree-l2"><a class="reference internal" href="cirq.html">Cirq Helper</a></li>
 <li class="toctree-l2"><a class="reference internal" href="qiskit.html">Qiskit Helper</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Pennylane Helper</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.pennylane.pennylane_helper.U"><code class="docutils literal notranslate"><span class="pre">U()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.pennylane.pennylane_helper.V"><code class="docutils literal notranslate"><span class="pre">V()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane"><code class="docutils literal notranslate"><span class="pre">execute_circuit_pennylane()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.pennylane.pennylane_helper.get_param_info_pennylane"><code class="docutils literal notranslate"><span class="pre">get_param_info_pennylane()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary"><code class="docutils literal notranslate"><span class="pre">get_pennylane_default_unitary()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -88,78 +85,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-hierarqcal.pennylane.pennylane_helper">
+  <div class="section" id="module-hierarqcal.pennylane.pennylane_helper">
 <span id="pennylane-helper"></span><h1>Pennylane Helper<a class="headerlink" href="#module-hierarqcal.pennylane.pennylane_helper" title="Permalink to this heading">¶</a></h1>
 <p>Helper functions for cirq</p>
 <dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.U">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">U</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.U" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default convolution circuit, a simple 2 qubit circuit with a single parameter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bits</strong> (<em>list</em>) – List of qubit indices/labels</p></li>
-<li><p><strong>symbols</strong> (<em>tuple</em><em>(</em><em>float</em><em>)</em>) – Tuple of symbol values (rotation angles).</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.V">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">V</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.V" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default pooling circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bits</strong> (<em>list</em>) – List of qubit indices/labels</p></li>
-<li><p><strong>symbols</strong> (<em>tuple</em><em>(</em><em>float</em><em>)</em>) – Tuple of symbol values (rotation angles).</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">execute_circuit_pennylane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qcnn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coef_indices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane" title="Permalink to this definition">¶</a></dt>
-<dd><p>The main helper function for pennylane, it takes a qcnn(<a class="reference internal" href="core.html#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qcnn</span></code></a>) object that describes the cicruit architecture
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">execute_circuit_pennylane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main helper function for pennylane, it takes a qcnn(<code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qcnn</span></code>) object that describes the cicruit architecture
 and executes the function mappings in the correct order with the correct parameters/symbols.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>qcnn</strong> (<a class="reference internal" href="core.html#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><em>hierarqcal.core.Qcnn</em></a>) – Qcnn object that describes the circuit architecture, consists of a sequence of motifs (<a class="reference internal" href="core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qmotif</span></code></a>)</p></li>
-<li><p><strong>params</strong> (<em>tuple</em><em>(</em><em>float</em><em>)</em>) – Tuple of symbol values (rotation angles)</p></li>
+<li><p><strong>qcnn</strong> (<em>hierarqcal.core.Qcnn</em>) – Qcnn object that describes the circuit architecture, consists of a sequence of motifs (<a class="reference internal" href="generated/hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qmotif</span></code></a>)</p></li>
+<li><p><strong>params</strong> (<em>tuple(float)</em>) – Tuple of symbol values (rotation angles)</p></li>
 <li><p><strong>coef_indices</strong> (<em>dict</em>) – Dictionary of indices for each motif, if None, it will be calculated automatically</p></li>
+<li><p><strong>barriers</strong> (<em>bool</em>) – If True, barriers will be inserted between each motif</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.get_param_info_pennylane">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">get_param_info_pennylane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qcnn</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.get_param_info_pennylane" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function that returns the total number of parameters and a dictionary that maps the parameter indices to the motifs (in the order they occur).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>qcnn</strong> (<a class="reference internal" href="core.html#hierarqcal.core.Qcnn" title="hierarqcal.core.Qcnn"><em>hierarqcal.core.Qcnn</em></a>) – Qcnn object that describes the circuit architecture, consists of a sequence of motifs (hierarqcal.core.Qmotif)</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>Tuple containing:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>total_coef_count (int): Total number of parameters.</p></li>
-<li><p>coef_indices (dict): Dictionary that maps the parameter indices to the motifs (in the order they occur).</p></li>
-</ul>
-</div></blockquote>
-</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(tuple)</p>
-</dd>
-</dl>
-</dd></dl>
+<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary">
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">get_pennylane_default_unitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
-</section>
+</div>
 
 
            </div>

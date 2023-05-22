@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started &mdash; HierarQcal 2023 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -22,7 +21,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial with Cirq" href="examples/examples_cirq.html" />
+    <link rel="next" title="HierarQcal Overview" href="examples/quickstart.html" />
     <link rel="prev" title="Welcome to HierarQcal’s documentation!" href="index.html" /> 
 </head>
 
@@ -50,9 +49,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic usage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="examples/examples_cirq.html">Tutorial with Cirq</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/examples_qiskit.html">Tutorial with Qiskit</a></li>
-<li class="toctree-l3"><a class="reference internal" href="examples/examples_pennylane.html">Tutorial with Pennylane</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/quickstart.html">HierarQcal Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html">Core functionality tutorial</a></li>
 </ul>
 </li>
 </ul>
@@ -84,9 +82,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="getting-started">
+  <div class="section" id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this heading">¶</a></h1>
-<section id="installation">
+<div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
 <p>HierarQcal is hosted on [pypi](<a class="reference external" href="https://pypi.org/project/hierarqcal/">https://pypi.org/project/hierarqcal/</a>) and can be installed via pip:</p>
 <p>Based on the quantum computing framework you use, choose one of:</p>
@@ -106,57 +104,65 @@
 </pre></div>
 </div>
 <p>The package is quantum computing framework independent, there are helper functions for Cirq, Qiskit and Pennylane to represent the circuits in their respective frameworks.</p>
-</section>
-<section id="basic-usage">
+</div>
+<div class="section" id="basic-usage">
 <h2>Basic usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h2>
-<p>There are tutorials for each quantum computing framework that cover most of the package’s functionality:</p>
+<p>There is a quickstart notebook with a summary of functionality and also a more in depth tutorial:</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="examples/examples_cirq.html">Tutorial with Cirq</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#basic-example">Basic example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#building-blocks">Building blocks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#reverse-binary-tree">Reverse binary tree</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#more-arbitrary-examples-to-show-what-is-possible">More arbitrary examples to show what is possible</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#multiscale-entanglement-renormalization-ansatz-mera">Multiscale Entanglement Renormalization Ansatz (MERA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#random-qcnns">Random QCNNs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#specifying-custom-unitaries">Specifying custom unitaries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_cirq.html#plotting-the-directed-graph-representation">Plotting the directed graph representation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/quickstart.html">HierarQcal Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#binary-trees">Binary trees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#mera-from-grant-et-al">MERA from Grant et al.</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#sub-motif-as-a-mapping-for-a-motif">Sub motif as a mapping for a motif</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/quickstart.html#a-cycle-of-cycles">A cycle of cycles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/quickstart.html#a-cycle-of-cycles-of-permutations">A cycle of cycles of permutations</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples/examples_qiskit.html">Tutorial with Qiskit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#basic-example">Basic example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#building-blocks">Building blocks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#reverse-binary-tree">Reverse binary tree</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#more-arbitrary-examples-to-show-what-is-possible">More arbitrary examples to show what is possible</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#multiscale-entanglement-renormalization-ansatz-mera">Multiscale Entanglement Renormalization Ansatz (MERA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#random-qcnns">Random QCNNs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#specifying-custom-unitaries">Specifying custom unitaries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_qiskit.html#plotting-the-directed-graph-representation">Plotting the directed graph representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#parameter-management">Parameter management</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/quickstart.html#specifying-rotational-angles">Specifying rotational angles</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="examples/examples_pennylane.html">Tutorial with Pennylane</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#basic-example">Basic example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#building-blocks">Building blocks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#reverse-binary-tree">Reverse binary tree</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#more-arbitrary-examples-to-show-what-is-possible">More arbitrary examples to show what is possible</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#multiscale-entanglement-renormalization-ansatz-mera">Multiscale Entanglement Renormalization Ansatz (MERA)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#random-qcnns">Random QCNNs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#specifying-unitaries">Specifying unitaries</a></li>
-<li class="toctree-l2"><a class="reference internal" href="examples/examples_pennylane.html#plotting-the-directed-graph-representation">Plotting the directed graph representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#masking">Masking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/quickstart.html#specifying-unitaries">Specifying unitaries</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/core_tutorial.html">Core functionality tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/core_tutorial.html#specify-backend">Specify backend</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/core_tutorial.html#building-blocks">Building blocks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html#qunitary">Qunitary</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html#qinit-primitive">Qinit primitive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html#cycle-primitive">Cycle primitive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#stride-examples">Stride examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#step-examples">Step examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#offset-examples">Offset examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#boundary-examples">Boundary examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#n-qubit-unitaries">N qubit unitaries</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html#qpermute-primitive">Qpermute primitive</a></li>
+<li class="toctree-l3"><a class="reference internal" href="examples/core_tutorial.html#qmask-and-qunmask-primitive">Qmask and Qunmask primitive</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#masking-without-a-mapping">Masking without a mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#masking-with-a-mapping">Masking with a mapping</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#id1">N-qubit unitaries</a></li>
+<li class="toctree-l4"><a class="reference internal" href="examples/core_tutorial.html#qunmask-example">Qunmask example</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to HierarQcal’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="examples/examples_cirq.html" class="btn btn-neutral float-right" title="Tutorial with Cirq" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="examples/quickstart.html" class="btn btn-neutral float-right" title="HierarQcal Overview" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

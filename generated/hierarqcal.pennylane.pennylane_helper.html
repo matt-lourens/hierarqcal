@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>&lt;no title&gt; &mdash; HierarQcal 2023 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" type="text/css" />
+    <link rel="shortcut icon" href="../_static/dalle_img.png"/>
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            HierarQcal
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">HierarQcal</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">&lt;no title&gt;</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/hierarqcal.pennylane.pennylane_helper.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <span class="target" id="module-hierarqcal.pennylane.pennylane_helper"></span><p>Helper functions for cirq</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane">
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">execute_circuit_pennylane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hierq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">barriers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane" title="Permalink to this definition">¶</a></dt>
+<dd><p>The main helper function for pennylane, it takes a qcnn(<code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qcnn</span></code>) object that describes the cicruit architecture
+and executes the function mappings in the correct order with the correct parameters/symbols.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>qcnn</strong> (<em>hierarqcal.core.Qcnn</em>) – Qcnn object that describes the circuit architecture, consists of a sequence of motifs (<a class="reference internal" href="hierarqcal.core.html#hierarqcal.core.Qmotif" title="hierarqcal.core.Qmotif"><code class="xref py py-class docutils literal notranslate"><span class="pre">hierarqcal.core.Qmotif</span></code></a>)</p></li>
+<li><p><strong>params</strong> (<em>tuple(float)</em>) – Tuple of symbol values (rotation angles)</p></li>
+<li><p><strong>coef_indices</strong> (<em>dict</em>) – Dictionary of indices for each motif, if None, it will be calculated automatically</p></li>
+<li><p><strong>barriers</strong> (<em>bool</em>) – If True, barriers will be inserted between each motif</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary">
+<span class="sig-prename descclassname"><span class="pre">hierarqcal.pennylane.pennylane_helper.</span></span><span class="sig-name descname"><span class="pre">get_pennylane_default_unitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layer</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Matt Lourens.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

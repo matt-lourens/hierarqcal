@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API Reference &mdash; HierarQcal 2023 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -23,7 +22,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="HierarQcal Core" href="core.html" />
-    <link rel="prev" title="Tutorial with Pennylane" href="examples/examples_pennylane.html" /> 
+    <link rel="prev" title="Core functionality tutorial" href="examples/core_tutorial.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -82,17 +81,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="api-reference">
+  <div class="section" id="api-reference">
 <h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h1>
 <table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="core.html#module-hierarqcal.core" title="hierarqcal.core"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.core</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hierarqcal.core.html#module-hierarqcal.core" title="hierarqcal.core"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.core</span></code></a></p></td>
 <td><p>This module contains the core classes for the hierarqcal package.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="utils.html#module-hierarqcal.utils" title="hierarqcal.utils"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.utils</span></code></a></p></td>
 <td><p>Utility functions for the hierarqcal package.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="cirq.html#module-hierarqcal.cirq.cirq_helper" title="hierarqcal.cirq.cirq_helper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.cirq.cirq_helper</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/hierarqcal.cirq.cirq_helper.html#module-hierarqcal.cirq.cirq_helper" title="hierarqcal.cirq.cirq_helper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.cirq.cirq_helper</span></code></a></p></td>
 <td><p>Helper functions for cirq</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="qiskit.html#module-hierarqcal.qiskit.qiskit_helper" title="hierarqcal.qiskit.qiskit_helper"><code class="xref py py-obj docutils literal notranslate"><span class="pre">hierarqcal.qiskit.qiskit_helper</span></code></a></p></td>
@@ -106,45 +109,69 @@
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="core.html">HierarQcal Core</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Default_Mappings"><code class="docutils literal notranslate"><span class="pre">Default_Mappings</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Default_Mappings.CYCLE"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.CYCLE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Default_Mappings.MASK"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.MASK</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Default_Mappings.PERMUTE"><code class="docutils literal notranslate"><span class="pre">Default_Mappings.PERMUTE</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types"><code class="docutils literal notranslate"><span class="pre">Primitive_Types</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.CONVOLUTION"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.CONVOLUTION</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.DENSE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.DENSE</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.POOLING"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.POOLING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.CYCLE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.CYCLE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.INIT"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.INIT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.MASK"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.MASK</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Primitive_Types.PERMUTE"><code class="docutils literal notranslate"><span class="pre">Primitive_Types.PERMUTE</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn"><code class="docutils literal notranslate"><span class="pre">Qcnn</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.__add__"><code class="docutils literal notranslate"><span class="pre">Qcnn.__add__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.__mul__"><code class="docutils literal notranslate"><span class="pre">Qcnn.__mul__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.append"><code class="docutils literal notranslate"><span class="pre">Qcnn.append()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.extend"><code class="docutils literal notranslate"><span class="pre">Qcnn.extend()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.extmerge"><code class="docutils literal notranslate"><span class="pre">Qcnn.extmerge()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.merge"><code class="docutils literal notranslate"><span class="pre">Qcnn.merge()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcnn.update_Q"><code class="docutils literal notranslate"><span class="pre">Qcnn.update_Q()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qcycle"><code class="docutils literal notranslate"><span class="pre">Qcycle</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qcycle.__call__"><code class="docutils literal notranslate"><span class="pre">Qcycle.__call__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qconv"><code class="docutils literal notranslate"><span class="pre">Qconv</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qconv.__call__"><code class="docutils literal notranslate"><span class="pre">Qconv.__call__()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy"><code class="docutils literal notranslate"><span class="pre">Qhierarchy</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.__add__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__add__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.__call__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.__mul__"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.__mul__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.append"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.copy"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.copy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.extend"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.extend()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.extmerge"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.extmerge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.get_symbols()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.get_unitary_function"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.get_unitary_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.merge"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.merge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.set_symbols()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qhierarchy.update_Q"><code class="docutils literal notranslate"><span class="pre">Qhierarchy.update_Q()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qdense"><code class="docutils literal notranslate"><span class="pre">Qdense</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qdense.__call__"><code class="docutils literal notranslate"><span class="pre">Qdense.__call__()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qinit"><code class="docutils literal notranslate"><span class="pre">Qinit</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qinit.__add__"><code class="docutils literal notranslate"><span class="pre">Qinit.__add__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qinit.__call__"><code class="docutils literal notranslate"><span class="pre">Qinit.__call__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qfree"><code class="docutils literal notranslate"><span class="pre">Qfree</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qfree.__add__"><code class="docutils literal notranslate"><span class="pre">Qfree.__add__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qfree.__call__"><code class="docutils literal notranslate"><span class="pre">Qfree.__call__()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qmask"><code class="docutils literal notranslate"><span class="pre">Qmask</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmask.__call__"><code class="docutils literal notranslate"><span class="pre">Qmask.__call__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qmask_Base"><code class="docutils literal notranslate"><span class="pre">Qmask_Base</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmask_Base.__call__"><code class="docutils literal notranslate"><span class="pre">Qmask_Base.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmask_Base.get_mask_pattern_fn"><code class="docutils literal notranslate"><span class="pre">Qmask_Base.get_mask_pattern_fn()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif"><code class="docutils literal notranslate"><span class="pre">Qmotif</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.__add__"><code class="docutils literal notranslate"><span class="pre">Qmotif.__add__()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.__mul__"><code class="docutils literal notranslate"><span class="pre">Qmotif.__mul__()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.append"><code class="docutils literal notranslate"><span class="pre">Qmotif.append()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qmotif.get_symbols()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_E"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_E()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_Q"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_Q()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_Qavail"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_Qavail()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_arity"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_arity()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_edge_mapping"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_edge_mapping()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_edge_order"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_edge_order()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_is_operation"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_is_operation()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_mapping"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_mapping()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_next"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_next()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_prev"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_prev()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_share_weights"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_share_weights()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotif.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qmotif.set_symbols()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qmotifs"><code class="docutils literal notranslate"><span class="pre">Qmotifs</span></code></a><ul>
@@ -152,51 +179,51 @@
 <li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qmotifs.__mul__"><code class="docutils literal notranslate"><span class="pre">Qmotifs.__mul__()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qpool"><code class="docutils literal notranslate"><span class="pre">Qpool</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qpool.__call__"><code class="docutils literal notranslate"><span class="pre">Qpool.__call__()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qpool.get_pool_filter_fn"><code class="docutils literal notranslate"><span class="pre">Qpool.get_pool_filter_fn()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qpermute"><code class="docutils literal notranslate"><span class="pre">Qpermute</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qpermute.__call__"><code class="docutils literal notranslate"><span class="pre">Qpermute.__call__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qunitary"><code class="docutils literal notranslate"><span class="pre">Qunitary</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qunitary.__call__"><code class="docutils literal notranslate"><span class="pre">Qunitary.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qunitary.get_symbols"><code class="docutils literal notranslate"><span class="pre">Qunitary.get_symbols()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qunitary.set_edge"><code class="docutils literal notranslate"><span class="pre">Qunitary.set_edge()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qunitary.set_symbols"><code class="docutils literal notranslate"><span class="pre">Qunitary.set_symbols()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="core.html#hierarqcal.core.Qunmask"><code class="docutils literal notranslate"><span class="pre">Qunmask</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="core.html#hierarqcal.core.Qunmask.__call__"><code class="docutils literal notranslate"><span class="pre">Qunmask.__call__()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">HierarQcal Utils</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#hierarqcal.utils.FlowLayout"><code class="docutils literal notranslate"><span class="pre">FlowLayout</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="utils.html#hierarqcal.utils.FlowLayout.PassHtmlToCell"><code class="docutils literal notranslate"><span class="pre">FlowLayout.PassHtmlToCell()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="utils.html#hierarqcal.utils.FlowLayout.add_plot"><code class="docutils literal notranslate"><span class="pre">FlowLayout.add_plot()</span></code></a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#hierarqcal.utils.plot_motif"><code class="docutils literal notranslate"><span class="pre">plot_motif()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="utils.html#hierarqcal.utils.plot_motifs"><code class="docutils literal notranslate"><span class="pre">plot_motifs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cirq.html">Cirq Helper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cirq.html#hierarqcal.cirq.cirq_helper.U"><code class="docutils literal notranslate"><span class="pre">U()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="cirq.html#hierarqcal.cirq.cirq_helper.V"><code class="docutils literal notranslate"><span class="pre">V()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="cirq.html#hierarqcal.cirq.cirq_helper.convert_graph_to_circuit_cirq"><code class="docutils literal notranslate"><span class="pre">convert_graph_to_circuit_cirq()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cirq.html#hierarqcal.cirq.cirq_helper.get_circuit_cirq"><code class="docutils literal notranslate"><span class="pre">get_circuit_cirq()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="cirq.html#hierarqcal.cirq.cirq_helper.get_cirq_default_unitary"><code class="docutils literal notranslate"><span class="pre">get_cirq_default_unitary()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="qiskit.html">Qiskit Helper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="qiskit.html#hierarqcal.qiskit.qiskit_helper.U"><code class="docutils literal notranslate"><span class="pre">U()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="qiskit.html#hierarqcal.qiskit.qiskit_helper.V"><code class="docutils literal notranslate"><span class="pre">V()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="qiskit.html#hierarqcal.qiskit.qiskit_helper.convert_graph_to_circuit_qiskit"><code class="docutils literal notranslate"><span class="pre">convert_graph_to_circuit_qiskit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="qiskit.html#hierarqcal.qiskit.qiskit_helper.get_circuit_qiskit"><code class="docutils literal notranslate"><span class="pre">get_circuit_qiskit()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="qiskit.html#hierarqcal.qiskit.qiskit_helper.get_qiskit_default_unitary"><code class="docutils literal notranslate"><span class="pre">get_qiskit_default_unitary()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pennylane.html">Pennylane Helper</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="pennylane.html#hierarqcal.pennylane.pennylane_helper.U"><code class="docutils literal notranslate"><span class="pre">U()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pennylane.html#hierarqcal.pennylane.pennylane_helper.V"><code class="docutils literal notranslate"><span class="pre">V()</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="pennylane.html#hierarqcal.pennylane.pennylane_helper.execute_circuit_pennylane"><code class="docutils literal notranslate"><span class="pre">execute_circuit_pennylane()</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="pennylane.html#hierarqcal.pennylane.pennylane_helper.get_param_info_pennylane"><code class="docutils literal notranslate"><span class="pre">get_param_info_pennylane()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="pennylane.html#hierarqcal.pennylane.pennylane_helper.get_pennylane_default_unitary"><code class="docutils literal notranslate"><span class="pre">get_pennylane_default_unitary()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </div>
-</section>
+</div>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="examples/examples_pennylane.html" class="btn btn-neutral float-left" title="Tutorial with Pennylane" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples/core_tutorial.html" class="btn btn-neutral float-left" title="Core functionality tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="core.html" class="btn btn-neutral float-right" title="HierarQcal Core" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
