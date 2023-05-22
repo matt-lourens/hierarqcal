@@ -1,1 +1,1 @@
-from .cirq_helper import convert_graph_to_circuit_cirq
+from .cirq_helper import get_circuit_cirq

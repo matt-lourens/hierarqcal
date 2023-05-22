@@ -28,6 +28,9 @@ extensions = [
 ]
 templates_path = ["_templates"]
 exclude_patterns = []
+napoleon_google_docstring = True
+napoleon_use_param = False
+napoleon_use_ivar = True
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -38,10 +41,14 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 html_static_path = ["_static"]
 html_favicon = "./img/dalle_img.png"
 
-
-
-# Run the bottom of this file to generate the API docs
+# =================== #
+# For installing sphynx
+# Install sphynx (cd into hierarqcal), run: pip install -r /docs/requirements.txt
+# For generating the API docs:
+# cd into docs and run:
 # sphinx-apidoc -f -E -e -M -P -o source/generated/ ../../hierarqcal/
+# sphinx-build -b html source build
+# =================== #
 
 autodoc_default_options = {"special-members": "__call__, __add__, __mul__"}
 nb_execution_mode = "off"

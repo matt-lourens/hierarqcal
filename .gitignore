@@ -132,3 +132,6 @@ dmypy.json
 
 # vscode
 .vscode/
+
+# Old files
+*_deprecated*
