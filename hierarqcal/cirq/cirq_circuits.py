@@ -40,7 +40,7 @@ def U3(bits, symbols=None, circuit=None):
 
 
 # Default mask circuit
-def V2(bits, symbols=None):
+def V2(bits, symbols=None, circuit=None):
     """
     Default mask circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.
 
@@ -53,4 +53,15 @@ def V2(bits, symbols=None):
     """
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit += cirq.CNOT(q0, q1)
+    return circuit
+
+def V4(bits, symbols=None, circuit=None):
+    q0, q1, q2, q3 = (
+        cirq.LineQubit(bits[0]),
+        cirq.LineQubit(bits[1]),
+        cirq.LineQubit(bits[2]),
+        cirq.LineQubit(bits[3]),
+    )
+    circuit += cirq.CNOT(q0, q1)
+    circuit += cirq.CNOT(q3, q2)
     return circuit

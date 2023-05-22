@@ -15,7 +15,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.path import Path
-from .core import Qcycle, Qmask, Qpermute, Qinit
+from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask
 
 
 def plot_motif(
@@ -24,8 +24,8 @@ def plot_motif(
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
-    node_large=0.1,  # radius of node
-    node_small=0.05,  # radius of node
+    node_large=0.12,  # radius of node
+    node_small=0.08,  # radius of node
     edge_width=1.5,
     figsize=(4, 4),
     font_size=15,
@@ -53,6 +53,7 @@ def plot_motif(
             * ax (matplotlib.axes._subplots.AxesSubplot): The axes object.
     """
     n_qbits = len(primitive.Q)
+    labels = primitive.Q
     if isinstance(primitive, Qcycle):
         node_radi = [node_large for q in primitive.Q]
         node_colour = cycle_color
@@ -61,6 +62,13 @@ def plot_motif(
             node_large if q in primitive.Q_avail else node_small for q in primitive.Q
         ]
         node_colour = mask_color
+    elif isinstance(primitive, Qunmask):
+        node_radi = [
+            node_large for q in primitive.Q_avail
+        ]        
+        node_colour = mask_color
+        labels = primitive.Q_avail
+        n_qbits = len(primitive.Q_avail)
     elif isinstance(primitive, Qpermute):
         node_radi = [node_large for q in primitive.Q]
         node_colour = permute_colour
@@ -80,7 +88,7 @@ def plot_motif(
                 np.sin(2 * np.pi * (theta_0 + ind * theta_step)),
             ]
         )
-        for label, ind in zip(primitive.Q, range(n_qbits))
+        for label, ind in zip(labels, range(n_qbits))
     }
     fig, ax = plt.subplots(1, 1, figsize=figsize)
     eps = 0.01
@@ -114,7 +122,7 @@ def plot_motif(
             ket_1 = np.array([0, 1])
             ket_s = np.array(pos[edge[0]])  # source vector
             ket_t = np.array(pos[edge[1]])  # target vector
-            t_radius = node_radi[primitive.Q.index(edge[1])]
+            t_radius = node_radi[labels.index(edge[1])]
             ket_d = ket_t - ket_s  # source to target vector
             scale_factor = (np.sqrt(np.dot(ket_d, ket_d)) - (t_radius)) / np.sqrt(
                 np.dot(ket_d, ket_d)
@@ -140,16 +148,16 @@ def plot_motif(
             raise NotImplementedError(
                 f"Plotting {len(edge)}-ary edges are not implemented yet"
             )
-        ax.set_aspect("equal", "box")
-        # remove the x and y axis
-        ax.axis("off")
+    ax.set_aspect("equal", "box")
+    # remove the x and y axis
+    ax.axis("off")
 
-        # remove the box around the plot
-        for spine in ax.spines.values():
-            spine.set_visible(False)
+    # remove the box around the plot
+    for spine in ax.spines.values():
+        spine.set_visible(False)
 
-        # make the plot tight
-        fig.tight_layout()
+    # make the plot tight
+    fig.tight_layout()
 
     return fig, ax
 

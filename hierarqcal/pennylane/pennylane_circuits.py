@@ -46,9 +46,3 @@ def U2(bits, symbols=None):
         symbols (tuple(float)): Tuple of symbol values (rotation angles).
     """
     qml.CRZ(symbols[0], wires=[bits[0], bits[1]])
-
-
-v2 = Qunitary(V2, 0, 2)
-v3 = Qunitary(V3, 0, 3)
-v4 = Qunitary(V4, 0, 4)
-u2 = Qunitary(U2, 2, 2)

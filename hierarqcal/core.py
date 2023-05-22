@@ -1,14 +1,14 @@
 """
-This module contains the core classes for the hierarqcal package. Qmotif is the base class for all motifs, Qmotifs is a sequence of motifs and Qhierarchy is the full quantum circuit architecture, that handles the interaction between motifs.
+This module contains the core classes for the hierarqcal package. :py:class:`Qmotif` is the base class for all primitives, it's a directed graph functioning as the building block for higher level motifs. :py:class:`Qhierarchy` is the full compute graph / architecture of the quantum circuit, it manages the interaction between motifs, their execution and symbol distribuition.
 
-Create a hierarchy as follows:
+Create a hierarchical circuit as follows:
 
 .. code-block:: python
 
-    from hierarqcal import Qinit, Qconv, Qpool
-    my_qcnn = Qinit(8) + (Qconv(1) + Qpool(pattern="right")) * 3
+    from hierarqcal import Qinit, Qcycle, Qmask
+    hierq = Qinit(8) + (Qcycle(1) + Qmask("right")) * 3
 
-The above creates a hierarchy that resembles a reverse binary tree architecture. There are 8 free qubits and then a convolution-pooling unit is repeated three times.
+The above creates a circuit that resembles a reverse binary tree architecture. There are 8 initial qubits and then a cycle-masking unit is repeated three times.
 """
 
 from collections.abc import Sequence
@@ -23,27 +23,28 @@ import sympy as sp
 
 class Primitive_Types(Enum):
     """
-    Enum for primitive types
+    Enum for primitive types.
     """
 
     CYCLE = "cycle"
     MASK = "mask"
     PERMUTE = "permute"
-    FREE = "free"
+    INIT = "init"
 
 
 class Qunitary:
     """
-    Base class for all unitary operations
+    Base class for all unitary operations, the main purpose is to store the operation, its arity and parameters (symbols) for later use.
+    # TODO add support for function as matrix
     """
 
     def __init__(self, function=None, n_symbols=0, arity=2, symbols=None):
         """
         Args:
-            function (function, optional): Function to apply, if None then the default function is used. Defaults to None.
-            n_symbols (int, optional): Number of symbols that function use, if None then the default number of symbols is used. Defaults to None.
-            arity (int, optional): Number of qubits that function acts upon, two means 2-qubit unitaries, three means 3-qubits unitaries and so on. Defaults to 2.
-            symbols (tuple(Parameter), optional): Tuple of symbol values (rotation angles). Defaults to None.
+            function (function, optional): Function to apply. If None, then the default from :py:class:`Default_Mappings` is used.
+            n_symbols (int, optional): Number of symbols that function uses. Defaults to 0.
+            arity (int, optional): Number of qubits that function acts upon. Two means 2-qubit unitaries, three means 3-qubits unitaries and so on. Defaults to 2.
+            symbols (list, optional): List of symbol values (rotation angles). Elements can be either sympy symbols, complex numbers, or qiskit parameters. Defaults to None.
         """
         self.function = function
         self.n_symbols = n_symbols
@@ -55,9 +56,21 @@ class Qunitary:
         return self.function(*args, **kwargs)
 
     def get_symbols(self):
+        """
+        Get symbols for this unitary.
+
+        Returns: List of symbols
+        """
         return self.symbols
 
     def set_symbols(self, symbols=None):
+        """
+        Set symbols for this unitary.
+
+        Args:
+            symbols (list): List of symbols
+        """
+
         if len(symbols) != self.n_symbols:
             raise ValueError(
                 f"Number of symbols must be {self.n_symbols} for this function"
@@ -80,11 +93,20 @@ class Default_Mappings(Enum):
 
 class Qmotif:
     """
-    Quantum Circuit architectures are created by stacking motifs hierarchically, the lowest level motifs (primitives) are building blocks for higher level ones.
-    Examples of primitives are convolution (:py:class:`Qconv`), pooling (:py:class:`Qpool`) and dense (:py:class:`Qdense`) operations which inherits this class. Each motif is a directed graph with nodes
-    Q for qubits and edges E for unitary operations applied between them, the direction of an edge being the order of interaction for the unitary. Each instance has
-    pointers to its predecessor and successor.This class is for a single motif and the Qmotifs class is for a sequence of motifs stored as tuples, then sequences of
-    motifs are again stored as tuples  This is to allow hierarchical stacking which in the end is one tuple of motifs.
+    Hierarchical circuit architectures are created by stacking motifs, the lowest level motifs (primitives) are building blocks for higher level ones. Examples of primitives are cycles (:py:class:`Qcycle`), masks (:py:class:`Qmask_Base`), and permutations (:py:class:`Qpermute`). Each motif is a directed graph with nodes Q representing qubits and edges E unitary operations applied between them. The direction of an edge is the order of interaction for the unitary. Each instance has pointers to its predecessor and successor.
+
+    Attributes:
+        Q (list, optional): Qubit labels of the motif. Defaults to [].
+        E (list, optional): Edges of the motif. Defaults to [].
+        Q_avail (list, optional): Available qubits of the motif. This is calculated by the previous motif in the stack. Defaults to [].
+        edge_order (list, optional): Order of unitaries applied. Defaults to [1].
+        next (:py:class:`Qmotif`, optional): Next motif in the stack. Defaults to None.
+        prev (Qmotif, optional): Previous motif in the stack. Defaults to None.
+        mapping (:py:class:`Qunitary` or :py:class:`Qhierarchy`, optional): Either a :py:class:`Qunitary` instance or a :py:class:`Qhierarchy` that will be converted to an :py:class:`Qunitary` object. Defaults to None.
+        symbols (list, optional): List of symbol values (rotation angles). Each element in the list can be a sympy symbol, complex number, or qiskit parameter. Defaults to None.
+        is_default_mapping (bool, optional): Flag to determine if default mapping is used. Defaults to True.
+        is_operation (bool, optional): Flag to determine if the motif is an operation. Defaults to True.
+        share_weights (bool, optional): Flag to determine if weights are shared within a motif. Defaults to True.
     """
 
     def __init__(
@@ -101,14 +123,6 @@ class Qmotif:
         is_operation=True,
         share_weights=True,
     ) -> None:
-        """
-        # TODO add description of args especially the new mapping arg
-
-        Args:
-            arity (int, optional): Number of qubits per unitary (nodes per edge), two means 2-qubit unitaries, three means 3-qubits unitaries and so on. Defaults to 2.
-            mapping tuple(tuple(function, int) or Qhierarchy): Either a tuple containing the function to execute with it's number of parameters or a Qhierarchy consisting of just one operational motif
-                  tuple: the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
-        """
         # Meta information
         self.is_operation = is_operation
         self.is_default_mapping = is_default_mapping
@@ -121,7 +135,9 @@ class Qmotif:
         self.mapping = mapping
         self.symbols = symbols
         self.share_weights = share_weights
-        self.edge_mapping = None  # TODO docstring, edgemapping only gets set when the motif gets edges generated
+        self.edge_mapping = (
+            []
+        )  # TODO docstring, edgemapping only gets set when the motif gets edges generated
         self.n_symbols = 0
         # pointers
         self.prev = prev
@@ -143,38 +159,37 @@ class Qmotif:
 
     def __add__(self, other):
         """
-        Add two motifs together, this  appends them next to each other in a tuple.
+        Append an other motif to the current one: self + other = (self, other).
 
         Args:
             other (Qmotif): Motif to append to current motif (self).
 
         Returns:
-            Qmotifs(tuple): A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
+            Qmotifs: A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
         """
         return self.append(other)
 
     def __mul__(self, other):
         """
-        Repeat motif "other" times.
+        Repeat motif "other" times: self * other = (self, self, ..., self). Other is an int.
 
         Args:
             other (int): Number of times to repeat motif.
 
         Returns:
-            Qmotifs(tuple): A tuple of motifs: (self, self, ..., self), where each is a new object copied from the original.
+            Qmotifs: A tuple of motifs: (self, self, ..., self), where each is a new object copied from the original.
         """
-        # TODO must create new each time investigate __new__, this copies the object.
         return Qmotifs((deepcopy(self) for i in range(other)))
 
     def append(self, other):
         """
-        Append motif to current motif.
+        Append an other motif to the current one: self + other = (self, other).
 
         Args:
             other (Qmotif): Motif to append to current motif (self).
 
         Returns:
-            Qmotifs(tuple): A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
+            Qmotifs: A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
         """
         return Qmotifs((deepcopy(self), deepcopy(other)))
 
@@ -192,7 +207,7 @@ class Qmotif:
         Set the edges E of the motif.
 
         Args:
-            E (list(tuples)): List of edges.
+            E (list(tuples)): List of edges, where each edge is a tuple of qubit labels (self.Q).
         """
         if 0 in self.edge_order:
             # Raise error if 0 is in edge order
@@ -202,7 +217,7 @@ class Qmotif:
         E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
         E_rest = [edge for edge in E if edge not in E_ordered]
         Ep_l = E_ordered + E_rest
-        self.E = E
+        self.E = Ep_l
 
     def set_arity(self, arity):
         """
@@ -215,7 +230,7 @@ class Qmotif:
 
     def set_edge_order(self, edge_order):
         """
-        Set the edge order of the motif (order of unitaries applied).
+        Set the edge order of the motif (order of unitaries applied). [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. For example, if self.E = [(1,2),(7,3),(5,2)] then self.edge_order = [1,2,3] means the unitaries are applied in the order (1,2),(7,3),(5,2). If self.edge_order = [2,1,3] then the unitaries are applied in the order (7,3),(1,2),(5,2). If self.edge_order = [3] then the unitaries are applied in the order (5,2),(1,2),(7,3),.
 
         Args:
             edge_order (list(int)): List of edge orders.
@@ -224,8 +239,7 @@ class Qmotif:
 
     def set_Qavail(self, Q_avail):
         """
-        Set the available qubits Q_avail of the motif. This is usually calculated by the previous motif in the stack, for example pooling removes qubits from being available and
-        would use this function to update the available qubits after it's action.
+        Set the number of available qubits Q_avail for the motif. This gets calculated by the previous motif in the stack, for example the :py:class:Qmask motif would mask qubits and use this function to update the available qubits after it's action. Example: if Q = [1,2,3,4] and Qmask("right") is applied then Q_avail = [1,2].
 
         Args:
             Q_avail (list): List of available qubits.
@@ -237,8 +251,7 @@ class Qmotif:
         Specify the unitary operations applied according to the type of motif.
 
         Args:
-            TODO update to Qunitary
-            mapping (tuple(function, int)): Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+            mapping (Qhierarchy or Qunitary): Unitary operation applied to the motif.
         """
         self.mapping = mapping
 
@@ -280,16 +293,22 @@ class Qmotif:
 
     def set_edge_mapping(self, unitary_function):
         """
-        Set the edge mapping of the motif.
+        Maps each edge to a unitary function.
 
         Args:
-            edge_mapping (tuple(Qunitary)): Tuple of unitary operations for each edge.
+            edge_mapping (function): function for each edge.
         """
         for unitary in self.edge_mapping:
             unitary.function = unitary_function
 
     def get_symbols(self):
-        if not (self.edge_mapping is None):
+        """
+        Get the symbols of the motif. If share_weights is True, then symbols are obtained from the first edge_mapping. Otherwise, symbols are obtained from each edge_mapping.
+
+        Yields:
+            symbols (List) or None: List of symbols or None if no edge_mapping.
+        """
+        if len(self.edge_mapping) > 0:
             if self.share_weights:
                 yield from self.edge_mapping[0].get_symbols()
             else:
@@ -301,13 +320,30 @@ class Qmotif:
         Set the symbol's.
 
         Args:
-            symbols (tuple(sympy.Symbols))
+            symbols (list): List of symbols to set.
+            start_idx (int): Starting index of symbols, this is used when :py:class:Qhierarchy updates the stack, it loops through each motif counting symbols, at each motif it updates the symbols (inderectly calls this function) and send the current count as starting inde so that correct sympy symbol indices are used.
         """
         if not (self.mapping is None) and len(self.E) > 0:
             if symbols is None:
-                symbols = sp.symbols(
-                    f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
-                )
+                if isinstance(next(self.get_symbols(), False), sp.Symbol) or len(list(self.get_symbols()))==0:
+                    # If no new symbols are provided and current symbols are still symbolic or no symbols exist
+                    # Generate symbols, this is used when Qhierarchy updates the stack.
+                    symbols = sp.symbols(
+                        f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
+                    )
+                else:
+                    # If no new symbols are provided but old symbols exist
+                    symbols = list(self.get_symbols())
+                    if len(symbols) != self.mapping.n_symbols * (
+                        len(self.E) if not (self.share_weights) else 1
+                    ):
+                        # If old sybmbols don't match current setup
+                        symbols = sp.symbols(
+                            f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
+                        )
+                        raise Warning(
+                            f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
+                        )                        
             else:
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
@@ -333,7 +369,7 @@ class Qmotifs(tuple):
     """
 
     # TODO mention assumption that only operators should be used i.e. +, *
-    # TODO explain this hackery, it's to ensure the case (a,b)+b -> (a,b,c) no matter type of b
+    # TODO add test to ensure the case (a,b)+b -> (a,b,c) no matter type of b
     def __add__(self, other):
         """
         Add two tuples of motifs together.
@@ -371,7 +407,7 @@ class Qmotifs(tuple):
 
 class Qcycle(Qmotif):
     """
-    A convolution motif, used to specify convolution operations in the quantum neural network.
+    A cycle motif, used to specify convolution operations in the quantum neural network.
     TODO implement open boundary for dense and pooling also + tests
     """
 
@@ -505,19 +541,6 @@ class Qpermute(Qmotif):
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
-        # motif_symbols = None
-        # if mapping is None:
-        #     # default convolution layer is defined as U with 1 parameter.
-        #     is_default_mapping = True
-        #     # Default mapping is a unitary with one parameter, TODO generalize, if default changes we might want to change this
-        #     motif_symbols = sp.symbols(f"x_{0}:{1}")
-        # else:
-        #     is_default_mapping = False
-        #     if isinstance(mapping, Qhierarchy):
-        #         motif_symbols = mapping.symbols
-        #     else:
-        #         motif_symbols = sp.symbols(f"x_{0}:{mapping[1]}")
-        # kwargs["symbols"] = motif_symbols
         # Initialize graph
         super().__init__(is_default_mapping=is_default_mapping, **kwargs)
 
@@ -545,16 +568,6 @@ class Qpermute(Qmotif):
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
         self.set_Q(Qc_l)
-        # Set order of edges
-        # if 0 in self.edge_order: TODO check if this is removable
-        #     # Raise error if 0 is in edge order
-        #     raise ValueError(
-        #         "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
-        #     )
-        # Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
-        # Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
-        # Ec_l = Ec_l_ordered + Ec_l_rest
-        # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
         mapping = kwargs.get("mapping", None)
         if mapping:
@@ -679,12 +692,22 @@ class Qmask_Base(Qmotif):
                     if any("*" == c for c in mask_pattern):
                         # Wildcard pattern
                         n_ones = mask_pattern.count("1")
+                        n_stars = mask_pattern.count("*")
                         n_zeros = len(Qp_l) - n_ones
-                        if n_zeros <= 0:
-                            # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                            base = "0" * len(Qp_l)
-                        else:
-                            base = mask_pattern.replace("*", "0" * n_zeros)
+                        zero_per_star = n_zeros // n_stars
+                        base = mask_pattern.replace("*", "0" * zero_per_star)
+                        max_it = len(Qp_l)
+                        while len(base) < len(Qp_l) and max_it > 0:
+                            # get index of first 0
+                            idx = base.find("0")
+                            # Insert 0 next to it
+                            base = base[:idx] + "0" + base[idx:]
+                            max_it -= 1
+                        # if n_zeros <= 0:
+                        #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
+                        #     base = "0" * len(Qp_l)
+                        # else:
+                        #     base = mask_pattern.replace("*", "0" * n_zeros)
                         mask_pattern_fn = lambda arr: [
                             item
                             for item, indicator in zip(arr, base)
@@ -714,7 +737,8 @@ class Qmask(Qmask_Base):
 
     def __init__(
         self,
-        pattern="right",  # nearest_circle, nearest_tower, nearest_square, right, left, up, down, lambda function
+        pattern="right",  # right, left, up, down, 1*1*1, lambda function
+        connection_type="cycle",  # nearest_circle, nearest_tower, nearest_square,
         stride=0,
         step=1,
         offset=0,
@@ -725,6 +749,7 @@ class Qmask(Qmask_Base):
         TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
         TODO Open, Periodic boundary
         """
+        self.connection_type = connection_type
         self.stride = stride
         self.step = step
         self.offset = offset
@@ -760,12 +785,12 @@ class Qmask(Qmask_Base):
         #       Predifined: right, left, inside, outside, even, odd, nearest_circle, nearest_tower
         #   If arity is more, then we just have general pattern functionality
         # General pattern works as follows:
-        # Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
-        # Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
+        #   Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
+        #   Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
         # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
         # of masked ones, so that we enable deffered measurement.
-        # The most general usage is providing your own filter function
-        # TODO add this to docs and explain how to provide own filter function.
+        # The most general usage is providing your own pattern function
+        # TODO add this to docs and explain how to provide own pattern function.
         is_operation = False
         if len(Qp_l) > 1:
             # Check if predifined pattern was provided
@@ -782,7 +807,7 @@ class Qmask(Qmask_Base):
                 ):
                     if len(remaining_q) > 0:
                         # TODO add nearest neighbor modulo nq
-                        if self.pattern == "nearest_circle":
+                        if self.connection_type == "nearest_circle":
                             Ep_l = [
                                 (
                                     Qp_l[Qp_l.index(i)],
@@ -795,7 +820,7 @@ class Qmask(Qmask_Base):
                                 )
                                 for i in measured_q
                             ]
-                        elif self.pattern == "nearest_tower":
+                        elif self.connection_type == "nearest_tower":
                             Ep_l = [
                                 (
                                     Qp_l[Qp_l.index(i)],
@@ -1074,7 +1099,9 @@ class Qhierarchy:
             # TODO set default mapping
             for layer in self:
                 for unitary in layer.edge_mapping:
-                    unitary.function(bits=unitary.edge, symbols=unitary.symbols)
+                    state = unitary.function(
+                        bits=unitary.edge, symbols=unitary.symbols, state=state
+                    )
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1095,7 +1122,7 @@ class Qhierarchy:
             self.update_Q(bits)
             if not (symbols is None):
                 self.set_symbols(symbols)
-                
+
             for layer in self:
                 for unitary in layer.edge_mapping:
                     return_object = unitary.function(
@@ -1234,7 +1261,7 @@ class Qinit(Qmotif):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i + 1 for i in range(Q)]
-        self.type = Primitive_Types.FREE
+        self.type = Primitive_Types.INIT
         # Initialize graph
         super().__init__(Q=Qinit, Q_avail=Qinit, is_operation=False, **kwargs)
 

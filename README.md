@@ -3,7 +3,7 @@
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" style="padding-right:10px" align="left"/>
 
 <p style="height:150px">
-<b>HierarQcal</b> is a quantum circuit builder that simplifies circuit design, composition, generation, scaling and parameter management. It provides an intuitive and dynamic data structure for constructing computation graphs hierarchically. This enables the generation of complex quantum circuit architectures, which is particularly useful for Neural Architecture Search (NAS), where an algorithm can determine the most efficient circuit architecture for a specific task and hardware. HierarQcal also facilitates the creation of hierarchical quantum circuits, such as those resembling tensor tree networks or MERA, with a single line of code. The package is open source and framework-agnostic, it includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to explore and optimize quantum circuit architectures. 
+<b>HierarQcal</b> is a quantum circuit builder that simplifies circuit design, composition, generation, scaling, and parameter management. It provides an intuitive and dynamic data structure for constructing computation graphs hierarchically. This enables the generation of complex quantum circuit architectures, which is particularly useful for Neural Architecture Search (NAS), where an algorithm can determine the most efficient circuit architecture for a specific task and hardware. HierarQcal also facilitates the creation of hierarchical quantum circuits, such as those resembling tensor tree networks or MERA, with a single line of code. The package is open-source and framework-agnostic, it includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to explore and optimize quantum circuit architectures. 
 </p>
 <br/>
 
@@ -65,12 +65,10 @@ pip install hierarqcal
 ```
 
 ## Tutorial and Documentation
-There are quickstart tutorials for each major Quantum computing framework: 
- - [HierarQcal Cirq Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_cirq.ipynb)
- - [HierarQcal Qiskit Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_qiskit.ipynb) 
- - [HierarQcal Pennylane Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_pennylane.ipynb). 
+There is a quickstart tutorial containing code examples for qiskit, cirq and pennylane: 
+ - [HierarQcal Quickstart](https://github.com/matt-lourens/hierarqcal/blob/master/examples/quickstart.ipynb)
  
- For more detailed usage see the [documentation](https://matt-lourens.github.io/hierarqcal/index.html).
+ For an overview of the package there is this [blogpost](https://unitary.fund/posts/2023_hierarqcal.html) which might be worht a read. Altough the syntax has changed since then, the overall functionality is still the same. There is also this paper on the [arXiv](https://arxiv.org/abs/2210.15073) which describes some of the use cases of the package. For specific details see the [documentation](https://matt-lourens.github.io/hierarqcal/index.html).
 
 ## Contributing
 We welcome contributions to the project. Please see the [contribution guidelines](https://github.com/matt-lourens/hierarqcal/blob/master/CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) for more information.
