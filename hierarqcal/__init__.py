@@ -1,14 +1,25 @@
-from .core import Qconv, Qdense, Qpool, Qfree, Qcnn, Qmotifs, Qmotif
-from .utils import plot_motifs, plot_motif
+from .core import (
+    Qcycle,
+    Qpermute,
+    Qmask,
+    Qunmask,
+    Qinit,
+    Qhierarchy,
+    Qmotifs,
+    Qmotif,
+    Qunitary,
+)
+from .utils import plot_motif
 
 __all__ = [
-    "Qcnn",
-    "Qconv",
-    "Qdense",
-    "Qpool",
-    "Qfree",
+    "Qhierarchy",
+    "Qcycle",
+    "Qpermute",
+    "Qmask",
+    "Qunmask",
+    "Qinit",
+    "Qunitary",
     "Qmotif",
     "Qmotifs",
-    "plot_motifs",
     "plot_motif",
 ]

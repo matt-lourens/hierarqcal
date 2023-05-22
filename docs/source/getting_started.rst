@@ -34,12 +34,11 @@ The package is quantum computing framework independent, there are helper functio
 
 Basic usage
 ------------
-There are tutorials for each quantum computing framework that cover most of the package's functionality:
+There is a quickstart notebook with a summary of functionality and also a more in depth tutorial:
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 4
     :caption: Tutorials
     
-    examples/examples_cirq
-    examples/examples_qiskit
-    examples/examples_pennylane
+    examples/quickstart
+    examples/core_tutorial

@@ -3,7 +3,7 @@
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/dalle_img.png?raw=true" alt="dalle image" height="150" style="padding-right:10px" align="left"/>
 
 <p style="height:150px">
-<b>HierarQcal</b> is an open-source Python package that simplifies the generation of custom quantum circuits for Neural Architecture Search (NAS). It provides a dynamic data structure for hierarchical circuit representations, enabling intuitive circuit composition and search space design. For example, it may be used to generate Quantum Convolutional Neural Networks (QCNNs) by stacking together primitives like <code>Qconv, Qpool, Qdense, and Qfree</code> hierarchically to form complex QCNN circuit architectures. The package is framework-agnostic and includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to efficiently explore and optimize quantum circuit architectures. 
+<b>HierarQcal</b> is a quantum circuit builder that simplifies circuit design, composition, generation, scaling, and parameter management. It provides an intuitive and dynamic data structure for constructing computation graphs hierarchically. This enables the generation of complex quantum circuit architectures, which is particularly useful for Neural Architecture Search (NAS), where an algorithm can determine the most efficient circuit architecture for a specific task and hardware. HierarQcal also facilitates the creation of hierarchical quantum circuits, such as those resembling tensor tree networks or MERA, with a single line of code. The package is open-source and framework-agnostic, it includes tutorials for Qiskit, PennyLane, and Cirq. Built to address the unique challenges of applying NAS to Quantum Computing, HierarQcal offers a novel approach to explore and optimize quantum circuit architectures. 
 </p>
 <br/>
 
@@ -15,24 +15,27 @@ ___
 
 
 ## Quick example
+
+#### Building a [Quantum Convolutional Neural Network (QCNN)](https://qiskit.org/ecosystem/machine-learning/tutorials/11_quantum_convolutional_neural_networks.html) with one line of code:
+
 ```python
-from hierarqcal import Qconv, Qpool, Qfree
-qcnn = Qfree(8) + (Qconv(stride=1) + Qpool(filter="right")) * 3
+from hierarqcal import Qinit, Qcycle, Qmask
+hierq = Qinit(8) + (Qcycle(mapping=u) + Qmask("right", mapping=v))*3
 ```
-$\text{QCNN:}$
 
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/rbt_right.png?raw=true" style="border:solid 2px black;">
 
+#### Modular and hierarchical circuit building:
 ```python
 ### Reverse binary tree
-from hierarqcal import Qconv, Qpool, Qfree
+from hierarqcal import Qinit, Qcycle, Qmask
 # motif: level 1
-m1_1 = Qconv(stride=2)
-m1_2 = Qpool(filter="left")
+m1_1 = Qcycle(stride=2)
+m1_2 = Qmask(pattern="left")
 # motif: level 2
 m2_1 = m1_1 + m1_2
 # motif: level 3
-m3_1 = Qfree(8) + m2_1 * 3
+m3_1 = Qinit(8) + m2_1 * 3
 ```
 $m^3_1\rightarrow \text{QCNN}:$
 
@@ -62,12 +65,10 @@ pip install hierarqcal
 ```
 
 ## Tutorial and Documentation
-There are quickstart tutorials for each major Quantum computing framework: 
- - [HierarQcal Cirq Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_cirq.ipynb)
- - [HierarQcal Qiskit Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_qiskit.ipynb) 
- - [HierarQcal Pennylane Tutorial](https://github.com/matt-lourens/hierarqcal/blob/master/examples/examples_pennylane.ipynb). 
+There is a quickstart tutorial containing code examples for qiskit, cirq and pennylane: 
+ - [HierarQcal Quickstart](https://github.com/matt-lourens/hierarqcal/blob/master/examples/quickstart.ipynb)
  
- For more detailed usage see the [documentation](https://matt-lourens.github.io/hierarqcal/index.html).
+ For an overview of the package there is this [blogpost](https://unitary.fund/posts/2023_hierarqcal.html) which might be worht a read. Altough the syntax has changed since then, the overall functionality is still the same. There is also this paper on the [arXiv](https://arxiv.org/abs/2210.15073) which describes some of the use cases of the package. For specific details see the [documentation](https://matt-lourens.github.io/hierarqcal/index.html).
 
 ## Contributing
 We welcome contributions to the project. Please see the [contribution guidelines](https://github.com/matt-lourens/hierarqcal/blob/master/CONTRIBUTING.md) and [code of conduct](CODE_OF_CONDUCT.md) for more information.
@@ -77,15 +78,13 @@ BSD 3-Clause "New" or "Revised" License, see [LICENSE](https://github.com/matt-l
 
 ## Citation
 ```latex
-@article{lourensArchitectureRepresentationsQuantum2022,
-  doi = {10.48550/ARXIV.2210.15073},
-  url = {https://arxiv.org/abs/2210.15073},
-  author = {Lourens, Matt and Sinayskiy, Ilya and Park, Daniel K. and Blank, Carsten and Petruccione,   Francesco},
-  keywords = {Quantum Physics (quant-ph), Artificial Intelligence (cs.AI)},
-  title = {Architecture representations for quantum convolutional neural networks},
-  publisher = {arXiv},
-  journal = {arXiv:2210.15073[quant-ph]},
-  year = {2022},
-  copyright = {arXiv.org perpetual, non-exclusive license}
+@article{lourens2023hierarchical,
+      title={Hierarchical quantum circuit representations for neural architecture search},
+      url = {https://arxiv.org/abs/2210.15073},
+      author={Matt Lourens and Ilya Sinayskiy and Daniel K. Park and Carsten Blank and Francesco Petruccione},
+      year={2023},
+      eprint={2210.15073},
+      archivePrefix={arXiv},
+      primaryClass={quant-ph}
 }
 ```
