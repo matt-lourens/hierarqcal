@@ -20,6 +20,14 @@ def U2(bits, symbols=None, circuit=None):
     return circuit
 
 
+def U3(bits, symbols=None, circuit=None):
+    # Assume bits are strings and in the correct QASM format
+    q0, q1, q2 = QuantumRegister(1, bits[0]), QuantumRegister(1, bits[1]), QuantumRegister(1, bits[2])
+    circuit.crz(symbols[0], q0, q1)
+    circuit.crx(symbols[1], q2, q1)
+    return circuit
+
+
 # Default mask circuit
 def V2(bits, symbols=None, circuit=None):
     """

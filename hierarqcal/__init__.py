@@ -1,5 +1,15 @@
-from .core import Qcycle, Qpermute, Qmask, Qunmask, Qinit, Qhierarchy, Qmotifs, Qmotif, Qunitary
-from .utils import plot_motifs, plot_motif
+from .core import (
+    Qcycle,
+    Qpermute,
+    Qmask,
+    Qunmask,
+    Qinit,
+    Qhierarchy,
+    Qmotifs,
+    Qmotif,
+    Qunitary,
+)
+from .utils import plot_motif
 
 __all__ = [
     "Qhierarchy",
@@ -11,6 +21,5 @@ __all__ = [
     "Qunitary",
     "Qmotif",
     "Qmotifs",
-    "plot_motifs",
     "plot_motif",
 ]

@@ -407,7 +407,7 @@ class Qmotifs(tuple):
 
 class Qcycle(Qmotif):
     """
-    A cycle motif, used to specify convolution operations in the quantum neural network.
+    A cycle motif, spreads unitaries in a ladder structure accross the circuit
     TODO implement open boundary for dense and pooling also + tests
     """
 
@@ -422,12 +422,12 @@ class Qcycle(Qmotif):
         """
         TODO determine if boundary is the best name for this, or if it should be called something else.
         TODO docstring for edge order, importantly it's based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge
-        Initialize a convolution motif.
+        Initialize a cycle motif.
 
         Args:
-            stride (int, optional): Stride of the convolution. Defaults to 1.
-            step (int, optional): Step of the convolution. Defaults to 1.
-            offset (int, optional): Offset of the convolution. Defaults to 0.
+            stride (int, optional): Stride of the cycle. Defaults to 1.
+            step (int, optional): Step of the cycle. Defaults to 1.
+            offset (int, optional): Offset of the cycle. Defaults to 0.
 
         """
         self.type = Primitive_Types.CYCLE
@@ -913,6 +913,9 @@ class Qmask(Qmask_Base):
             # TODO make clear in documentation, no pooling is done if 1 qubit remain
             Ep_l = []
             remaining_q = Qp_l
+        if len(remaining_q)==0:
+            # Don't do anything if all qubits were removed
+            remaining_q=Qp_l
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
@@ -1122,7 +1125,7 @@ class Qhierarchy:
             self.update_Q(bits)
             if not (symbols is None):
                 self.set_symbols(symbols)
-
+            return_object = None
             for layer in self:
                 for unitary in layer.edge_mapping:
                     return_object = unitary.function(

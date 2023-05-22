@@ -115,7 +115,7 @@ def plot_motif(
         if len(edge) == 1:
             # TODO implement loop
             raise NotImplementedError(
-                f"Plotting f{len(edge)}-ary edges are not implemented yet"
+                f"Plotting {len(edge)}-ary edges are not implemented yet"
             )
         if len(edge) == 2:
             ket_0 = np.array([1, 0])
@@ -162,47 +162,47 @@ def plot_motif(
     return fig, ax
 
 
-def plot_motifs(
-    hierq,
-    all_motifs=False,
-    cycle_color="#0096ff",
-    mask_color="#ff7e79",
-    permute_colour="#a9449d",
-    init_colour="#92a9bd",
-    **kwargs,
-):
-    """
-    Plot all motifs in a Hierarchical object
+# def plot_motifs(
+#     hierq,
+#     all_motifs=False,
+#     cycle_color="#0096ff",
+#     mask_color="#ff7e79",
+#     permute_colour="#a9449d",
+#     init_colour="#92a9bd",
+#     **kwargs,
+# ):
+#     """
+#     Plot all motifs in a Hierarchical object TODO update for new version
 
-    Args:
-        hierq (Hierarchical): The Hierarchical object to plot.
-        all_motifs (bool, optional): Whether to plot all motifs in the Hierarchical object or just the operational ones. Defaults to False (just operations)
-        cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
-        mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
-        permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
-        init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
-        **kwargs: Additional keyword arguments to pass to the networkx draw function.
+#     Args:
+#         hierq (Hierarchical): The Hierarchical object to plot.
+#         all_motifs (bool, optional): Whether to plot all motifs in the Hierarchical object or just the operational ones. Defaults to False (just operations)
+#         cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
+#         mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
+#         permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
+#         init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
+#         **kwargs: Additional keyword arguments to pass to the networkx draw function.
 
-    Returns:
-        figs (list): A list of matplotlib figure objects.
-    """
-    figs = []
-    if all_motifs:
-        motif = hierq.tail
-        while motif is not None:
-            fig, ax = plot_motif(
-                motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-            )
-            motif = motif.next
-            # oPlot.add_plot(ax)
-            figs.append(fig)
-            plt.close()
-    else:
-        for motif in hierq:
-            fig, ax = plot_motif(
-                motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-            )
-            # oPlot.add_plot(ax)
-            figs.append(fig)
-            plt.close()
-    return figs
+#     Returns:
+#         figs (list): A list of matplotlib figure objects.
+#     """
+#     figs = []
+#     if all_motifs:
+#         motif = hierq.tail
+#         while motif is not None:
+#             fig, ax = plot_motif(
+#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
+#             )
+#             motif = motif.next
+#             # oPlot.add_plot(ax)
+#             figs.append(fig)
+#             plt.close()
+#     else:
+#         for motif in hierq:
+#             fig, ax = plot_motif(
+#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
+#             )
+#             # oPlot.add_plot(ax)
+#             figs.append(fig)
+#             plt.close()
+#     return figs
