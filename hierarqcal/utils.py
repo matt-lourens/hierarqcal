@@ -208,13 +208,13 @@ def plot_motif(
 #     return figs
 
 
-def get_circ_info_from_string(qunitary):
+def get_circ_info_from_string(input_str):
     """
-    Takes a qunitary object with a qunitary.function that is a string, and
+    Takes a string that represents a circuit function, and
     breaks down the string into a set of circuit instructions.
 
     Args:
-        `qunitary` (hierarqcal.core.Qunitary)
+        `input_str` (str)
     Returns:
         `substr_list` (list): a list of circuit instructions, where each entry
         represents a distinct gate operation. 
@@ -223,6 +223,8 @@ def get_circ_info_from_string(qunitary):
             2. `symbol_info` (list) keeps track of whether the gate is parametrized, and 
                     if so, whether it is the same parameter as another gate.
             3. `sub_bits` (list of ints) keeps track of the bits the gates are applied on.
+        `unique_bits` (list of ints): set of qubits
+        `unique_params` (list of strs): set of gate parameters
     
     Workflow:
         Step 1: partition the string into lists of individual gate instructions
@@ -232,7 +234,6 @@ def get_circ_info_from_string(qunitary):
         Step 3: convert the bits, the gate string, and the relevant parameters
                 into integers/functions
     """
-    input_str = qunitary.function
 
     # Step 1 #
 
@@ -296,4 +297,4 @@ def get_circ_info_from_string(qunitary):
         substr_list.append(new_substr)
 
 
-    return substr_list, unique_bits
+    return substr_list, unique_bits, unique_params

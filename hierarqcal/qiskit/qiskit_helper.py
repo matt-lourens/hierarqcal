@@ -90,12 +90,11 @@ def get_circuit_from_string(qunitary):
         """
 
     # breaking down the qunitary.function string into a list of gate instructions
-    instruction_list, unique_bits = get_circ_info_from_string(qunitary)
+    instruction_list, unique_bits, _ = get_circ_info_from_string(qunitary.function)
 
 
     # building a function from the list of gate instructions
-    def circuit_fn(bits, symbols=None, circuit=None):        
-        qunitary.arity = len(unique_bits)
+    def circuit_fn(bits, symbols=None, circuit=None):
         qubits = [QuantumRegister(1, bits[i]) for i in range(qunitary.arity)]
 
         # for each gate in the instruction list

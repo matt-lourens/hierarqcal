@@ -47,8 +47,47 @@ class Qunitary:
             symbols (list, optional): List of symbol values (rotation angles). Elements can be either sympy symbols, complex numbers, or qiskit parameters. Defaults to None.
         """
         self.function = function
-        self.n_symbols = n_symbols
-        self.arity = arity
+        if isinstance(self.function, str):
+            # automatically calculating arity and n_symbols from string
+            # by getting the number of unique bits and parameters
+            substrings = self.function.split(';')
+            # Remove any leading or trailing whitespaces from each substring
+            substrings = [substring.strip() for substring in substrings]
+            unique_bits = []
+            unique_params = []
+            for substring in substrings:
+                
+                # Isolating the parameters and bits in the substring
+                param_start_index = substring.find('(')
+                param_end_index = substring.find(')')
+
+                bits_start_index = substring.find('^')
+                bits_end_index = len(substring)
+
+                # checking if parameter is unique
+                params_string = substring[param_start_index+1:param_end_index]
+                if params_string == '':
+                    pass
+                else:
+                    param_list = params_string.split(',')
+                    # Remove any leading or trailing whitespaces from each substring
+                    param_list = [param_entry.strip() for param_entry in param_list]
+                    for param_entry in param_list:
+                        if param_entry not in unique_params:
+                            unique_params.append(param_entry)
+
+                # checking if bits are unique
+                bits_string = substring[bits_start_index+1:bits_end_index]
+                for bit in bits_string:
+                    bit = int(bit)
+                    if bit not in unique_bits:
+                        unique_bits.append(bit)
+                        
+            self.n_symbols = len(unique_params)
+            self.arity = len(unique_bits)
+        else:
+            self.n_symbols = n_symbols
+            self.arity = arity
         self.symbols = None
         self.edge = None
 
