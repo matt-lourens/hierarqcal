@@ -993,78 +993,77 @@ class Qpivot_Base(Qmotif):
         super().__init__(**kwargs)
 
     def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
+        """
+        Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on its available qubits.
+        Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges, etc).
+
+        Args:
+            Q (list): List of available qubits.
+            E (list): List of edges.
+            remaining_q (list): List of remaining qubits.
+            is_operation (bool): Whether the motif is an operation.
+            **kwargs: 
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to a variational parameter for a quantum circuit, i.e., crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+                * start_idx (int):
+                    Starting index for symbols, used when generating new symbols.
+
+        Returns:
+            Qpool: Returns the updated version of itself, with correct nodes and edges.
+        """
+
         mapping = kwargs.get("mapping", None)
         start_idx = kwargs.get("start_idx", 0)
+
         self.set_Q(Q)
+        self.set_E(E)
         self.set_Qavail(remaining_q)
         if mapping:
             self.set_mapping(mapping)
         self.set_is_operation(is_operation)
-        self.set_E(E)
         self.set_symbols(start_idx=start_idx)
 
-    def get_pivot_pattern_fn(self, pivot_pattern, Qp_l=[]):
+        return self
+
+    def get_pivot_pattern_fn(self, pattern, Qp_l):
         """
-        Get the pattern function for the pivot operation.
+        Based on the pattern, provide a function to determine which qubits are considered as pivot qubits.
 
         Args:
-            pivot_pattern (str or lambda): The string can be a bit string, i.e. "01000" which pivots about the 2nd qubit.
-                                            If a lambda function is passed, it is used as the pattern function, it should work as follow: pivot_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
-                                            the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
-                                            meaning the same kind of pattern will be applied as the list grows or shrinks.
+            pattern (str/Callable): The pivot pattern string or a custom function.
             Qp_l (list): List of available qubits.
-        """
-        # Assume pattern is in form contains a string specifying which indices to remove
-        # For example "01001" removes idx 1 and 4 or qubit 2 and 5
-        # The important thing here is for pool pattern to be the same length as the current number of qubits
-        if isinstance(pivot_pattern, str):
-            if len(pivot_pattern) == len(Qp_l):
-                pivot_pattern_fn = lambda arr: [
-                    item
-                    for item, indicator in zip(arr, pivot_pattern)
-                    if indicator == "1"
-                ]
-            else:
-                # Attempt to use the pattern as a base pattern
-                # TODO explain in docs and maybe print a warning
-                # For example "101" will be used as "10110110" if there are 8 qubits
-                if any("*" == c for c in pivot_pattern):
-                    # Wildcard pattern
-                    n_ones = pivot_pattern.count("1")
-                    n_stars = pivot_pattern.count("*")
-                    n_zeros = len(Qp_l) - n_ones
-                    zero_per_star = n_zeros // n_stars
-                    base = pivot_pattern.replace("*", "0" * zero_per_star)
-                    max_it = len(Qp_l)
-                    while len(base) < len(Qp_l) and max_it > 0:
-                        # get index of first 0
-                        idx = base.find("0")
-                        # Insert 0 next to it
-                        base = base[:idx] + "0" + base[idx:]
-                        max_it -= 1
-                    # if n_zeros <= 0:
-                    #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                    #     base = "0" * len(Qp_l)
-                    # else:
-                    #     base = pivot_pattern.replace("*", "0" * n_zeros)
-                    pivot_pattern_fn = lambda arr: [
-                        item
-                        for item, indicator in zip(arr, base)
-                        if indicator == "1"
-                    ]
-                else:
-                    # If there are no wildcard characters, then we assume that the pattern is a base pattern
-                    # and we will repeat it until it is the same length as the current number of qubits
-                    base = pivot_pattern * (len(Qp_l) // len(pivot_pattern))
-                    base = base[: len(Qp_l)]
-                    pivot_pattern_fn = lambda arr: [
-                        item
-                        for item, indicator in zip(arr, base)
-                        if indicator == "1"
-                    ]
 
+        Returns:
+            pivot_pattern_fn (function): Function that determines the pivot qubits.
+        """
+        if callable(pattern):
+            return pattern
+
+        if any("*" == c for c in pattern):
+            # Handle wildcard pattern
+            n_ones = pattern.count("1")
+            n_stars = pattern.count("*")
+            n_zeros = len(Qp_l) - n_ones
+            zero_per_star = n_zeros // n_stars
+            base = pattern.replace("*", "0" * zero_per_star)
+            max_it = len(Qp_l)
+            while len(base) < len(Qp_l) and max_it > 0:
+                # Get index of first 1
+                idx = base.find("1")
+                # Insert 1 next to it
+                base = base[:idx] + "1" + base[idx:]
+                max_it -= 1
+        elif pattern == "":
+            # If pattern is empty, simply return all qubits
+            base = "1" * len(Qp_l)
         else:
-            pivot_pattern_fn = pivot_pattern
+            # Non-wildcard, non-empty pattern: repeat until long enough, then trim to length
+            base = (pattern * (len(Qp_l) // len(pattern) + 1))[:len(Qp_l)]
+
+        # Lambda function returns qubits where the base pattern has a "1"
+        pivot_pattern_fn = lambda arr: [item for item, indicator in zip(arr, base) if indicator == "1"]
+
         return pivot_pattern_fn
 
 
