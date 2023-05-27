@@ -71,7 +71,8 @@ def get_circuit_qiskit(hierq, symbols=None, barriers=True):
                 unitary = get_circuit_from_string(unitary)
 
             circuit = unitary.function(
-                bits=unitary.edge, symbols=unitary.symbols, circuit=circuit
+                bits=unitary.edge, symbols=unitary.symbols, 
+                circuit=circuit, get_circuit_from_string=get_circuit_from_string
             )
         if barriers and layer.next:
             # Add barrier between layers, except the last one.
@@ -90,11 +91,11 @@ def get_circuit_from_string(qunitary):
         """
 
     # breaking down the qunitary.function string into a list of gate instructions
-    instruction_list, unique_bits, _ = get_circ_info_from_string(qunitary.function)
+    instruction_list, _, _ = get_circ_info_from_string(qunitary.function)
 
 
     # building a function from the list of gate instructions
-    def circuit_fn(bits, symbols=None, circuit=None):
+    def circuit_fn(bits, symbols=None, circuit=None, **kwargs):
         qubits = [QuantumRegister(1, bits[i]) for i in range(qunitary.arity)]
 
         # for each gate in the instruction list

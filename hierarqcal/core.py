@@ -1167,6 +1167,9 @@ class Qhierarchy:
             return_object = None
             for layer in self:
                 for unitary in layer.edge_mapping:
+                    if isinstance(unitary.function, str):
+                        get_circuit_from_string = kwargs.get("get_circuit_from_string", None)
+                        unitary = get_circuit_from_string(unitary)
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
