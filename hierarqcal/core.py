@@ -978,61 +978,36 @@ class Qunmask(Qmask_Base):
         )
         return self
 
-class Qpivot_Base(Qmotif):
+class Qpivot(Qmotif):
+    """
+    A pivot motif, it pivots qubits based on some pattern 
+    """
+
     def __init__(
         self,
-        pattern="1*",  # bitstring+wildcar, lambda function
+        pattern="1*",  # bitstring, * as wildcard, lambda function
+        connection_type="cycle",  # nearest_circle, nearest_tower
+        stride=0,
+        step=1,
+        offset=0,
         **kwargs,
     ):
-        """
-        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
-        TODO Open, Periodic boundary
-        """
-        self.type = Primitive_Types.PIVOT
-        self.pattern = pattern
-        super().__init__(**kwargs)
-
-    def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
-        """
-        Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on its available qubits.
-        Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges, etc).
-
-        Args:
-            Q (list): List of available qubits.
-            E (list): List of edges.
-            remaining_q (list): List of remaining qubits.
-            is_operation (bool): Whether the motif is an operation.
-            **kwargs: 
-                * mapping (tuple(function, int)):
-                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to a variational parameter for a quantum circuit, i.e., crz(theta, q0, q1) <- theta is a symbol for the gate.
-
-                * start_idx (int):
-                    Starting index for symbols, used when generating new symbols.
-
-        Returns:
-            Qpool: Returns the updated version of itself, with correct nodes and edges.
-        """
-
+        self.connection_type = connection_type
+        self.stride = stride
+        self.step = step
+        self.offset = offset
         mapping = kwargs.get("mapping", None)
-        start_idx = kwargs.get("start_idx", 0)
-
-        self.set_Q(Q)
-        self.set_E(E)
-        self.set_Qavail(remaining_q)
-        if mapping:
-            self.set_mapping(mapping)
-        self.set_is_operation(is_operation)
-        self.set_symbols(start_idx=start_idx)
-
-        return self
-
-    def get_pivot_pattern_fn(self, pattern, Qp_l):
+        is_default_mapping = True if mapping is None else False
+        # Initialize graph
+        super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
+    
+    def get_pivot_pattern_fn(self, pattern, Qc_l):
         """
         Based on the pattern, provide a function to determine which qubits are considered as pivot qubits.
 
         Args:
             pattern (str/Callable): The pivot pattern string or a custom function.
-            Qp_l (list): List of available qubits.
+            Qc_l (list): List of available qubits.
 
         Returns:
             pivot_pattern_fn (function): Function that determines the pivot qubits.
@@ -1044,11 +1019,11 @@ class Qpivot_Base(Qmotif):
             # Handle wildcard pattern
             n_ones = pattern.count("1")
             n_stars = pattern.count("*")
-            n_zeros = len(Qp_l) - n_ones
+            n_zeros = len(Qc_l) - n_ones
             zero_per_star = n_zeros // n_stars
             base = pattern.replace("*", "0" * zero_per_star)
-            max_it = len(Qp_l)
-            while len(base) < len(Qp_l) and max_it > 0:
+            max_it = len(Qc_l)
+            while len(base) < len(Qc_l) and max_it > 0:
                 # Get index of first 1
                 idx = base.find("1")
                 # Insert 1 next to it
@@ -1056,208 +1031,95 @@ class Qpivot_Base(Qmotif):
                 max_it -= 1
         elif pattern == "":
             # If pattern is empty, simply return all qubits
-            base = "1" * len(Qp_l)
+            base = "1" * len(Qc_l)
         else:
             # Non-wildcard, non-empty pattern: repeat until long enough, then trim to length
-            base = (pattern * (len(Qp_l) // len(pattern) + 1))[:len(Qp_l)]
+            base = (pattern * (len(Qc_l) // len(pattern) + 1))[:len(Qc_l)]
 
         # Lambda function returns qubits where the base pattern has a "1"
         pivot_pattern_fn = lambda arr: [item for item, indicator in zip(arr, base) if indicator == "1"]
 
         return pivot_pattern_fn
 
-
-class Qpivot(Qpivot_Base):
-    """
-    A pivot motif, it pivots qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
-    This motif changes the available qubits for the next motif in the stack.
-    """
-
-    def __init__(
-        self,
-        pattern="1*",  # right, left, up, down, 1*1*1, lambda function
-        connection_type="cycle",  # nearest_circle, nearest_tower, nearest_square,
-        stride=0,
-        step=1,
-        offset=0,
-        boundary="periodic",
-        **kwargs,
-    ):
+    def __call__(self, Qc_l, *args, **kwargs):
         """
-        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
-        TODO Open, Periodic boundary
-        """
-        self.connection_type = connection_type
-        self.stride = stride
-        self.step = step
-        self.offset = offset
-        self.boundary = boundary
-        mapping = kwargs.get("mapping", None)
-        is_default_mapping = True if mapping is None else False
-        # Initialize graph
-        super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
-
-    def __call__(self, Qp_l, *args, **kwargs):
-        """
-        Call the motif, this is used to generate the edges and qubits of the motif (directed graph) based on it's available qubits.
-        Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
+        Call function to apply the Qpivot operation.
 
         Args:
-            Qp_l (list): List of available qubits.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments, such as:
-
-                * mapping (tuple(function, int)):
-                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
-
-        Returns:
-            Qpool: Returns the updated version of itself, with correct nodes and edges.
+            Qc_l (list): A list of the available quantum states.
         """
-        # The idea is to pivot qubits based on some pattern
-        # This can be done with or without applying a unitary. Applying a unitary "preserves" their information (usually through some controlled unitary)
-        # This enables patterns of: pooling in quantum neural networks, coarse graining or entanglers or just plain masking
-        # The logic is as follows:
-        # First check if there are more than 1 qubit available, since we don't want to make our last available qubit unavailable.
-        # Then check if there is a associated untitary, if there is:
-        #   If arity is 2 we have some predifined patterns + the general pattern functionality
-        #       Predifined: right, left, inside, outside, even, odd, nearest_circle, nearest_tower
-        #   If arity is more, then we just have general pattern functionality
-        # General pattern works as follows:
-        #   Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
-        #   Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
-        # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
-        # of masked ones, so that we enable deffered measurement.
-        # The most general usage is providing your own pattern function
-        # TODO add this to docs and explain how to provide own pattern function.
-        is_operation = False
-        if len(Qp_l) > 1:
-            # Check if predifined pattern was provided
-            self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qp_l)
-            measured_q = self.pivot_pattern_fn(Qp_l)
-            remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            Ep_l = []
-            # Check if there is a unitary associated with the motif
-            if not (self.mapping is None):
-                is_operation = True
-                # All below generates edges for associated unitaries
-                if isinstance(self.pattern, str) and not (
-                    all((c in ("0", "1") for c in self.pattern))
-                ):
-                    if len(remaining_q) > 0:
-                        # TODO add nearest neighbor modulo nq
-                        if self.connection_type == "nearest_circle":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
-                                        % len(remaining_q)
-                                        // 2,
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        elif self.connection_type == "nearest_tower":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(
-                                            Qp_l.index(i) - Qp_l.index(x)
-                                        ),
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        else:
-                            Ep_l = [
-                                (
-                                    measured_q[i],
-                                    remaining_q[(i + self.stride) % len(remaining_q)],
-                                )
-                                for i in range(len(measured_q))
-                            ]
-                    else:
-                        # No qubits were pooled
-                        Ep_l = []
-                        remaining_q = Qp_l
-                else:
-                    # General pattern functionality:
-                    # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
-                    # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
-                    if isinstance(self.pattern, str):
-                        if len(self.pattern) != self.arity:
-                            raise ValueError(
-                                f"Pattern string should be of length arity {self.arity}, if it is a string."
-                            )
-                        nq_available = len(Qp_l)
-                    if self.stride % nq_available == 0:
-                        self.stride = 1  # TODO test if this is neccesary
-                    # We generate edges the same way as convolutions
-                    if self.boundary == "open":
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[i + j * self.stride]
-                                    for j in range(self.arity)
-                                    if i + j * self.stride < nq_available
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete"
-                        Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
-
-                    else:
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[mod_nq(i + j * self.stride)]
-                                    for j in range(self.arity)
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete", i.e. contain duplicates
-                        Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.arity]
-                    if (
-                        len(Ep_l) == self.arity
-                        and sum(
-                            [
-                                len(set(Ep_l[0]) - set(Ep_l[k])) == 0
-                                for k in range(self.arity)
-                            ]
-                        )
-                        == self.arity
-                    ):
-                        # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-                        Ep_l = [Ep_l[0]]
-                    # Then we apply the pattern to record which edges go away
-                    self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qp_l)
-                    measured_q = [
-                        qubit for edge in Ep_l for qubit in self.pivot_pattern_fn(edge)
-                    ]
-                    remaining_q = [q for q in Qp_l if not (q in measured_q)]
-
+        if len(Qc_l) != 2:
+            raise ValueError("Qc_l must have a length of 2 for Qpivot operation.")
+        
+        # Get pivot pattern function
+        pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
+        
+        # Set source and pivot qubits
+        source_qubits, pivot_qubits = pivot_pattern_fn(Qc_l)
+        
+        # Generate edges based on connection type
+        if kwargs.get('connection_type') == 'nearest_circle':
+            edges = self.generate_nearest_circle_edges(source_qubits, pivot_qubits)
+        elif kwargs.get('connection_type') == 'nearest_tower':
+            edges = self.generate_nearest_tower_edges(source_qubits, pivot_qubits)
+        elif kwargs.get('connection_type') == 'cycle':
+            edges = self.generate_cycle_edges(source_qubits, pivot_qubits, **kwargs)
         else:
-            # raise ValueError(
-            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
-            # )
-            # No qubits were pooled
-            # TODO make clear in documentation, no pooling is done if 1 qubit remain
-            Ep_l = []
-            remaining_q = Qp_l
-        if len(remaining_q)==0:
-            # Don't do anything if all qubits were removed
-            remaining_q=Qp_l
-        super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
-        )
+            raise ValueError("Invalid connection type. Expected 'nearest_circle', 'nearest_tower', or 'cycle'.")
+
+        # Update the motif with the new edges
+        self.set_Q(Qc_l)
+        self.set_E(edges)
+        self.set_Qavail(pivot_qubits)  # Assume pivot qubits are the ones available for the next operation
+        mapping = kwargs.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_symbols(start_idx=start_idx)
+
         return self
+    
+    def generate_nearest_circle_edges(self, source_qubits, pivot_qubits):
+        """
+        Generate the edges for the 'nearest_circle' connection type.
+        """
+        return [
+            (
+                source_qubits[source_qubits.index(i)],
+                min(
+                    pivot_qubits,
+                    key=lambda x: abs(source_qubits.index(i) - source_qubits.index(x)) % len(pivot_qubits) // 2,
+                ),
+            )
+            for i in source_qubits
+        ]
+
+    def generate_nearest_tower_edges(self, source_qubits, pivot_qubits):
+        """
+        Generate the edges for the 'nearest_tower' connection type.
+        """
+        return [
+            (
+                source_qubits[source_qubits.index(i)],
+                min(
+                    pivot_qubits,
+                    key=lambda x: abs(source_qubits.index(i) - source_qubits.index(x)),
+                ),
+            )
+            for i in source_qubits
+        ]
+
+    def generate_cycle_edges(self, source_qubits, pivot_qubits):
+        """
+        Generate the edges for the 'cycle' connection type. Use stride, step and offset to adjust the cycle.
+        """
+        return [
+            (
+                source_qubits[i],
+                pivot_qubits[(i + self.stride * self.step + self.offset) % len(pivot_qubits)],
+            )
+            for i in range(len(source_qubits))
+        ]
 
     def __eq__(self, other):
         if isinstance(other, Qpivot):
@@ -1272,48 +1134,6 @@ class Qpivot(Qpivot_Base):
             return True
         return False
 
-
-class Qunpivot(Qpivot_Base):
-    def __init__(
-        self,
-        *args,
-        **kwargs,
-    ):
-        """
-        TODO possibility to give pivoting motif to undo
-        """
-        super().__init__(*args, **kwargs)
-
-    def __call__(self, Qp_l, *args, **kwargs):
-        """
-        TODO
-        """
-        if self.pattern == "previous":
-            current = self
-            unpivoted_q = []
-            unpivot_counts = 0
-            while current is not None:
-                current = current.prev
-                if isinstance(current, Qpivot) and unpivot_counts <= 0:
-                    unpivoted_q = current.prev.Q
-                    current = None
-
-                if isinstance(current, Qunpivot):
-                    unpivot_counts += 1
-                if isinstance(current, Qpivot):
-                    unpivot_counts -= 1
-        else:
-            q_old = kwargs.get("q_initial", [])
-            self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, q_old)
-            unpivoted_q = self.pivot_pattern_fn(q_old)
-        is_operation = False
-        Ep_l = []
-        unique_unpivoted = [q for q in unpivoted_q if q not in Qp_l]
-        new_avail_q = Qp_l + unique_unpivoted
-        super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
-        )
-        return self
 
 class Qhierarchy:
     """
