@@ -161,15 +161,7 @@ def plot_motif(
                         pos[edge[i]], radius=node_radi[labels.index(edge[i])], edgecolor="black", facecolor=color, linewidth=1.5
                     )
                 )
-                ax.text(
-                    p[0],
-                    p[1],
-                    str(q),
-                    color="black",
-                    fontsize=font_size,
-                    ha="center",
-                    va="center",
-                )
+                
             for i in range(len(edge)):
                 ket_s = np.array(pos[edge[i]])  # source vector
                 ket_t = np.array(pos[edge[(i+1)%len(edge)]])  # target vector
