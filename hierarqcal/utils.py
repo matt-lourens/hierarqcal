@@ -149,6 +149,28 @@ def plot_motif(
         else:
             end_points = []
             for i in range(len(edge)):
+                if i == 0:
+                    color = color_dict['start']
+                elif i == len(edge)-1:
+                    color = color_dict['end']
+                else:
+                    color = color_dict['during']
+                
+                ax.add_patch(
+                    patches.Circle(
+                        pos[edge[i]], radius=node_radi[labels.index(edge[i])], edgecolor="black", facecolor=color, linewidth=1.5
+                    )
+                )
+                ax.text(
+                    p[0],
+                    p[1],
+                    str(q),
+                    color="black",
+                    fontsize=font_size,
+                    ha="center",
+                    va="center",
+                )
+            for i in range(len(edge)):
                 ket_s = np.array(pos[edge[i]])  # source vector
                 ket_t = np.array(pos[edge[(i+1)%len(edge)]])  # target vector
 
@@ -196,7 +218,6 @@ def plot_motif(
                     norm_prod = np.linalg.norm(start_vec)*np.linalg.norm(ref_vec)
                     angle_ref = np.arccos(np.dot(start_vec, ref_vec)/norm_prod)
 
-                print(angle_ref*(180/np.pi), angle*(180/np.pi))
                 end_point_check = np.array([center[0] + t_radius*pad_ratio * np.cos(angle_ref+angle), 
                                             center[1] + t_radius*pad_ratio * np.sin(angle_ref+angle)])
                 if np.linalg.norm(end_point_check - end) > 1e-3:
@@ -204,8 +225,7 @@ def plot_motif(
                 arc_angles = np.linspace(angle_ref, angle_ref+angle, 20)
                 arc_xs = center[0] + t_radius*pad_ratio * np.cos(arc_angles)
                 arc_ys = center[1] + t_radius*pad_ratio * np.sin(arc_angles)
-                
-                
+
                 plt.plot(arc_xs, arc_ys, lw=edge_width, color='black')
                 
 
