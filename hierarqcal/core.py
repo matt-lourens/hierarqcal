@@ -1117,7 +1117,7 @@ class Qpivot(Qmotif):
 
     def generate_cycle_edges(self, source_qubits, pivot_qubits):
         """
-        Generate the edges for the 'cycle' connection type. Use stride, step and offset to adjust the cycle.
+        Generate the edges for the 'cycle' connection type. Use stride, step, and offset to adjust the cycle.
         """
         if self.boundary == "periodic":
             return [
@@ -1141,7 +1141,7 @@ class Qpivot(Qmotif):
                     source_qubits[(i * self.step + self.offset) % len(source_qubits)],
                     pivot_qubits[(i * self.stride) % len(pivot_qubits)],
                 )
-                for i in range(min((self.offset + len(pivot_qubits) - 1) // self.stride + 1, len(source_qubits))) # this range ensures we don't go beyond the number of pivot qubits
+                for i in range(min((self.offset + len(pivot_qubits) - 1) // self.stride + 1, len(source_qubits)))  # this range ensures we don't go beyond the number of pivot qubits
             ]
         else:
             raise ValueError("Invalid boundary type. Expected 'closed', 'open' or 'periodic'.")
