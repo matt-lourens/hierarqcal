@@ -1000,7 +1000,7 @@ class Qpivot(Qmotif):
         is_default_mapping = True if mapping is None else False
         # Initialize graph
         super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
-    
+
     def get_pivot_pattern_fn(self, pattern, Qc_l):
         """
         Based on the pattern, provide a function to determine which qubits are considered as pivot qubits.
@@ -1050,13 +1050,13 @@ class Qpivot(Qmotif):
         """
         if len(Qc_l) != 2:
             raise ValueError("Qc_l must have a length of 2 for Qpivot operation.")
-        
+
         # Get pivot pattern function
         pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
-        
+
         # Set source and pivot qubits
         source_qubits, pivot_qubits = pivot_pattern_fn(Qc_l)
-        
+
         # Generate edges based on connection type
         if kwargs.get('connection_type') == 'nearest_circle':
             edges = self.generate_nearest_circle_edges(source_qubits, pivot_qubits)
@@ -1078,7 +1078,7 @@ class Qpivot(Qmotif):
         self.set_symbols(start_idx=start_idx)
 
         return self
-    
+
     def generate_nearest_circle_edges(self, source_qubits, pivot_qubits):
         """
         Generate the edges for the 'nearest_circle' connection type.
