@@ -6,6 +6,7 @@ from hierarqcal import (
     Qhierarchy,
     Qcycle,
     Qpermute,
+    Qpivot,
     Qmask,
     Qunmask,
     Qinit,
@@ -23,6 +24,24 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2
 hierq = Qinit(8) + Qcycle(1, 1, 0)
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
+
+# Test pivot
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qpivot("1*1*1", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qpivot("*1", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
+# Test pivot
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qpivot("1*1*1", connection_type="nearest_tower", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
 
 # Test masking
 u = Qunitary(V2, 0, 2)

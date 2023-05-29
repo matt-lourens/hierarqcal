@@ -90,6 +90,7 @@ class Default_Mappings(Enum):
     CYCLE = Qunitary(n_symbols=1, arity=2)
     MASK = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
+    PIVOT = Qunitary(n_symbols=1, arity=2) 
 
 
 class Qmotif:
@@ -990,24 +991,28 @@ class Qpivot(Qmotif):
         stride=0,
         step=1,
         offset=0,
+        boundary="periodic",
         **kwargs,
     ):
+        self.type = Primitive_Types.PIVOT
+        self.pattern = pattern
         self.connection_type = connection_type
         self.stride = stride
         self.step = step
         self.offset = offset
+        self.boundary = boundary
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize graph
         super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
 
-    def get_pivot_pattern_fn(self, pattern, Qc_l):
+    def get_pivot_pattern_fn(self, pattern, Q):
         """
         Based on the pattern, provide a function to determine which qubits are considered as pivot qubits.
 
         Args:
             pattern (str/Callable): The pivot pattern string or a custom function.
-            Qc_l (list): List of available qubits.
+            Q (list): List of available qubits.
 
         Returns:
             pivot_pattern_fn (function): Function that determines the pivot qubits.
@@ -1019,11 +1024,11 @@ class Qpivot(Qmotif):
             # Handle wildcard pattern
             n_ones = pattern.count("1")
             n_stars = pattern.count("*")
-            n_zeros = len(Qc_l) - n_ones
+            n_zeros = len(Q) - n_ones
             zero_per_star = n_zeros // n_stars
             base = pattern.replace("*", "0" * zero_per_star)
-            max_it = len(Qc_l)
-            while len(base) < len(Qc_l) and max_it > 0:
+            max_it = len(Q)
+            while len(base) < len(Q) and max_it > 0:
                 # Get index of first 1
                 idx = base.find("1")
                 # Insert 1 next to it
@@ -1031,44 +1036,45 @@ class Qpivot(Qmotif):
                 max_it -= 1
         elif pattern == "":
             # If pattern is empty, simply return all qubits
-            base = "1" * len(Qc_l)
+            base = "1" * len(Q)
         else:
             # Non-wildcard, non-empty pattern: repeat until long enough, then trim to length
-            base = (pattern * (len(Qc_l) // len(pattern) + 1))[:len(Qc_l)]
+            base = (pattern * (len(Q) // len(pattern) + 1))[:len(Q)]
 
         # Lambda function returns qubits where the base pattern has a "1"
         pivot_pattern_fn = lambda arr: [item for item, indicator in zip(arr, base) if indicator == "1"]
 
         return pivot_pattern_fn
 
-    def __call__(self, Qc_l, *args, **kwargs):
+    def __call__(self, Q, *args, **kwargs):
         """
         Call function to apply the Qpivot operation.
 
         Args:
-            Qc_l (list): A list of the available quantum states.
+            Q (list): A list of the available quantum states.
         """
-        if len(Qc_l) != 2:
-            raise ValueError("Qc_l must have a length of 2 for Qpivot operation.")
+        if self.arity != 2:
+            raise ValueError("Arity must be 2 for Qpivot operation.")
 
         # Get pivot pattern function
-        pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
+        pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Q)
 
         # Set source and pivot qubits
-        source_qubits, pivot_qubits = pivot_pattern_fn(Qc_l)
+        pivot_qubits = pivot_pattern_fn(Q)
+        source_qubits = [q for q in Q if not (q in pivot_qubits)]
 
         # Generate edges based on connection type
-        if kwargs.get('connection_type') == 'nearest_circle':
+        if self.connection_type == 'nearest_circle':
             edges = self.generate_nearest_circle_edges(source_qubits, pivot_qubits)
-        elif kwargs.get('connection_type') == 'nearest_tower':
+        elif self.connection_type == 'nearest_tower':
             edges = self.generate_nearest_tower_edges(source_qubits, pivot_qubits)
-        elif kwargs.get('connection_type') == 'cycle':
-            edges = self.generate_cycle_edges(source_qubits, pivot_qubits, **kwargs)
+        elif self.connection_type == 'cycle':
+            edges = self.generate_cycle_edges(source_qubits, pivot_qubits)
         else:
             raise ValueError("Invalid connection type. Expected 'nearest_circle', 'nearest_tower', or 'cycle'.")
 
         # Update the motif with the new edges
-        self.set_Q(Qc_l)
+        self.set_Q(Q)
         self.set_E(edges)
         self.set_Qavail(pivot_qubits)  # Assume pivot qubits are the ones available for the next operation
         mapping = kwargs.get("mapping", None)
@@ -1113,13 +1119,32 @@ class Qpivot(Qmotif):
         """
         Generate the edges for the 'cycle' connection type. Use stride, step and offset to adjust the cycle.
         """
-        return [
-            (
-                source_qubits[i],
-                pivot_qubits[(i + self.stride * self.step + self.offset) % len(pivot_qubits)],
-            )
-            for i in range(len(source_qubits))
-        ]
+        if self.boundary == "periodic":
+            return [
+                (
+                    source_qubits[i],
+                    pivot_qubits[(i // self.step * self.stride) % len(pivot_qubits)],
+                )
+                for i in range(self.offset, len(source_qubits), self.step)
+            ]
+        elif self.boundary == "open":
+            return [
+                (
+                    source_qubits[i],
+                    pivot_qubits[(i * self.stride) % len(pivot_qubits)],
+                )
+                for i in range(self.offset, len(source_qubits), self.step)
+            ]
+        elif self.boundary == "closed":
+            return [
+                (
+                    source_qubits[(i * self.step + self.offset) % len(source_qubits)],
+                    pivot_qubits[(i * self.stride) % len(pivot_qubits)],
+                )
+                for i in range(min((self.offset + len(pivot_qubits) - 1) // self.stride + 1, len(source_qubits))) # this range ensures we don't go beyond the number of pivot qubits
+            ]
+        else:
+            raise ValueError("Invalid boundary type. Expected 'closed', 'open' or 'periodic'.")
 
     def __eq__(self, other):
         if isinstance(other, Qpivot):
