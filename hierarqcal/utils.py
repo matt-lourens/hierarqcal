@@ -244,11 +244,11 @@ def get_circ_info_from_string(input_str):
 
     # Steps 2,3 #
 
-    substr_list = []
+    circuit_instructions = []
     unique_bits = []
     unique_params = []
     for substring in substrings:
-        new_substr = []
+        instruction = []
         
         # Separating the parameters, gates, and bits in the substring
         start_index = substring.find('{')
@@ -265,24 +265,31 @@ def get_circ_info_from_string(input_str):
             gate_string = substring[start_index+1:param_start_index]
         else:
             gate_string = substring[start_index+1:end_index]
-        new_substr.append(gate_string.lower())
+        instruction.append(gate_string.lower())
 
         # getting param string and index
         params_string = substring[param_start_index+1:param_end_index]
         if params_string == '':
-            new_substr.append([0,0,0])
+            instruction.append([0,0,0])
         else:
             param_list = params_string.split(',')
-            # Remove any leading or trailing whitespaces from each substring
-            param_list = [param_entry.strip() for param_entry in param_list]
+            p_list = []
+            p_inds = []
             for param_entry in param_list:
-                isinlist = True
-                if param_entry not in unique_params:
-                    unique_params.append(param_entry)
+                # Remove any leading or trailing whitespaces from each substring
+                p_entry = param_entry.strip()
+                p_list.append(p_entry)
+                # Check if the param is a duplicate and if not, add to unique_params
+                if p_entry not in unique_params:
+                    unique_params.append(p_entry)
                     isinlist = False
-                param_indx = np.where(np.array(unique_params) == param_entry)[0][0]
+                else:
+                    isinlist = True
+                # Find location of param in unique_params
+                param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
+                p_inds.append(param_indx)
 
-            new_substr.append([len(param_list),param_indx, isinlist])
+            instruction.append([len(param_list),p_inds, isinlist])
 
         # getting list of bits
         bits_string = substring[bits_start_index+1:bits_end_index]
@@ -292,9 +299,10 @@ def get_circ_info_from_string(input_str):
             bits.append(bit)
             if bit not in unique_bits:
                 unique_bits.append(bit)
-        new_substr.append(bits)
-        
-        substr_list.append(new_substr)
+        instruction.append(bits)
+
+        # add to list of circuit instructions
+        circuit_instructions.append(instruction)
 
 
-    return substr_list, unique_bits, unique_params
+    return circuit_instructions, unique_bits, unique_params
