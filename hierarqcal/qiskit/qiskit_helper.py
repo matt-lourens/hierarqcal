@@ -4,7 +4,6 @@ Helper functions for qiskit
 import numpy as np
 import sympy as sp
 from hierarqcal.core import Primitive_Types
-from hierarqcal.utils import get_circ_info_from_string
 from .qiskit_circuits import U2, V2
 import warnings
 from qiskit.circuit import Parameter, QuantumCircuit, QuantumRegister
@@ -67,12 +66,14 @@ def get_circuit_qiskit(hierq, symbols=None, barriers=True):
             layer.set_edge_mapping(qiskit_default_unitary)
         for unitary in layer.edge_mapping:
 
+            # If Qunitary.function is a string, we update the function to a Qiskit function
+            # based on the provided string
             if isinstance(unitary.function, str):
-                unitary = get_circuit_from_string(unitary)
+                unitary = get_qiskit_circuit_from_instructions(unitary)
 
             circuit = unitary.function(
                 bits=unitary.edge, symbols=unitary.symbols, 
-                circuit=circuit, get_circuit_from_string=get_circuit_from_string
+                circuit=circuit, get_circuit_from_string=get_qiskit_circuit_from_instructions
             )
         if barriers and layer.next:
             # Add barrier between layers, except the last one.
@@ -80,7 +81,7 @@ def get_circuit_qiskit(hierq, symbols=None, barriers=True):
     return circuit
 
 
-def get_circuit_from_string(qunitary):
+def get_qiskit_circuit_from_instructions(qunitary):
     """ Takes `qunitary` whose `function` attribute is a string, converts the string into a function,
         and returns the updated `qunitary` class.
 
@@ -91,8 +92,7 @@ def get_circuit_from_string(qunitary):
         """
 
     # breaking down the qunitary.function string into a list of gate instructions
-    instruction_list, _, _ = get_circ_info_from_string(qunitary.function)
-
+    instruction_list = qunitary.circuit_instructions
 
     # building a function from the list of gate instructions
     def circuit_fn(bits, symbols=None, circuit=None, **kwargs):
@@ -100,9 +100,13 @@ def get_circuit_from_string(qunitary):
 
         # for each gate in the instruction list
         s_indx = 0
-        for (gate_name, symbol_info, sub_bits) in instruction_list:
+        for circ_instruction in instruction_list:
 
+            gate_name = circ_instruction.gate_name
+            symbol_info = circ_instruction.symbol_info
+            sub_bits = circ_instruction.sub_bits
             [n_symbols, param_ind, isinlist] = symbol_info
+            print(n_symbols)
 
             # apply a gate 
             gate = getattr(circuit, gate_name)
