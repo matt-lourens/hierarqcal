@@ -149,27 +149,16 @@ def plot_motif(
         else:
             end_points = []
             for i in range(len(edge)):
-                if i == 0:
-                    color = color_dict['start']
-                elif i == len(edge)-1:
-                    color = color_dict['end']
-                else:
-                    color = color_dict['during']
-                
-                ax.add_patch(
-                    patches.Circle(
-                        pos[edge[i]], radius=node_radi[labels.index(edge[i])], edgecolor="black", facecolor=color, linewidth=1.5
-                    )
-                )
-                
-            for i in range(len(edge)):
                 ket_s = np.array(pos[edge[i]])  # source vector
                 ket_t = np.array(pos[edge[(i+1)%len(edge)]])  # target vector
 
                 par_vec = ket_t-ket_s
                 
+                ## Cyclic order dependency for clearer plotting
+                ## clockwise direction of nodes needs plotting to start from outer side
                 orth_vec = np.array([par_vec[1], -par_vec[0]])*(1/np.linalg.norm(par_vec))
                 
+                ## anticlockwise direction of nodes needs plotting to start from inner side 
                 if primitive.arity < primitive.step:
                     orth_vec = -orth_vec
                 
@@ -182,13 +171,20 @@ def plot_motif(
                 path_trace = Path([ket_s, ket_t], [Path.MOVETO, Path.LINETO])
                 pathpatch_trace = PathPatch(path_trace, 
                                             lw=edge_width,
-                                            fc="black",
-                                            zorder=-1,)
+                                            color="black",
+                                            zorder=-1)
                 
                 ax.add_patch(pathpatch_trace)
                 end_points.append((ket_s, ket_t, pos[edge[(i+1)%len(edge)]], t_radius*pad_ratio))
             
             for i in range(len(end_points)):
+                
+                if i == 0:
+                    color = color_dict['start']
+                elif i == len(edge)-1:
+                    color = color_dict['end']
+                else:
+                    color = color_dict['during']
                 center = end_points[i][2]
                 start = end_points[i][1]
                 end = end_points[(i+1)%len(end_points)][0]
@@ -218,7 +214,7 @@ def plot_motif(
                 arc_xs = center[0] + t_radius*pad_ratio * np.cos(arc_angles)
                 arc_ys = center[1] + t_radius*pad_ratio * np.sin(arc_angles)
 
-                plt.plot(arc_xs, arc_ys, lw=edge_width, color='black')
+                plt.plot(arc_xs, arc_ys, lw=edge_width, color=color)
                 
 
                 
