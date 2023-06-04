@@ -49,7 +49,7 @@ class Qunitary:
         """
         self.function = function
         if isinstance(self.function, str):
-            circuit_instructions, unique_params, unique_bits = self.get_circ_info_from_string(function)
+            circuit_instructions, unique_bits, unique_params = self.get_circ_info_from_string(function)
             self.circuit_instructions = circuit_instructions    
             self.n_symbols = len(unique_params)
             self.arity = len(unique_bits)
@@ -150,7 +150,7 @@ class Qunitary:
             # getting param string and index
             params_string = substring[param_start_index+1:param_end_index]
             if params_string == '':
-                instruction.append([0,[0],0])
+                instruction.append([0,0,0])
             else:
                 param_list = params_string.split(',')
                 p_list = []
@@ -169,7 +169,7 @@ class Qunitary:
                     param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
                     p_inds.append(param_indx)
 
-                instruction.append([len(param_list),p_inds, isinlist])
+                instruction.append([len(p_list),p_inds, isinlist])
 
             # getting list of bits
             bits_string = substring[bits_start_index+1:bits_end_index]

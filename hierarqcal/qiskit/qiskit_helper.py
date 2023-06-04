@@ -106,17 +106,18 @@ def get_qiskit_circuit_from_instructions(qunitary):
             symbol_info = circ_instruction.symbol_info
             sub_bits = circ_instruction.sub_bits
             [n_symbols, param_ind, isinlist] = symbol_info
-            print(n_symbols)
 
             # apply a gate 
             gate = getattr(circuit, gate_name)
             if n_symbols == 0:
                 gate(*(qubits[i] for i in sub_bits))
             else:
+                qub_list = (qubits[i] for i in sub_bits)
                 if isinlist:
-                    gate(*symbols[param_ind:param_ind+1], *(qubits[i] for i in sub_bits))
+                    gate(*symbols[param_ind:param_ind+1], *qub_list)
                 else:
-                    gate(*symbols[s_indx:s_indx+n_symbols], *(qubits[i] for i in sub_bits))
+                    sym_list = symbols[s_indx:s_indx+n_symbols]
+                    gate(*sym_list,*qub_list)
             
             if not isinlist:
                 s_indx += n_symbols
