@@ -56,9 +56,10 @@ def get_circuit_qiskit(hierq, symbols=None, barriers=True):
         # If symbols were provided then set them
         hierq.set_symbols(symbols)
     else:
-        if isinstance(next(hierq.get_symbols(), False), sp.Symbol):
+        if any([isinstance(symbol, sp.Symbol) for symbol in hierq.get_symbols()]):
             # If symbols are still symbolic, then convert to qiskit Parameter
-            hierq.set_symbols([Parameter(s.name) for s in hierq.get_symbols()])
+            hierq.set_symbols([Parameter(symbol.name) if isinstance(symbol, sp.Symbol) else symbol for symbol in hierq.get_symbols()])
+
     for layer in hierq:
         # If layer is default mapping we need to set it to qiskit default
         if layer.is_default_mapping:
