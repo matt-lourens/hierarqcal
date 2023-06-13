@@ -20,7 +20,10 @@ import numpy as np
 import itertools as it
 import sympy as sp
 
-CircuitInstruction = namedtuple('CircuitInstruction', ['gate_name', 'symbol_info', 'sub_bits'])
+CircuitInstruction = namedtuple(
+    "CircuitInstruction", ["gate_name", "symbol_info", "sub_bits"]
+)
+
 
 class Primitive_Types(Enum):
     """
@@ -49,8 +52,12 @@ class Qunitary:
         """
         self.function = function
         if isinstance(self.function, str):
-            circuit_instructions, unique_bits, unique_params = self.get_circ_info_from_string(function)
-            self.circuit_instructions = circuit_instructions    
+            (
+                circuit_instructions,
+                unique_bits,
+                unique_params,
+            ) = self.get_circ_info_from_string(function)
+            self.circuit_instructions = circuit_instructions
             self.n_symbols = len(unique_params)
             self.arity = len(unique_bits)
         else:
@@ -97,19 +104,19 @@ class Qunitary:
             `input_str` (str)
         Returns:
             `substr_list` (list): a list of circuit instructions, where each entry
-            represents a distinct gate operation. 
+            represents a distinct gate operation.
             Each entry is a list of three components: [gate_name,symbol_info, sub_bits]
                 1. `gate_name` (str) is the name of the Qiskit gate being implemented.
-                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and 
+                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and
                         if so, whether it is the same parameter as another gate.
                 3. `sub_bits` (list of ints) keeps track of the bits the gates are applied on.
             `unique_bits` (list of ints): set of qubits
             `unique_params` (list of strs): set of gate parameters
-        
+
         Workflow:
             Step 1: partition the string into lists of individual gate instructions
-                    in the form `{gate_string}(parameters)^{bits}` 
-            Step 2: split each substring into the gate string, the relevant 
+                    in the form `{gate_string}(parameters)^{bits}`
+            Step 2: split each substring into the gate string, the relevant
                     parameters, and the bits it acts on
             Step 3: convert the bits, the gate string, and the relevant parameters
                     into integers/functions
@@ -118,7 +125,7 @@ class Qunitary:
         # Step 1 #
 
         # Split the input string based on ';' into a list where each entry is a gate instruction
-        substrings = input_str.split(';')
+        substrings = input_str.split(";")
         # Remove any leading or trailing whitespaces from each substring
         substrings = [substring.strip() for substring in substrings]
 
@@ -129,30 +136,30 @@ class Qunitary:
         unique_params = []
         for substring in substrings:
             instruction = []
-            
+
             # Separating the parameters, gates, and bits in the substring
-            start_index = substring.find('{')
-            end_index = substring.find('}')
+            start_index = substring.find("{")
+            end_index = substring.find("}")
 
-            param_start_index = substring.find('(')
-            param_end_index = substring.find(')')
+            param_start_index = substring.find("(")
+            param_end_index = substring.find(")")
 
-            bits_start_index = substring.find('^')
+            bits_start_index = substring.find("^")
             bits_end_index = len(substring)
 
             # getting gate string
             if start_index == -1:
-                gate_string = substring[start_index+1:param_start_index]
+                gate_string = substring[start_index + 1 : param_start_index]
             else:
-                gate_string = substring[start_index+1:end_index]
+                gate_string = substring[start_index + 1 : end_index]
             instruction.append(gate_string.lower())
 
             # getting param string and index
-            params_string = substring[param_start_index+1:param_end_index]
-            if params_string == '':
-                instruction.append([0,0,0])
+            params_string = substring[param_start_index + 1 : param_end_index]
+            if params_string == "":
+                instruction.append([0, 0, 0])
             else:
-                param_list = params_string.split(',')
+                param_list = params_string.split(",")
                 p_list = []
                 p_inds = []
                 for param_entry in param_list:
@@ -169,10 +176,10 @@ class Qunitary:
                     param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
                     p_inds.append(param_indx)
 
-                instruction.append([len(p_list),p_inds, isinlist])
+                instruction.append([len(p_list), p_inds, isinlist])
 
             # getting list of bits
-            bits_string = substring[bits_start_index+1:bits_end_index]
+            bits_string = substring[bits_start_index + 1 : bits_end_index]
             bits = []
             for bit in bits_string:
                 bit = int(bit)
@@ -182,7 +189,9 @@ class Qunitary:
             instruction.append(bits)
 
             # add to list of circuit instructions
-            circuit_instruction = CircuitInstruction(instruction[0], instruction[1], instruction[2])
+            circuit_instruction = CircuitInstruction(
+                instruction[0], instruction[1], instruction[2]
+            )
             circuit_instructions.append(circuit_instruction)
 
         return circuit_instructions, unique_bits, unique_params
@@ -206,7 +215,7 @@ class Qmotif:
         Q (list, optional): Qubit labels of the motif. Defaults to [].
         E (list, optional): Edges of the motif. Defaults to [].
         Q_avail (list, optional): Available qubits of the motif. This is calculated by the previous motif in the stack. Defaults to [].
-        edge_order (list, optional): Order of unitaries applied. Defaults to [1].
+        edge_order (list, optional): Order of unitaries applied. Defaults to [1], [-1] will reverse the order, [5,6] does the 5th and 6th edge first and then the rest in the normal order.
         next (:py:class:`Qmotif`, optional): Next motif in the stack. Defaults to None.
         prev (Qmotif, optional): Previous motif in the stack. Defaults to None.
         mapping (:py:class:`Qunitary` or :py:class:`Qhierarchy`, optional): Either a :py:class:`Qunitary` instance or a :py:class:`Qhierarchy` that will be converted to an :py:class:`Qunitary` object. Defaults to None.
@@ -298,7 +307,10 @@ class Qmotif:
         Returns:
             Qmotifs: A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
         """
-        return Qmotifs((deepcopy(self), deepcopy(other)))
+        if isinstance(other, Sequence):
+            return Qmotifs((deepcopy(self),)+deepcopy(other))
+        else:
+            return Qmotifs((deepcopy(self), deepcopy(other)))
 
     def set_Q(self, Q):
         """
@@ -321,9 +333,13 @@ class Qmotif:
             raise ValueError(
                 "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
             )
-        E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
-        E_rest = [edge for edge in E if edge not in E_ordered]
-        Ep_l = E_ordered + E_rest
+        if -1 in self.edge_order:
+            # Reverse edge order if -1 is in edge order
+            Ep_l = [E[i] for i in range(len(E) - 1, -1, -1)]
+        else:
+            E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
+            E_rest = [edge for edge in E if edge not in E_ordered]
+            Ep_l = E_ordered + E_rest
         self.E = Ep_l
 
     def set_arity(self, arity):
@@ -432,7 +448,10 @@ class Qmotif:
         """
         if not (self.mapping is None) and len(self.E) > 0:
             if symbols is None:
-                if isinstance(next(self.get_symbols(), False), sp.Symbol) or len(list(self.get_symbols()))==0:
+                if (
+                    isinstance(next(self.get_symbols(), False), sp.Symbol)
+                    or len(list(self.get_symbols())) == 0
+                ):
                     # If no new symbols are provided and current symbols are still symbolic or no symbols exist
                     # Generate symbols, this is used when Qhierarchy updates the stack.
                     if self.mapping.symbols is None:
@@ -440,7 +459,7 @@ class Qmotif:
                         symbols = sp.symbols(
                             f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
                         )
-                    else: 
+                    else:
                         symbols = self.mapping.symbols
                 else:
                     # If no new symbols are provided but old symbols exist
@@ -454,7 +473,7 @@ class Qmotif:
                         )
                         raise Warning(
                             f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
-                        )                        
+                        )
             else:
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
@@ -732,6 +751,7 @@ class Qmask_Base(Qmotif):
         Args:
             mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
                                             The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
+                                            There is also the option to the use wild cards: *,!. 1*1 masks the outer two qubits and 0!0 mask all inner qubits except the outer two, i.e. * fills zeros and ! fills ones.
                                             If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
                                             the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
@@ -790,50 +810,80 @@ class Qmask_Base(Qmotif):
                 # Assume pattern is in form contains a string specifying which indices to remove
                 # For example "01001" removes idx 1 and 4 or qubit 2 and 5
                 # The important thing here is for pool pattern to be the same length as the current number of qubits
-                if len(mask_pattern) == len(Qp_l):
+
+                # First check for !,* wild cards
+                if any(("*" == c) or ("!" == c) for c in mask_pattern):
+                    # Wildcard pattern
+                    n_ones = mask_pattern.count("1")
+                    n_stars = mask_pattern.count("*")
+                    n_excl = mask_pattern.count("!")
+                    n_zeros = len(Qp_l) - n_ones
+                    # base = mask_pattern.replace("*", "0" * zero_per_star)
+                    # base = base.replace("!", "1" * zero_per_star)
+                    base = mask_pattern
+                    max_it = len(Qp_l)
+                    do_star = True if n_stars > 0 else False
+                    just_changed = False
+                    stars_found = 0
+                    excls_found = 0
+                    while len(base) < len(Qp_l) and max_it > 0:
+                        """
+                        TODO refactor this code so that it is more readable. The idea is this:
+                        There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
+                        1*1 -> 10000001
+                        0!0 -> 01111110
+                        *! -> 00001111
+                        *1* -> 00001000
+                        The algorithm alternates between finding a star and an excl and inserts a 0 or 1 next to it. The first iteration checks for a star (since we need to pick one), therefore it has a kind of precedence, but only effects the first insertion. From there it alternates between star and excl.
+
+                        We have another alternation which is between using find and rfind, this is to handle the case when there's 2 stars or 2 exclamations. I don't think 3 wild cards make sense TODO think about this.
+                        """
+                        if do_star:
+                            if stars_found % 2 == 0:
+                                idx = base.find("*")
+                            else:
+                                idx = base.rfind("*")
+                            stars_found += 1
+                            # Insert 0 next to it
+                            base = base[:idx] + "0" + base[idx:]
+                            do_star = False if n_excl > 0 else True
+                            just_changed = True
+                        if (not do_star) and (not just_changed):
+                            if excls_found % 2 == 0:
+                                idx = base.find("!")
+                            else:
+                                idx = base.rfind("!")
+                            excls_found += 1
+                            # Insert 1 next to it
+                            base = base[:idx] + "1" + base[idx:]
+                            do_star = True if n_stars > 0 else False
+                        just_changed = False
+                        max_it -= 1
+                    base = base.replace("*", "0")
+                    base = base.replace("!", "1")
+                    # if n_zeros <= 0:
+                    #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
+                    #     base = "0" * len(Qp_l)
+                    # else:
+                    #     base = mask_pattern.replace("*", "0" * n_zeros)
+                    mask_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
+                elif len(mask_pattern) == len(Qp_l):
                     mask_pattern_fn = lambda arr: [
                         item
                         for item, indicator in zip(arr, mask_pattern)
                         if indicator == "1"
                     ]
+
                 else:
-                    # Attempt to use the pattern as a base pattern
-                    # TODO explain in docs and maybe print a warning
-                    # For example "101" will be used as "10110110" if there are 8 qubits
-                    if any("*" == c for c in mask_pattern):
-                        # Wildcard pattern
-                        n_ones = mask_pattern.count("1")
-                        n_stars = mask_pattern.count("*")
-                        n_zeros = len(Qp_l) - n_ones
-                        zero_per_star = n_zeros // n_stars
-                        base = mask_pattern.replace("*", "0" * zero_per_star)
-                        max_it = len(Qp_l)
-                        while len(base) < len(Qp_l) and max_it > 0:
-                            # get index of first 0
-                            idx = base.find("0")
-                            # Insert 0 next to it
-                            base = base[:idx] + "0" + base[idx:]
-                            max_it -= 1
-                        # if n_zeros <= 0:
-                        #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                        #     base = "0" * len(Qp_l)
-                        # else:
-                        #     base = mask_pattern.replace("*", "0" * n_zeros)
-                        mask_pattern_fn = lambda arr: [
-                            item
-                            for item, indicator in zip(arr, base)
-                            if indicator == "1"
-                        ]
-                    else:
-                        # If there are no wildcard characters, then we assume that the pattern is a base pattern
-                        # and we will repeat it until it is the same length as the current number of qubits
-                        base = mask_pattern * (len(Qp_l) // len(mask_pattern))
-                        base = base[: len(Qp_l)]
-                        mask_pattern_fn = lambda arr: [
-                            item
-                            for item, indicator in zip(arr, base)
-                            if indicator == "1"
-                        ]
+                    # If there are no wildcard characters, then we assume that the pattern is a base pattern
+                    # and we will repeat it until it is the same length as the current number of qubits
+                    base = mask_pattern * (len(Qp_l) // len(mask_pattern))
+                    base = base[: len(Qp_l)]
+                    mask_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
 
         else:
             mask_pattern_fn = mask_pattern
@@ -960,7 +1010,7 @@ class Qmask(Qmask_Base):
                     # General pattern functionality:
                     # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
                     # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
-                    if self.arity==1:
+                    if self.arity == 1:
                         Ep_l = [(q,) for q in measured_q]
                     else:
                         if isinstance(self.pattern, str):
@@ -999,7 +1049,9 @@ class Qmask(Qmask_Base):
                                 for i in range(self.offset, nq_available, self.step)
                             ]
                             # Remove all that is not "complete", i.e. contain duplicates
-                            Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.arity]
+                            Ep_l = [
+                                edge for edge in Ep_l if len(set(edge)) == self.arity
+                            ]
                         if (
                             len(Ep_l) == self.arity
                             and sum(
@@ -1013,9 +1065,13 @@ class Qmask(Qmask_Base):
                             # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
                             Ep_l = [Ep_l[0]]
                         # Then we apply the pattern to record which edges go away
-                        self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
+                        self.mask_pattern_fn = self.get_mask_pattern_fn(
+                            self.pattern, Qp_l
+                        )
                         measured_q = [
-                            qubit for edge in Ep_l for qubit in self.mask_pattern_fn(edge)
+                            qubit
+                            for edge in Ep_l
+                            for qubit in self.mask_pattern_fn(edge)
                         ]
                         remaining_q = [q for q in Qp_l if not (q in measured_q)]
 
@@ -1027,9 +1083,9 @@ class Qmask(Qmask_Base):
             # TODO make clear in documentation, no pooling is done if 1 qubit remain
             Ep_l = []
             remaining_q = Qp_l
-        if len(remaining_q)==0:
+        if len(remaining_q) == 0:
             # Don't do anything if all qubits were removed
-            remaining_q=Qp_l
+            remaining_q = Qp_l
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
@@ -1244,7 +1300,9 @@ class Qhierarchy:
             for layer in self:
                 for unitary in layer.edge_mapping:
                     if isinstance(unitary.function, str):
-                        get_circuit_from_string = kwargs.get("get_circuit_from_string", None)
+                        get_circuit_from_string = kwargs.get(
+                            "get_circuit_from_string", None
+                        )
                         unitary = get_circuit_from_string(unitary)
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs

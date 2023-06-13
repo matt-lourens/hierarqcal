@@ -11,12 +11,48 @@ from hierarqcal import (
     Qinit,
     Qmotif,
     Qmotifs,
-    plot_motifs,
     plot_motif,
     Qunitary,
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2
 
+
+# tmp
+#from hierarqcal import Qinit, Qcycle, Qunitary, Qmask, Qunmask
+# Motif to mask all qubits except outer two
+mask_middle = Qmask(pattern="0!0")
+unmask = Qunmask("previous")
+hrx_layer = mask_middle + Qcycle(mapping=Qunitary("RX(x)^0;H()^1")) + unmask
+hrx_layer_r = mask_middle + Qcycle(mapping=Qunitary("RX(x)^1;H()^0")) + unmask
+
+# Create ladder motif
+cnot_ladder = Qcycle(mapping=Qunitary("CNOT()^01"), boundary="open")
+cnot_ladder_r = Qcycle(mapping=Qunitary("CNOT()^01"), edge_order=[-1], boundary="open")
+rz_last = Qmask("*1", mapping = Qunitary("Rz(x)^0")) + Qunmask("previous") # TODO replace with Qpivot once it's ready
+ladder = cnot_ladder + rz_last + cnot_ladder_r
+
+# Create two excitations TODO term?
+excitation1 = hrx_layer + ladder + hrx_layer
+excitation2 = hrx_layer_r + ladder + hrx_layer_r
+
+hierq = Qinit(5) + excitation1 + excitation2
+hierq(backend="qiskit", barriers=False).draw("mpl")
+
+# Test masking
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qmask("!*", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qmask("*!*", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qmask("0!0", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
 
 
 # Test default
