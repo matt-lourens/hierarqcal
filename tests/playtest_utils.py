@@ -7,7 +7,7 @@ from hierarqcal import (
     Qinit,
     Qmotif,
     Qmotifs,
-    plot_motifs,
+    # plot_motifs,
     plot_motif,
     Qunitary,
 )
@@ -15,8 +15,17 @@ from hierarqcal import (
 primitive = Qinit(8) + Qcycle()
 plot_motif(primitive.head)
 
+primitive = Qinit(9) + Qcycle(stride=3, step=1, offset=0, mapping=Qunitary(arity=3))
+f,a = plot_motif(primitive.head)
+f.savefig("check_9node_3_1_0_conf.png")
+
+primitive = Qinit(15) + Qcycle(stride=1, step=3, offset=2, mapping=Qunitary(arity=3))
+f,a = plot_motif(primitive.head)
+f.savefig("check_15node_1_3_2_conf.png")
+
 primitive = Qinit(15) + Qcycle(stride=1, step=3, offset=0, mapping=Qunitary(arity=3))
-plot_motif(primitive.head)
+f,a = plot_motif(primitive.head)
+f.savefig("check_15node_1_3_0_conf.png")
 
 # primitive = Qinit(8) + Qmask("right") + Qunmask("previous")
 # plot_motif(primitive.head)
@@ -30,6 +39,7 @@ plot_motif(primitive.head)
 primitive = (
     Qinit(4) + Qcycle() + Qmask("inside") + Qcycle() + Qunmask("previous") + Qcycle()
 )
+
 plot_motif(primitive[4])
 print("Hey")
 

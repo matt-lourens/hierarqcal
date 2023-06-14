@@ -20,6 +20,7 @@ import numpy as np
 import itertools as it
 import sympy as sp
 
+CircuitInstruction = namedtuple('CircuitInstruction', ['gate_name', 'symbol_info', 'sub_bits'])
 
 class Primitive_Types(Enum):
     """
@@ -47,8 +48,15 @@ class Qunitary:
             symbols (list, optional): List of symbol values (rotation angles). Elements can be either sympy symbols, complex numbers, or qiskit parameters. Defaults to None.
         """
         self.function = function
-        self.n_symbols = n_symbols
-        self.arity = arity
+        if isinstance(self.function, str):
+            circuit_instructions, unique_bits, unique_params = self.get_circ_info_from_string(function)
+            self.circuit_instructions = circuit_instructions    
+            self.n_symbols = len(unique_params)
+            self.arity = len(unique_bits)
+        else:
+            self.circuit_instructions = None
+            self.n_symbols = n_symbols
+            self.arity = arity
         self.symbols = None
         self.edge = None
 
@@ -79,6 +87,105 @@ class Qunitary:
 
     def set_edge(self, edge):
         self.edge = edge
+
+    def get_circ_info_from_string(self, input_str):
+        """
+        Takes a string that represents a circuit function, and
+        breaks down the string into a set of circuit instructions.
+
+        Args:
+            `input_str` (str)
+        Returns:
+            `substr_list` (list): a list of circuit instructions, where each entry
+            represents a distinct gate operation. 
+            Each entry is a list of three components: [gate_name,symbol_info, sub_bits]
+                1. `gate_name` (str) is the name of the Qiskit gate being implemented.
+                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and 
+                        if so, whether it is the same parameter as another gate.
+                3. `sub_bits` (list of ints) keeps track of the bits the gates are applied on.
+            `unique_bits` (list of ints): set of qubits
+            `unique_params` (list of strs): set of gate parameters
+        
+        Workflow:
+            Step 1: partition the string into lists of individual gate instructions
+                    in the form `{gate_string}(parameters)^{bits}` 
+            Step 2: split each substring into the gate string, the relevant 
+                    parameters, and the bits it acts on
+            Step 3: convert the bits, the gate string, and the relevant parameters
+                    into integers/functions
+        """
+
+        # Step 1 #
+
+        # Split the input string based on ';' into a list where each entry is a gate instruction
+        substrings = input_str.split(';')
+        # Remove any leading or trailing whitespaces from each substring
+        substrings = [substring.strip() for substring in substrings]
+
+        # Steps 2,3 #
+
+        circuit_instructions = []
+        unique_bits = []
+        unique_params = []
+        for substring in substrings:
+            instruction = []
+            
+            # Separating the parameters, gates, and bits in the substring
+            start_index = substring.find('{')
+            end_index = substring.find('}')
+
+            param_start_index = substring.find('(')
+            param_end_index = substring.find(')')
+
+            bits_start_index = substring.find('^')
+            bits_end_index = len(substring)
+
+            # getting gate string
+            if start_index == -1:
+                gate_string = substring[start_index+1:param_start_index]
+            else:
+                gate_string = substring[start_index+1:end_index]
+            instruction.append(gate_string.lower())
+
+            # getting param string and index
+            params_string = substring[param_start_index+1:param_end_index]
+            if params_string == '':
+                instruction.append([0,0,0])
+            else:
+                param_list = params_string.split(',')
+                p_list = []
+                p_inds = []
+                for param_entry in param_list:
+                    # Remove any leading or trailing whitespaces from each substring
+                    p_entry = param_entry.strip()
+                    p_list.append(p_entry)
+                    # Check if the param is a duplicate and if not, add to unique_params
+                    if p_entry not in unique_params:
+                        unique_params.append(p_entry)
+                        isinlist = False
+                    else:
+                        isinlist = True
+                    # Find location of param in unique_params
+                    param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
+                    p_inds.append(param_indx)
+
+                instruction.append([len(p_list),p_inds, isinlist])
+
+            # getting list of bits
+            bits_string = substring[bits_start_index+1:bits_end_index]
+            bits = []
+            for bit in bits_string:
+                bit = int(bit)
+                bits.append(bit)
+                if bit not in unique_bits:
+                    unique_bits.append(bit)
+            instruction.append(bits)
+
+            # add to list of circuit instructions
+            circuit_instruction = CircuitInstruction(instruction[0], instruction[1], instruction[2])
+            circuit_instructions.append(circuit_instruction)
+
+        return circuit_instructions, unique_bits, unique_params
 
 
 class Default_Mappings(Enum):
@@ -1128,6 +1235,9 @@ class Qhierarchy:
             return_object = None
             for layer in self:
                 for unitary in layer.edge_mapping:
+                    if isinstance(unitary.function, str):
+                        get_circuit_from_string = kwargs.get("get_circuit_from_string", None)
+                        unitary = get_circuit_from_string(unitary)
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
