@@ -639,7 +639,6 @@ class Qcycle(Qmotif):
 class Qpivot(Qmotif):
     """
     A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
-    TODO --
     """
 
     def __init__(
