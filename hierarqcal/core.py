@@ -1124,6 +1124,7 @@ class Qunmask(Qmask_Base):
             current = self
             unmasked_q = []
             unmask_counts = 0
+            q_old = kwargs.get("q_initial", [])
             while current is not None:
                 current = current.prev
                 if isinstance(current, Qmask) and unmask_counts <= 0:
