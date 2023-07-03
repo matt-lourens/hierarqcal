@@ -5,14 +5,15 @@ import numpy as np
 from hierarqcal import (
     Qhierarchy,
     Qcycle,
+    Qpivot,
     Qpermute,
     Qmask,
     Qunmask,
     Qinit,
     Qmotif,
     Qmotifs,
-    plot_motifs,
-    plot_motif,
+    # plot_motifs,
+    # plot_motif,
     Qunitary,
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2
@@ -152,4 +153,15 @@ hierq.set_symbols(np.random.uniform(0, 2 * np.pi, hierq.n_symbols))
 list(hierq.get_symbols())
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
+
+
+
+# Test pivot
+N = 8
+h_top = Qpivot(mapping=Qunitary("h()^0"))
+controlled_rs = Qpivot(mapping=Qunitary("crx(x)^01"), share_weights=False)
+qft = Qinit(N)  + (h_top + controlled_rs + Qmask("1*"))*(N)
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
+
 print("Hello")

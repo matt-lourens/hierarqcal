@@ -20,7 +20,10 @@ import numpy as np
 import itertools as it
 import sympy as sp
 
-CircuitInstruction = namedtuple('CircuitInstruction', ['gate_name', 'symbol_info', 'sub_bits'])
+CircuitInstruction = namedtuple(
+    "CircuitInstruction", ["gate_name", "symbol_info", "sub_bits"]
+)
+
 
 class Primitive_Types(Enum):
     """
@@ -31,6 +34,7 @@ class Primitive_Types(Enum):
     MASK = "mask"
     PERMUTE = "permute"
     INIT = "init"
+    PIVOT = "pivot"
 
 
 class Qunitary:
@@ -49,8 +53,12 @@ class Qunitary:
         """
         self.function = function
         if isinstance(self.function, str):
-            circuit_instructions, unique_bits, unique_params = self.get_circ_info_from_string(function)
-            self.circuit_instructions = circuit_instructions    
+            (
+                circuit_instructions,
+                unique_bits,
+                unique_params,
+            ) = self.get_circ_info_from_string(function)
+            self.circuit_instructions = circuit_instructions
             self.n_symbols = len(unique_params)
             self.arity = len(unique_bits)
         else:
@@ -97,19 +105,19 @@ class Qunitary:
             `input_str` (str)
         Returns:
             `substr_list` (list): a list of circuit instructions, where each entry
-            represents a distinct gate operation. 
+            represents a distinct gate operation.
             Each entry is a list of three components: [gate_name,symbol_info, sub_bits]
                 1. `gate_name` (str) is the name of the Qiskit gate being implemented.
-                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and 
+                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and
                         if so, whether it is the same parameter as another gate.
                 3. `sub_bits` (list of ints) keeps track of the bits the gates are applied on.
             `unique_bits` (list of ints): set of qubits
             `unique_params` (list of strs): set of gate parameters
-        
+
         Workflow:
             Step 1: partition the string into lists of individual gate instructions
-                    in the form `{gate_string}(parameters)^{bits}` 
-            Step 2: split each substring into the gate string, the relevant 
+                    in the form `{gate_string}(parameters)^{bits}`
+            Step 2: split each substring into the gate string, the relevant
                     parameters, and the bits it acts on
             Step 3: convert the bits, the gate string, and the relevant parameters
                     into integers/functions
@@ -118,7 +126,7 @@ class Qunitary:
         # Step 1 #
 
         # Split the input string based on ';' into a list where each entry is a gate instruction
-        substrings = input_str.split(';')
+        substrings = input_str.split(";")
         # Remove any leading or trailing whitespaces from each substring
         substrings = [substring.strip() for substring in substrings]
 
@@ -129,30 +137,30 @@ class Qunitary:
         unique_params = []
         for substring in substrings:
             instruction = []
-            
+
             # Separating the parameters, gates, and bits in the substring
-            start_index = substring.find('{')
-            end_index = substring.find('}')
+            start_index = substring.find("{")
+            end_index = substring.find("}")
 
-            param_start_index = substring.find('(')
-            param_end_index = substring.find(')')
+            param_start_index = substring.find("(")
+            param_end_index = substring.find(")")
 
-            bits_start_index = substring.find('^')
+            bits_start_index = substring.find("^")
             bits_end_index = len(substring)
 
             # getting gate string
             if start_index == -1:
-                gate_string = substring[start_index+1:param_start_index]
+                gate_string = substring[start_index + 1 : param_start_index]
             else:
-                gate_string = substring[start_index+1:end_index]
+                gate_string = substring[start_index + 1 : end_index]
             instruction.append(gate_string.lower())
 
             # getting param string and index
-            params_string = substring[param_start_index+1:param_end_index]
-            if params_string == '':
-                instruction.append([0,0,0])
+            params_string = substring[param_start_index + 1 : param_end_index]
+            if params_string == "":
+                instruction.append([0, 0, 0])
             else:
-                param_list = params_string.split(',')
+                param_list = params_string.split(",")
                 p_list = []
                 p_inds = []
                 for param_entry in param_list:
@@ -169,10 +177,10 @@ class Qunitary:
                     param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
                     p_inds.append(param_indx)
 
-                instruction.append([len(p_list),p_inds, isinlist])
+                instruction.append([len(p_list), p_inds, isinlist])
 
             # getting list of bits
-            bits_string = substring[bits_start_index+1:bits_end_index]
+            bits_string = substring[bits_start_index + 1 : bits_end_index]
             bits = []
             for bit in bits_string:
                 bit = int(bit)
@@ -182,7 +190,9 @@ class Qunitary:
             instruction.append(bits)
 
             # add to list of circuit instructions
-            circuit_instruction = CircuitInstruction(instruction[0], instruction[1], instruction[2])
+            circuit_instruction = CircuitInstruction(
+                instruction[0], instruction[1], instruction[2]
+            )
             circuit_instructions.append(circuit_instruction)
 
         return circuit_instructions, unique_bits, unique_params
@@ -194,6 +204,7 @@ class Default_Mappings(Enum):
     """
 
     CYCLE = Qunitary(n_symbols=1, arity=2)
+    PIVOT = Qunitary(n_symbols=1, arity=2)
     MASK = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
 
@@ -432,7 +443,10 @@ class Qmotif:
         """
         if not (self.mapping is None) and len(self.E) > 0:
             if symbols is None:
-                if isinstance(next(self.get_symbols(), False), sp.Symbol) or len(list(self.get_symbols()))==0:
+                if (
+                    isinstance(next(self.get_symbols(), False), sp.Symbol)
+                    or len(list(self.get_symbols())) == 0
+                ):
                     # If no new symbols are provided and current symbols are still symbolic or no symbols exist
                     # Generate symbols, this is used when Qhierarchy updates the stack.
                     symbols = sp.symbols(
@@ -450,7 +464,7 @@ class Qmotif:
                         )
                         raise Warning(
                             f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
-                        )                        
+                        )
             else:
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
@@ -636,6 +650,7 @@ class Qcycle(Qmotif):
             return True
         return False
 
+
 class Qpivot(Qmotif):
     """
     A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
@@ -643,16 +658,180 @@ class Qpivot(Qmotif):
 
     def __init__(
         self,
+        pattern="1*",
         stride=1,
         step=1,
         offset=0,
-        boundary="periodic",
+        boundary="open",
         **kwargs,
     ):
-        pass
+        """
+        TODO
 
-    def dummy_func():
-        pass
+        Args:
+            stride (int, optional): Stride of the pivot. Defaults to 1.
+            step (int, optional): Step of the pivot. Defaults to 1.
+            offset (int, optional): Offset of the pivot. Defaults to 0.
+
+        """
+        self.type = Primitive_Types.PIVOT
+        self.pattern = pattern
+        self.stride = stride
+        self.step = step
+        self.offset = offset
+        self.boundary = boundary
+        if self.boundary not in ["open", "periodic"]:
+            raise ValueError(
+                f"Boundary {self.boundary} not recognized, please use either 'open' or 'periodic'"
+            )
+        # Specify sequence of gates:
+        mapping = kwargs.get("mapping", None)
+        is_default_mapping = True if mapping is None else False
+
+        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+
+    def get_pivot_pattern_fn(self, pivot_pattern, Qp_l=[]):
+        """
+        Get the pattern function for the pivot operation.
+
+        Args:
+            mask_pattern (str or lambda):                                           The string can also be a bit string, i.e. "01000" which pivots the 2nd qubit.
+            If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e. the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent, meaning the same kind of pattern will be applied as the list grows or shrinks.
+            Qp_l (list): List of available qubits.
+        """
+        if isinstance(pivot_pattern, str):
+            if len(pivot_pattern) == len(Qp_l):
+                pivot_pattern_fn = lambda arr: [
+                    item
+                    for item, indicator in zip(arr, pivot_pattern)
+                    if indicator == "1"
+                ]
+            else:
+                # Attempt to use the pattern as a base pattern
+                # TODO explain in docs and maybe print a warning
+                # For example "101" will be used as "10110110" if there are 8 qubits
+                if any("*" == c for c in pivot_pattern):
+                    # Wildcard pattern
+                    n_ones = pivot_pattern.count("1")
+                    n_stars = pivot_pattern.count("*")
+                    n_zeros = len(Qp_l) - n_ones
+                    zero_per_star = n_zeros // n_stars
+                    base = pivot_pattern.replace("*", "0" * zero_per_star)
+                    max_it = len(Qp_l)
+                    while len(base) < len(Qp_l) and max_it > 0:
+                        # get index of first 0
+                        idx = base.find("0")
+                        # Insert 0 next to it
+                        base = base[:idx] + "0" + base[idx:]
+                        max_it -= 1
+
+                    pivot_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
+                else:
+                    # If there are no wildcard characters, then we assume that the pattern is a base pattern and we will repeat it until it is the same length as the current number of qubits
+                    base = pivot_pattern * (len(Qp_l) // len(pivot_pattern))
+                    base = base[: len(Qp_l)]
+                    pivot_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
+        else:
+            pivot_pattern_fn = pivot_pattern
+        return pivot_pattern_fn
+
+    def __call__(self, Qc_l, *args, **kwargs):
+        """
+        Call the motif, this generates the edges and qubits of the motif (directed graph) based on it's available qubits.
+        Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
+
+        Args:
+            Qc_l (list): List of available qubits.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments, such as:
+                * mapping (tuple(function, int)): TODO update this docstring, it's not a tuple anymore.
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+        Returns:
+            Qconv: Returns the updated version of itself, with correct nodes and edges.
+        """
+
+        self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
+        pivot_q = self.pivot_pattern_fn(Qc_l)
+        remaining_q = [q for q in Qc_l if q not in pivot_q]
+
+        if self.arity > 1:
+            nq_available = len(remaining_q)
+            if nq_available > 0:
+                if self.stride % nq_available == 0:
+                    # TODO make this clear in documentation
+                    # warnings.warn(
+                    #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
+                    # )
+                    self.stride = 1
+                if self.boundary == "open":
+                    mod_nq = lambda x: x % nq_available
+                    Ec_l = [
+                        tuple(
+                            (
+                                remaining_q[i + j * self.stride]
+                                for j in range(self.arity-1)
+                                if i + j * self.stride < nq_available
+                            )
+                        )
+                        for i in range(self.offset, nq_available, self.step)
+                    ]
+                    
+
+                else:
+                    mod_nq = lambda x: x % nq_available
+                    Ec_l = [
+                        tuple(
+                            (Qc_l[mod_nq(i + j * self.stride)] for j in range(self.arity-1))
+                        )
+                        for i in range(self.offset, nq_available, self.step)
+                    ]
+
+                # Add the pivot qubit to each edge
+                Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
+                Ec_l = [
+                    tuple(edge+(p,))
+                    for p, edge in zip(
+                        [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))],
+                        Ec_l,
+                    )
+                ]
+                # Remove all that is not "complete"
+                Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
+            
+            else:
+                Ec_l = []
+
+        else:
+            Ec_l = [(p,) for p in pivot_q]
+
+        self.set_Q(Qc_l)
+
+        self.set_Qavail(Qc_l)
+        mapping = kwargs.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        # It is important that set_E gets called last, as sets of symbol creation for the motif
+        self.set_E(Ec_l)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_symbols(start_idx=start_idx)
+
+        return self
+
+    def __eq__(self, other):
+        if isinstance(other, Qpivot):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+            for attr, value in self_attrs.items():
+                if attr not in other_attrs or other_attrs[attr] != value:
+                    return False
+            return True
+        return False
+
 
 class Qpermute(Qmotif):
     """
@@ -917,7 +1096,7 @@ class Qmask(Qmask_Base):
         # TODO add this to docs and explain how to provide own pattern function.
         is_operation = False
         if len(Qp_l) > 1:
-            # Check if predifined pattern was provided
+            # Check if predefined pattern was provided
             self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
@@ -1037,9 +1216,9 @@ class Qmask(Qmask_Base):
             # TODO make clear in documentation, no pooling is done if 1 qubit remain
             Ep_l = []
             remaining_q = Qp_l
-        if len(remaining_q)==0:
+        if len(remaining_q) == 0:
             # Don't do anything if all qubits were removed
-            remaining_q=Qp_l
+            remaining_q = Qp_l
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
@@ -1253,7 +1432,9 @@ class Qhierarchy:
             for layer in self:
                 for unitary in layer.edge_mapping:
                     if isinstance(unitary.function, str):
-                        get_circuit_from_string = kwargs.get("get_circuit_from_string", None)
+                        get_circuit_from_string = kwargs.get(
+                            "get_circuit_from_string", None
+                        )
                         unitary = get_circuit_from_string(unitary)
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
