@@ -17,8 +17,12 @@ from hierarqcal import (
 from hierarqcal.qiskit.qiskit_circuits import V2, U2
 
 
-# tmp
-#from hierarqcal import Qinit, Qcycle, Qunitary, Qmask, Qunmask
+
+u = Qunitary("cnot()^10;cnot()^01")
+hierq = Qinit(10)+Qmask("1001", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
+
 # Motif to mask all qubits except outer two
 mask_middle = Qmask(pattern="0!0")
 unmask = Qunmask("previous")

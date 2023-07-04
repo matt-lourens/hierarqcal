@@ -953,8 +953,9 @@ class Qmask(Qmask_Base):
         # The most general usage is providing your own pattern function
         # TODO add this to docs and explain how to provide own pattern function.
         is_operation = False
+        # If there are more than 1 qubit available
         if len(Qp_l) > 1:
-            # Check if predifined pattern was provided
+            # Get pattern function
             self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
@@ -963,9 +964,9 @@ class Qmask(Qmask_Base):
             if not (self.mapping is None):
                 is_operation = True
                 # All below generates edges for associated unitaries
-                if isinstance(self.pattern, str) and not (
-                    all((c in ("0", "1") for c in self.pattern))
-                ):
+                if self.arity == 1:
+                        Ep_l = [(q,) for q in measured_q]
+                elif self.arity == 2:
                     if len(remaining_q) > 0:
                         # TODO add nearest neighbor modulo nq
                         if self.connection_type == "nearest_circle":
@@ -1010,70 +1011,68 @@ class Qmask(Qmask_Base):
                     # General pattern functionality:
                     # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
                     # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
-                    if self.arity == 1:
-                        Ep_l = [(q,) for q in measured_q]
-                    else:
-                        if isinstance(self.pattern, str):
-                            if len(self.pattern) != self.arity:
-                                raise ValueError(
-                                    f"Pattern string should be of length arity {self.arity}, if it is a string."
+                    # if isinstance(self.pattern, str):
+                    #     if len(self.pattern) != self.arity:
+                    #         raise ValueError(
+                    #             f"Pattern string should be of length arity {self.arity}, if it is a string."
+                    #         )
+                    #
+                    nq_available = len(Qp_l)  
+                    if self.stride % nq_available == 0:
+                        self.stride = 1  # TODO test if this is neccesary
+                    # We generate edges the same way as convolutions
+                    if self.boundary == "open":
+                        mod_nq = lambda x: x % nq_available
+                        Ep_l = [
+                            tuple(
+                                (
+                                    Qp_l[i + j * self.stride]
+                                    for j in range(self.arity)
+                                    if i + j * self.stride < nq_available
                                 )
-                            nq_available = len(Qp_l)
-                        if self.stride % nq_available == 0:
-                            self.stride = 1  # TODO test if this is neccesary
-                        # We generate edges the same way as convolutions
-                        if self.boundary == "open":
-                            mod_nq = lambda x: x % nq_available
-                            Ep_l = [
-                                tuple(
-                                    (
-                                        Qp_l[i + j * self.stride]
-                                        for j in range(self.arity)
-                                        if i + j * self.stride < nq_available
-                                    )
-                                )
-                                for i in range(self.offset, nq_available, self.step)
-                            ]
-                            # Remove all that is not "complete"
-                            Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
-
-                        else:
-                            mod_nq = lambda x: x % nq_available
-                            Ep_l = [
-                                tuple(
-                                    (
-                                        Qp_l[mod_nq(i + j * self.stride)]
-                                        for j in range(self.arity)
-                                    )
-                                )
-                                for i in range(self.offset, nq_available, self.step)
-                            ]
-                            # Remove all that is not "complete", i.e. contain duplicates
-                            Ep_l = [
-                                edge for edge in Ep_l if len(set(edge)) == self.arity
-                            ]
-                        if (
-                            len(Ep_l) == self.arity
-                            and sum(
-                                [
-                                    len(set(Ep_l[0]) - set(Ep_l[k])) == 0
-                                    for k in range(self.arity)
-                                ]
                             )
-                            == self.arity
-                        ):
-                            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-                            Ep_l = [Ep_l[0]]
-                        # Then we apply the pattern to record which edges go away
-                        self.mask_pattern_fn = self.get_mask_pattern_fn(
-                            self.pattern, Qp_l
-                        )
-                        measured_q = [
-                            qubit
-                            for edge in Ep_l
-                            for qubit in self.mask_pattern_fn(edge)
+                            for i in range(self.offset, nq_available, self.step)
                         ]
-                        remaining_q = [q for q in Qp_l if not (q in measured_q)]
+                        # Remove all that is not "complete"
+                        Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
+
+                    else:
+                        mod_nq = lambda x: x % nq_available
+                        Ep_l = [
+                            tuple(
+                                (
+                                    Qp_l[mod_nq(i + j * self.stride)]
+                                    for j in range(self.arity)
+                                )
+                            )
+                            for i in range(self.offset, nq_available, self.step)
+                        ]
+                        # Remove all that is not "complete", i.e. contain duplicates
+                        Ep_l = [
+                            edge for edge in Ep_l if len(set(edge)) == self.arity
+                        ]
+                    if (
+                        len(Ep_l) == self.arity
+                        and sum(
+                            [
+                                len(set(Ep_l[0]) - set(Ep_l[k])) == 0
+                                for k in range(self.arity)
+                            ]
+                        )
+                        == self.arity
+                    ):
+                        # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+                        Ep_l = [Ep_l[0]]
+                    # Then we apply the pattern to record which edges go away
+                    self.mask_pattern_fn = self.get_mask_pattern_fn(
+                        self.pattern, Qp_l
+                    )
+                    measured_q = [
+                        qubit
+                        for edge in Ep_l
+                        for qubit in self.mask_pattern_fn(edge)
+                    ]
+                    remaining_q = [q for q in Qp_l if not (q in measured_q)]
 
         else:
             # raise ValueError(
