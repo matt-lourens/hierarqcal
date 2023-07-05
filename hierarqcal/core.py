@@ -778,9 +778,7 @@ class Qpivot(Qmotif):
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
         n_pivot = len([x for x in self.local_pattern if x == "1"])
-        # self.pivot_lcoal_pattern_fn = self.get_pivot_pattern_fn(
-        #     self.local_pattern, [i for i in range(self.arity)]
-        # )
+
         if len(self.local_pattern.replace("*","")) > self.arity:
                     # TODO explain this...
                     self.local_pattern == "*1"
@@ -801,20 +799,17 @@ class Qpivot(Qmotif):
         )
 
         # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
-        # pivot_q = self.pivot_pattern_fn(Qc_l)
         pivot_q = [
             tuple(self.pivot_pattern_fn(Qc_l)[i * n_pivot : (i + 1) * n_pivot])
             for i in range((len(self.pivot_pattern_fn(Qc_l)) + n_pivot - 1) // n_pivot)
         ]
 
-        # remaining_q = [q for q in Qc_l if q not in pivot_q]
         remaining_q = [q for q in Qc_l if q not in [p for P in pivot_q for p in P]]
 
         if self.arity > 1:
             nq_available = len(remaining_q)
 
             if nq_available > 0:
-                # mod_nq = lambda x: x % nq_available
 
                 if self.stride % nq_available == 0:
                     # TODO make this clear in documentation
@@ -822,53 +817,24 @@ class Qpivot(Qmotif):
                     #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
                     # )
                     self.stride = 1
-                if self.boundary == "open":
-                    Ec_l = [
-                        tuple(
-                            (
-                                remaining_q[i + j * self.stride]
-                                for j in range(self.arity - n_pivot)
-                                if i + j * self.stride < nq_available
-                            )
-                        )
-                        for i in range(self.offset, nq_available, self.step)
-                    ]
-
-                else:
-                    r_q = remaining_q[self.offset :: self.step]
+               
+                r_q = remaining_q[self.offset :: self.step]
+                if self.boundary == "periodic":
                     while len(r_q) < len(remaining_q):
                         r_q += [q for q in remaining_q if q not in r_q][:: self.step]
-                    Ec_l = []
-                    while len(r_q) > 0:
-                        t = [
-                            r_q[(j * self.stride) % len(r_q)]
-                            for j in range(self.arity - n_pivot)
-                        ]
-                        Ec_l.append(tuple(t))
-                        r_q = [q for q in r_q if q not in list(t)]
+                Ec_l = []
+                while len(r_q) > 0:
+                    t = [
+                        r_q[(j * self.stride) % len(r_q)]
+                        for j in range(self.arity - n_pivot)
+                    ]
+                    Ec_l.append(tuple(t))
+                    r_q = [q for q in r_q if q not in list(t)]
 
-                    # Ec_l = [
-                    #     tuple(
-                    #         (
-                    #             remaining_q[mod_nq(i + j * self.stride)]
-                    #             for j in range(self.arity-1)
-                    #         )
-                    #     )
-                    #     for i in range(self.offset, nq_available+self.offset, self.step)
-                    # ]
-
-
-
+                
                 # Add the pivot qubit to each edge
                 Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
-                # Ec_l = [
-                #     tuple(edge + p)
-                #     for p, edge in zip(
-                #         [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))],
-                #         Ec_l,
-                #     )
-                # ]
-
+                
                 # edge order based on local pattern
                 dummy = []
                 for p, edge in zip([P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l):
