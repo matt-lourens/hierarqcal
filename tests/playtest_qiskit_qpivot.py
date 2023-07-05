@@ -16,7 +16,6 @@ from hierarqcal import (
     # plot_motif,
     Qunitary,
 )
-from hierarqcal.qiskit.qiskit_circuits import V2, U2
 
 
 # Test pivot
@@ -33,65 +32,78 @@ N=10
 u = Qunitary("cnot()^01")
 
 # open boundary:
-bounrary = "open"
+boundary = "open"
 pattern = "*1*1"
 # default, offeset =0, step =1, stride =1
 
-qft = Qinit(N)  + Qpivot(pattern, offset = 0, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 0, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase offset
-qft = Qinit(N)  + Qpivot(pattern, offset = 2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase step
-qft = Qinit(N)  + Qpivot(pattern, step=2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, step=2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase step and offset
-qft = Qinit(N)  + Qpivot(pattern, offset = 1, step=2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 1, step=2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # periodic boundary:
 # # ordering seems off, even though the circuit is technically correct
-bounrary = "periodic"
+boundary = "periodic"
 pattern = "*1*1"
 
 # default, offeset =0, step =1, stride =1
-qft = Qinit(N)  + Qpivot(pattern, offset = 0, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 0, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase offset 
 
-qft = Qinit(N)  + Qpivot(pattern, offset = 2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase step
-qft = Qinit(N)  + Qpivot(pattern, step=2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, step=2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 # increase step and offset
-qft = Qinit(N)  + Qpivot(pattern, offset = 1, step=2, mapping=u, boundary=bounrary)
+qft = Qinit(N)  + Qpivot(pattern, offset = 1, step=2, mapping=u, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
 
+# Complex pattern
 N=10
-u = Qunitary("cnot()^01")
-qft = Qinit(N)  + Qpivot("1*1*1", stride=2,step=2, mapping=u, boundary="periodic")
+v = Qunitary("cnot()^01")
+qft = Qinit(N)  + Qpivot(pattern = "1*", stride=2,step=2, mapping=v, boundary="periodic")
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
 
-# default, offeset =0, step =1, stride =1
-qft = Qinit(N)  + Qpivot(pattern, local_pattern="1*", mapping=u, boundary=bounrary)
+# 3 qubit unitary
+N = 9
+w = Qunitary('cnot()^01;cnot()^21')
+
+qft = Qinit(N)  + Qpivot(pattern="1*", local_pattern="*1*", mapping=w, boundary=boundary)
 circuit= qft(backend="qiskit")
 circuit.draw("mpl")
+
+qft = Qinit(N)  + Qpivot(pattern="1*", local_pattern="1*", mapping=w, boundary=boundary)
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
+
+qft = Qinit(N)  + Qpivot(pattern="1*", local_pattern="1*1", mapping=w, boundary=boundary)
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
+
 
 print("Hello")
