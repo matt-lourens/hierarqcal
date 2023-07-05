@@ -17,6 +17,29 @@ from hierarqcal import (
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2
 
+# =======
+# Breaks:
+# =======
+# N=10
+# u = Qunitary("cnot()^10")
+# qft = Qinit(N)  + Qpivot("1*1*1", stride=2,step=2, mapping=u, boundary="periodic")
+# circuit= qft(backend="qiskit")
+# circuit.draw("mpl")
+# =======
+
+
+N = 8
+h_top = Qpivot(mapping=Qunitary("h()^0"))
+controlled_rs = Qpivot(mapping=Qunitary("crx(x)^01"), share_weights=False)
+qft = Qinit(N)  + (h_top + controlled_rs + Qmask("1*"))*(N)
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
+
+N=10
+u = Qunitary("cnot()^01;cnot()^21")
+qft = Qinit(N)  + Qpivot("1*1", mapping=u, boundary="open")
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
 
 
 u = Qunitary("cnot()^10;cnot()^01")

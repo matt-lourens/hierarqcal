@@ -16,25 +16,33 @@ from hierarqcal import (
     # plot_motif,
     Qunitary,
 )
-
-
-# Test pivot
-# QFT
-N = 3
-h_top = Qpivot(mapping=Qunitary("h()^0"))
-controlled_rs = Qpivot(mapping=Qunitary("crx(x)^01"), share_weights=False)
-qft = Qinit(N) + (h_top + controlled_rs + Qmask("1*")) * (N)
+N = 10
+u = Qunitary("cnot()^20;cnot()^21")
+boundary = "open"
+qft = Qinit(N) + Qpivot("1*", local_pattern="11*", offset=0, mapping=u, boundary=boundary)
 circuit = qft(backend="qiskit")
 circuit.draw("mpl")
 
-# Base case 2-qubit uintary
+
+# === break ===
+# ========
+# Test pivot
+# QFT
+# N = 3
+# h_top = Qpivot(mapping=Qunitary("h()^0"))
+# controlled_rs = Qpivot(mapping=Qunitary("crx(x)^01"), share_weights=False)
+# qft = Qinit(N) + (h_top + controlled_rs + Qmask("1*")) * (N)
+# circuit = qft(backend="qiskit")
+# circuit.draw("mpl")
+
+# # Base case 2-qubit uintary
 N = 10
 u = Qunitary("cnot()^01")
 
-# open boundary:
+# # open boundary:
 boundary = "open"
 pattern = "*1*1"
-# default, offeset =0, step =1, stride =1
+# # default, offeset =0, step =1, stride =1
 
 qft = Qinit(N) + Qpivot(pattern, offset=0, mapping=u, boundary=boundary)
 circuit = qft(backend="qiskit")
