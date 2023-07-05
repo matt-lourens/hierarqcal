@@ -670,6 +670,7 @@ class Qpivot(Qmotif):
     def __init__(
         self,
         pattern="1*",
+        local_pattern="*1",
         stride=1,
         step=1,
         offset=0,
@@ -686,7 +687,10 @@ class Qpivot(Qmotif):
 
         """
         self.type = Primitive_Types.PIVOT
+
         self.pattern = pattern
+        self.local_pattern = local_pattern
+        
         self.stride = stride
         self.step = step
         self.offset = offset
@@ -700,6 +704,24 @@ class Qpivot(Qmotif):
         is_default_mapping = True if mapping is None else False
 
         super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+
+
+    def wildcard_populate(self, pivot_pattern, N):
+        # Wildcard pattern
+        n_ones = pivot_pattern.count("1")
+        n_stars = pivot_pattern.count("*")
+        n_zeros = N - n_ones
+        zero_per_star = n_zeros // n_stars
+        base = pivot_pattern.replace("*", "0" * zero_per_star)
+        max_it = N
+        while len(base) < N and max_it > 0:
+            # get index of first 0
+            idx = base.find("0")
+            # Insert 0 next to it
+            base = base[:idx] + "0" + base[idx:]
+            max_it -= 1
+        
+        return base
 
     def get_pivot_pattern_fn(self, pivot_pattern, Qp_l=[]):
         """
@@ -722,19 +744,20 @@ class Qpivot(Qmotif):
                 # TODO explain in docs and maybe print a warning
                 # For example "101" will be used as "10110110" if there are 8 qubits
                 if any("*" == c for c in pivot_pattern):
-                    # Wildcard pattern
-                    n_ones = pivot_pattern.count("1")
-                    n_stars = pivot_pattern.count("*")
-                    n_zeros = len(Qp_l) - n_ones
-                    zero_per_star = n_zeros // n_stars
-                    base = pivot_pattern.replace("*", "0" * zero_per_star)
-                    max_it = len(Qp_l)
-                    while len(base) < len(Qp_l) and max_it > 0:
-                        # get index of first 0
-                        idx = base.find("0")
-                        # Insert 0 next to it
-                        base = base[:idx] + "0" + base[idx:]
-                        max_it -= 1
+                    # # Wildcard pattern
+                    # n_ones = pivot_pattern.count("1")
+                    # n_stars = pivot_pattern.count("*")
+                    # n_zeros = len(Qp_l) - n_ones
+                    # zero_per_star = n_zeros // n_stars
+                    # base = pivot_pattern.replace("*", "0" * zero_per_star)
+                    # max_it = len(Qp_l)
+                    # while len(base) < len(Qp_l) and max_it > 0:
+                    #     # get index of first 0
+                    #     idx = base.find("0")
+                    #     # Insert 0 next to it
+                    #     base = base[:idx] + "0" + base[idx:]
+                    #     max_it -= 1
+                    base = self.wildcard_populate(pivot_pattern, len(Qp_l))
 
                     pivot_pattern_fn = lambda arr: [
                         item for item, indicator in zip(arr, base) if indicator == "1"
@@ -765,60 +788,90 @@ class Qpivot(Qmotif):
         Returns:
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
+        n_pivot = len([x for x in self.local_pattern if x == "1"])
 
-        self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
-        pivot_q = self.pivot_pattern_fn(Qc_l)
-        remaining_q = [q for q in Qc_l if q not in pivot_q]
+        if len(self.local_pattern.replace("*","")) > self.arity:
+                    # TODO explain this...
+                    self.local_pattern == "*1"
+
+        l_pattern = self.wildcard_populate(self.local_pattern, self.arity) 
+
+        
+
+        if len(self.pattern.replace("1", "1" * n_pivot).replace("*","")) > len(Qc_l):
+            # TODO explain this...
+            print(self.pattern.replace("1", "1" * n_pivot), len(self.pattern.replace("1", "1" * n_pivot)), len(Qc_l))
+            raise ValueError(
+                "Pattern, taking into account the local pattern, is longer than available qubits, please use a shorter pattern or more qubits"
+            )
+
+        self.pivot_pattern_fn = self.get_pivot_pattern_fn(
+            self.pattern.replace("1", "1" * n_pivot), Qc_l
+        )
+
+        # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
+        pivot_q = [
+            tuple(self.pivot_pattern_fn(Qc_l)[i * n_pivot : (i + 1) * n_pivot])
+            for i in range((len(self.pivot_pattern_fn(Qc_l)) + n_pivot - 1) // n_pivot)
+        ]
+
+        remaining_q = [q for q in Qc_l if q not in [p for P in pivot_q for p in P]]
 
         if self.arity > 1:
             nq_available = len(remaining_q)
+
             if nq_available > 0:
+
                 if self.stride % nq_available == 0:
                     # TODO make this clear in documentation
                     # warnings.warn(
                     #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
                     # )
                     self.stride = 1
-                if self.boundary == "open":
-                    mod_nq = lambda x: x % nq_available
-                    Ec_l = [
-                        tuple(
-                            (
-                                remaining_q[i + j * self.stride]
-                                for j in range(self.arity-1)
-                                if i + j * self.stride < nq_available
-                            )
-                        )
-                        for i in range(self.offset, nq_available, self.step)
+               
+                r_q = remaining_q[self.offset :: self.step]
+                if self.boundary == "periodic":
+                    while len(r_q) < len(remaining_q):
+                        r_q += [q for q in remaining_q if q not in r_q][:: self.step]
+                Ec_l = []
+                while len(r_q) > 0:
+                    t = [
+                        r_q[(j * self.stride) % len(r_q)]
+                        for j in range(self.arity - n_pivot)
                     ]
-                    
+                    Ec_l.append(tuple(t))
+                    r_q = [q for q in r_q if q not in list(t)]
 
-                else:
-                    mod_nq = lambda x: x % nq_available
-                    Ec_l = [
-                        tuple(
-                            (Qc_l[mod_nq(i + j * self.stride)] for j in range(self.arity-1))
-                        )
-                        for i in range(self.offset, nq_available, self.step)
-                    ]
-
+                
                 # Add the pivot qubit to each edge
                 Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
-                Ec_l = [
-                    tuple(edge+(p,))
-                    for p, edge in zip(
-                        [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))],
-                        Ec_l,
-                    )
-                ]
+                
+                # edge order based on local pattern
+                dummy = []
+                for p, edge in zip([P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l):
+                    i_p = 0
+                    i_e = 0
+                    t = []
+                    for i in range(self.arity):
+                        if l_pattern[i] == "1":
+                            t.append(p[i_p])
+                            i_p += 1
+                        else:
+                            t.append(edge[i_e])
+                            i_e += 1
+                    dummy.append(tuple(t))
+                Ec_l = dummy
+
                 # Remove all that is not "complete"
                 Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
-            
+                # Remove all containing duplicated qubits
+                # Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
+
             else:
                 Ec_l = []
 
         else:
-            Ec_l = [(p,) for p in pivot_q]
+            Ec_l = [p for p in pivot_q]
 
         self.set_Q(Qc_l)
 
