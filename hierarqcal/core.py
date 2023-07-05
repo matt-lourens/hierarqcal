@@ -659,6 +659,7 @@ class Qpivot(Qmotif):
     def __init__(
         self,
         pattern="1*",
+        local_pattern="*1",
         stride=1,
         step=1,
         offset=0,
@@ -675,7 +676,10 @@ class Qpivot(Qmotif):
 
         """
         self.type = Primitive_Types.PIVOT
+
         self.pattern = pattern
+        self.local_pattern = local_pattern
+
         self.stride = stride
         self.step = step
         self.offset = offset
@@ -755,13 +759,42 @@ class Qpivot(Qmotif):
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
 
-        self.pivot_pattern_fn = self.get_pivot_pattern_fn(self.pattern, Qc_l)
-        pivot_q = self.pivot_pattern_fn(Qc_l)
-        remaining_q = [q for q in Qc_l if q not in pivot_q]
+        if len(self.local_pattern.replace("*","")) > self.arity:
+            # TODO explain this...
+            self.local_pattern == "*1"
+
+        n_pivot = len([x for x in self.local_pattern if x == "1"])
+        self.pivot_lcoal_pattern_fn = self.get_pivot_pattern_fn(
+            self.local_pattern, [i for i in range(self.arity)]
+        )
+
+        if len(self.pattern.replace("1", "1" * n_pivot).replace("*","")) > len(Qc_l):
+            # TODO explain this...
+            print(self.pattern.replace("1", "1" * n_pivot), len(self.pattern.replace("1", "1" * n_pivot)), len(Qc_l))
+            raise ValueError(
+                "Pattern, taking into account the local pattern, is longer than available qubits, please use a shorter pattern or more qubits"
+            )
+
+        self.pivot_pattern_fn = self.get_pivot_pattern_fn(
+            self.pattern.replace("1", "1" * n_pivot), Qc_l
+        )
+
+        # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
+        # pivot_q = self.pivot_pattern_fn(Qc_l)
+        pivot_q = [
+            tuple(self.pivot_pattern_fn(Qc_l)[i * n_pivot : (i + 1) * n_pivot])
+            for i in range((len(self.pivot_pattern_fn(Qc_l)) + n_pivot - 1) // n_pivot)
+        ]
+
+        # remaining_q = [q for q in Qc_l if q not in pivot_q]
+        remaining_q = [q for q in Qc_l if q not in [p for P in pivot_q for p in P]]
 
         if self.arity > 1:
             nq_available = len(remaining_q)
+
             if nq_available > 0:
+                # mod_nq = lambda x: x % nq_available
+
                 if self.stride % nq_available == 0:
                     # TODO make this clear in documentation
                     # warnings.warn(
@@ -769,32 +802,44 @@ class Qpivot(Qmotif):
                     # )
                     self.stride = 1
                 if self.boundary == "open":
-                    mod_nq = lambda x: x % nq_available
                     Ec_l = [
                         tuple(
                             (
                                 remaining_q[i + j * self.stride]
-                                for j in range(self.arity-1)
+                                for j in range(self.arity - 1)
                                 if i + j * self.stride < nq_available
                             )
                         )
                         for i in range(self.offset, nq_available, self.step)
                     ]
-                    
 
                 else:
-                    mod_nq = lambda x: x % nq_available
-                    Ec_l = [
-                        tuple(
-                            (Qc_l[mod_nq(i + j * self.stride)] for j in range(self.arity-1))
-                        )
-                        for i in range(self.offset, nq_available, self.step)
-                    ]
+                    r_q = remaining_q[self.offset :: self.step]
+                    while len(r_q) < len(remaining_q):
+                        r_q += [q for q in remaining_q if q not in r_q][:: self.step]
+                    Ec_l = []
+                    while len(r_q) > 0:
+                        t = [
+                            r_q[(j * self.stride) % len(r_q)]
+                            for j in range(self.arity - 1)
+                        ]
+                        Ec_l.append(tuple(t))
+                        r_q = [q for q in r_q if q not in list(t)]
+
+                    # Ec_l = [
+                    #     tuple(
+                    #         (
+                    #             remaining_q[mod_nq(i + j * self.stride)]
+                    #             for j in range(self.arity-1)
+                    #         )
+                    #     )
+                    #     for i in range(self.offset, nq_available+self.offset, self.step)
+                    # ]
 
                 # Add the pivot qubit to each edge
                 Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
                 Ec_l = [
-                    tuple(edge+(p,))
+                    tuple(edge + p)
                     for p, edge in zip(
                         [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))],
                         Ec_l,
@@ -802,12 +847,14 @@ class Qpivot(Qmotif):
                 ]
                 # Remove all that is not "complete"
                 Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
-            
+                # Remove all containing duplicated qubits
+                # Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
+
             else:
                 Ec_l = []
 
         else:
-            Ec_l = [(p,) for p in pivot_q]
+            Ec_l = [p for p in pivot_q]
 
         self.set_Q(Qc_l)
 
