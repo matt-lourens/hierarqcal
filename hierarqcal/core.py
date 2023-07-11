@@ -207,6 +207,7 @@ class Default_Mappings(Enum):
     CYCLE = Qunitary(n_symbols=1, arity=2)
     PIVOT = Qunitary(n_symbols=1, arity=2)
     MASK = None
+    SPLIT = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
 
 
@@ -972,7 +973,8 @@ class Qsplit(Qmotif):
         strides=[1, 1, 0],
         steps=[1, 1, 1],
         offsets=[0, 0, 0],
-        boundaries=["open", "open", "open"],
+        boundaries=["open", "open", "periodic"],
+        type=Primitive_Types.SPLIT,
         **kwargs,
     ) -> None:
         # If strides, steps or offsets are provided as integers, convert to list that repeats that integer
@@ -983,7 +985,7 @@ class Qsplit(Qmotif):
         if isinstance(offsets, int):
             offsets = [offsets] * 3
         # Set attributes
-        self.type = Primitive_Types.SPLIT
+        self.type = type
         self.global_pattern = global_pattern
         self.merge_within = merge_within
         self.merge_between = merge_between
@@ -1021,7 +1023,7 @@ class Qsplit(Qmotif):
         just_changed = False
         stars_found = 0
         excls_found = 0
-        while len(base) < (length+n_stars+n_excl) and max_it > 0:
+        while len(base) < (length + n_stars + n_excl) and max_it > 0:
             """
             TODO refactor this code so that it is more readable. The idea is this:
             There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
@@ -1359,14 +1361,35 @@ class Qmask(Qsplit):
     def __init__(
         self,
         global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
         **kwargs,
     ):
         """
-        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
-        TODO Open, Periodic boundary
+        TODO allow strides,steps,offsets to be one value and repeat what was given
         """
-        # Initialize graph
-        super().__init__(global_pattern, mask=True, **kwargs)
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        super().__init__(
+            global_pattern=global_pattern,
+            merge_within=merge_within,
+            merge_between=merge_between,
+            strides=strides,
+            steps=steps,
+            offsets=offsets,
+            boundaries=boundaries,
+            mask=True,
+            type=Primitive_Types.MASK,
+            **kwargs,
+        )
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -1399,9 +1422,7 @@ class Qmask(Qsplit):
         # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
         # of masked ones, so that we enable deffered measurement.
         # The most general usage is providing your own pattern function
-        # TODO add this to docs and explain how to provide own pattern function.
-        
-
+        # TODO add this to docs and explain how to provide own pattern function, also update the above comments for new refactor
         # Default is mask without a mapping, making it non operational
         is_operation = False
         # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits to mask etc)
@@ -1418,9 +1439,7 @@ class Qmask(Qsplit):
             if not (self.mapping is None):
                 is_operation = True
                 # Populate merge pattern
-                merge_within_pop = self.wildcard_populate(
-                    self.merge_within, self.arity
-                )
+                merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
                 # Count the number of 1s in the merge pattern
                 arity_m = merge_within_pop.count("1")
                 arity_r = self.arity - arity_m
@@ -1482,7 +1501,7 @@ class Qmask(Qsplit):
         return False
 
 
-class Qunmask(Qmask_Base):
+class Qunmask(Qsplit):
     def __init__(
         self,
         *args,
@@ -1491,13 +1510,14 @@ class Qunmask(Qmask_Base):
         """
         TODO possibility to give masking motif to undo
         """
+        self.type = Primitive_Types.MASK
         super().__init__(*args, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
         TODO
         """
-        if self.pattern == "previous":
+        if self.global_pattern == "previous":
             current = self
             unmasked_q = []
             unmask_counts = 0
@@ -1515,7 +1535,9 @@ class Qunmask(Qmask_Base):
                     unmask_counts -= 1
         else:
             q_old = kwargs.get("q_initial", [])
-            self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, q_old)
+            self.mask_pattern_fn = self.get_pattern_fn(
+                self.global_pattern, len(q_old)
+            )
             unmasked_q = self.mask_pattern_fn(q_old)
         is_operation = False
         Ep_l = []
