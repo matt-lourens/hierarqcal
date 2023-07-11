@@ -495,6 +495,42 @@ class Qmotif:
                 self.edge_mapping.append(tmp_mapping)
             self.n_symbols = len(symbols)
 
+    def cycle(self, Q, stride=1, step=1, offset=0, boundary="periodic", arity=2):
+        """
+        The cycle pattern
+        """
+        nq_available = len(Q)
+        if boundary == "open":
+            mod_nq = lambda x: x % nq_available
+            E = [
+                tuple(
+                    (
+                        Q[i + j * stride]
+                        for j in range(arity)
+                        if i + j * stride < nq_available
+                    )
+                )
+                for i in range(offset, nq_available, step)
+            ]
+            # Remove all that is not "complete"
+            E = [edge for edge in E if len(edge) == arity]
+
+        else:
+            mod_nq = lambda x: x % nq_available
+            E = [
+                tuple((Q[mod_nq(i + j * stride)] for j in range(arity)))
+                for i in range(offset, nq_available, step)
+            ]
+            # Remove all that is not "complete", i.e. contain duplicates
+            E = [edge for edge in E if len(set(edge)) == arity]
+        if (
+            len(E) == arity
+            and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
+        ):
+            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+            E = [E[0]]
+        return E
+
 
 class Qmotifs(tuple):
     """
@@ -592,60 +628,28 @@ class Qcycle(Qmotif):
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
         # Determine cycle operation
-        nq_available = len(Qc_l)
-        if self.stride % nq_available == 0:
+        if self.stride % len(Qc_l) == 0:
             # TODO make this clear in documentation
             # warnings.warn(
             #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
             # )
             self.stride = 1
-        if self.boundary == "open":
-            mod_nq = lambda x: x % nq_available
-            Ec_l = [
-                tuple(
-                    (
-                        Qc_l[i + j * self.stride]
-                        for j in range(self.arity)
-                        if i + j * self.stride < nq_available
-                    )
-                )
-                for i in range(self.offset, nq_available, self.step)
-            ]
-            # Remove all that is not "complete"
-            Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
-
-        else:
-            mod_nq = lambda x: x % nq_available
-            Ec_l = [
-                tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.arity)))
-                for i in range(self.offset, nq_available, self.step)
-            ]
-            # Remove all that is not "complete", i.e. contain duplicates
-            Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
-        if (
-            len(Ec_l) == self.arity
-            and sum([len(set(Ec_l[0]) - set(Ec_l[k])) == 0 for k in range(self.arity)])
-            == self.arity
-        ):
-            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-            Ec_l = [Ec_l[0]]
+        E = self.cycle(
+            Qc_l,
+            stride=self.stride,
+            step=self.step,
+            offset=self.offset,
+            boundary=self.boundary,
+            arity=self.arity,
+        )
         self.set_Q(Qc_l)
-        # Set order of edges
-        # if 0 in self.edge_order: TODO check if this is removable
-        #     # Raise error if 0 is in edge order
-        #     raise ValueError(
-        #         "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
-        #     )
-        # Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
-        # Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
-        # Ec_l = Ec_l_ordered + Ec_l_rest
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
         # It is important that set_E gets called last, as sets of symbol creation for the motif
-        self.set_E(Ec_l)
+        self.set_E(E)
         start_idx = kwargs.get("start_idx", 0)
         self.set_symbols(start_idx=start_idx)
 
@@ -961,13 +965,14 @@ class Qpermute(Qmotif):
 class Qsplit(Qmotif):
     def __init__(
         self,
-        pattern="1*",
-        merge_pattern="1*",
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,  # either this or third item in strides
         mask=False,
-        strides=[1, 1, 1],
+        strides=[1, 1, 0],
         steps=[1, 1, 1],
         offsets=[0, 0, 0],
-        boundary="open",
+        boundaries=["open", "open", "open"],
         **kwargs,
     ) -> None:
         # If strides, steps or offsets are provided as integers, convert to list that repeats that integer
@@ -979,13 +984,14 @@ class Qsplit(Qmotif):
             offsets = [offsets] * 3
         # Set attributes
         self.type = Primitive_Types.SPLIT
-        self.pattern = pattern
-        self.merge_pattern = merge_pattern
+        self.global_pattern = global_pattern
+        self.merge_within = merge_within
+        self.merge_between = merge_between
         self.mask = mask
         self.strides = strides
         self.steps = steps
         self.offsets = offsets
-        self.boundary = boundary
+        self.boundaries = boundaries
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize Qmotif
@@ -1003,19 +1009,19 @@ class Qsplit(Qmotif):
         self.set_symbols(start_idx=start_idx)
         return self
 
-    def wildcard_populate(self, pattern, Q):
+    def wildcard_populate(self, pattern, length):
         # Wildcard pattern
         n_stars = pattern.count("*")
         n_excl = pattern.count("!")
         # base = pattern.replace("*", "0" * zero_per_star)
         # base = base.replace("!", "1" * zero_per_star)
         base = pattern
-        max_it = len(Q)
+        max_it = length
         do_star = True if n_stars > 0 else False
         just_changed = False
         stars_found = 0
         excls_found = 0
-        while len(base) < len(Q) and max_it > 0:
+        while len(base) < length and max_it > 0:
             """
             TODO refactor this code so that it is more readable. The idea is this:
             There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
@@ -1052,17 +1058,17 @@ class Qsplit(Qmotif):
         base = base.replace("!", "1")
         return base
 
-    def get_pattern_fn(self, pattern, Q):
+    def get_pattern_fn(self, pattern, length):
         # If pattern is a string then convert it to a lambda function
         if isinstance(pattern, str):
             # If pattern contains wild cards, then we need to populate it
             if any(("*" == c) or ("!" == c) for c in pattern):
-                pattern = self.wildcard_populate(pattern, Q)
-            if len(pattern) < len(Q):
+                pattern = self.wildcard_populate(pattern, length)
+            if len(pattern) < length:
                 # If there are no wildcard characters, then we assume that the pattern is a base pattern and we will repeat it until it is the same length as the current number of qubits
-                base = pattern * (len(Q) // len(pattern))
-                pattern = base[: len(Q)]
-            # Pattern is now a string of 1's and 0's and have length >= len(Q) or some predefined string
+                base = pattern * (length // len(pattern))
+                pattern = base[:length]
+            # Pattern is now a string of 1's and 0's and have length >= lengthor some predefined string
             if all(c in ["0", "1"] for c in pattern):
                 pattern_fn = lambda arr: [
                     item for item, indicator in zip(arr, pattern) if indicator == "1"
@@ -1079,12 +1085,47 @@ class Qsplit(Qmotif):
                 raise Exception("Pattern must be a string or a lambda function")
         return pattern_fn
 
-    def cycle_within_split():
-        pass
-    def cycle_between_splits():
-        pass
-    def merge_splits():
-        pass
+    def cycle_between_splits(
+        self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
+    ):
+        if boundary == "open":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride)],
+                )
+                for i in range(offset, len(E_a), step)
+                if (i + stride) < len(E_b)
+            ]
+        elif boundary == "periodic":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride) % len(E_b)],
+                )
+                for i in range(offset, len(E_a), step)
+            ]
+        else:
+            raise Exception("Boundary must be either open or periodic")
+        return E
+
+    def merge_within_splits(self, E, merge_pattern):
+        E_out = []
+        for e in E:
+            i_0 = 0
+            i_1 = 0
+            dummy = tuple()
+            for char in merge_pattern:
+                if char == "1":
+                    dummy += (e[0][i_0],)
+                    i_0 += 1
+                elif char == "0":
+                    dummy += (e[1][i_1],)
+                    i_1 += 1
+                else:
+                    raise Exception("Merge pattern must be a string of 0's and 1's")
+            E_out.append(dummy)
+        return E_out
 
     def get_predefined_pattern_fn(self, pattern):
         # Mapping words to the pattern type
@@ -1317,7 +1358,7 @@ class Qmask(Qsplit):
 
     def __init__(
         self,
-        pattern="1*",
+        global_pattern="1*",
         **kwargs,
     ):
         """
@@ -1325,7 +1366,7 @@ class Qmask(Qsplit):
         TODO Open, Periodic boundary
         """
         # Initialize graph
-        super().__init__(pattern, mask=True, **kwargs)
+        super().__init__(global_pattern, mask=True, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -1359,130 +1400,189 @@ class Qmask(Qsplit):
         # of masked ones, so that we enable deffered measurement.
         # The most general usage is providing your own pattern function
         # TODO add this to docs and explain how to provide own pattern function.
+        # is_operation = False
+        # # If there are more than 1 qubit available
+        # if len(Qp_l) > 1:
+        #     # Get pattern function
+        #     self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
+        #     measured_q = self.mask_pattern_fn(Qp_l)
+        #     remaining_q = [q for q in Qp_l if not (q in measured_q)]
+        #     Ep_l = []
+        #     # Check if there is a unitary associated with the motif
+        #     if not (self.mapping is None):
+        #         is_operation = True
+        #         # All below generates edges for associated unitaries
+        #         if self.arity == 1:
+        #             Ep_l = [(q,) for q in measured_q]
+        #         elif self.arity == 2:
+        #             if len(remaining_q) > 0:
+        #                 # TODO add nearest neighbour modulo nq
+        #                 if self.connection_type == "nearest_circle":
+        #                     Ep_l = [
+        #                         (
+        #                             Qp_l[Qp_l.index(i)],
+        #                             min(
+        #                                 remaining_q,
+        #                                 key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
+        #                                 % len(remaining_q)
+        #                                 // 2,
+        #                             ),
+        #                         )
+        #                         for i in measured_q
+        #                     ]
+        #                 elif self.connection_type == "nearest_tower":
+        #                     Ep_l = [
+        #                         (
+        #                             Qp_l[Qp_l.index(i)],
+        #                             min(
+        #                                 remaining_q,
+        #                                 key=lambda x: abs(
+        #                                     Qp_l.index(i) - Qp_l.index(x)
+        #                                 ),
+        #                             ),
+        #                         )
+        #                         for i in measured_q
+        #                     ]
+        #                 else:
+        #                     Ep_l = [
+        #                         (
+        #                             measured_q[i],
+        #                             remaining_q[(i + self.stride) % len(remaining_q)],
+        #                         )
+        #                         for i in range(len(measured_q))
+        #                     ]
+        #             else:
+        #                 # No qubits were pooled
+        #                 Ep_l = []
+        #                 remaining_q = Qp_l
+        #         else:
+        #             # General pattern functionality:
+        #             # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
+        #             # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
+        #             # if isinstance(self.pattern, str):
+        #             #     if len(self.pattern) != self.arity:
+        #             #         raise ValueError(
+        #             #             f"Pattern string should be of length arity {self.arity}, if it is a string."
+        #             #         )
+        #             #
+        #             nq_available = len(Qp_l)
+        #             if self.stride % nq_available == 0:
+        #                 self.stride = 1  # TODO test if this is neccesary
+        #             # We generate edges the same way as convolutions
+        #             if self.boundary == "open":
+        #                 mod_nq = lambda x: x % nq_available
+        #                 Ep_l = [
+        #                     tuple(
+        #                         (
+        #                             Qp_l[i + j * self.stride]
+        #                             for j in range(self.arity)
+        #                             if i + j * self.stride < nq_available
+        #                         )
+        #                     )
+        #                     for i in range(self.offset, nq_available, self.step)
+        #                 ]
+        #                 # Remove all that is not "complete"
+        #                 Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
+
+        #             else:
+        #                 mod_nq = lambda x: x % nq_available
+        #                 Ep_l = [
+        #                     tuple(
+        #                         (
+        #                             Qp_l[mod_nq(i + j * self.stride)]
+        #                             for j in range(self.arity)
+        #                         )
+        #                     )
+        #                     for i in range(self.offset, nq_available, self.step)
+        #                 ]
+        #                 # Remove all that is not "complete", i.e. contain duplicates
+        #                 Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.arity]
+        #             if (
+        #                 len(Ep_l) == self.arity
+        #                 and sum(
+        #                     [
+        #                         len(set(Ep_l[0]) - set(Ep_l[k])) == 0
+        #                         for k in range(self.arity)
+        #                     ]
+        #                 )
+        #                 == self.arity
+        #             ):
+        #                 # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+        #                 Ep_l = [Ep_l[0]]
+        #             # Then we apply the pattern to record which edges go away
+        #             self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
+        #             measured_q = [
+        #                 qubit for edge in Ep_l for qubit in self.mask_pattern_fn(edge)
+        #             ]
+        #             remaining_q = [q for q in Qp_l if not (q in measured_q)]
+
+        # else:
+        #     # raise ValueError(
+        #     #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
+        #     # )
+        #     # No qubits were pooled
+        #     # TODO make clear in documentation, no pooling is done if 1 qubit remain
+        #     Ep_l = []
+        #     remaining_q = Qp_l
+
+        # Default is mask without a mapping, making it non operational
         is_operation = False
-        # If there are more than 1 qubit available
+        # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits to mask etc)
+        Ep_l = []
+        remaining_q = Qp_l
+        # If there are qubits to mask
         if len(Qp_l) > 1:
-            # Get pattern function
-            self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
+            # Get global pattern function based on the pattern attribute
+            self.mask_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
+            # Apply pattern function on all available qubits
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            Ep_l = []
-            # Check if there is a unitary associated with the motif
+            # Check if there is a operation associated with the motif
             if not (self.mapping is None):
                 is_operation = True
-                # All below generates edges for associated unitaries
-                if self.arity == 1:
-                    Ep_l = [(q,) for q in measured_q]
-                elif self.arity == 2:
-                    if len(remaining_q) > 0:
-                        # TODO add nearest neighbour modulo nq
-                        if self.connection_type == "nearest_circle":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
-                                        % len(remaining_q)
-                                        // 2,
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        elif self.connection_type == "nearest_tower":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(
-                                            Qp_l.index(i) - Qp_l.index(x)
-                                        ),
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        else:
-                            Ep_l = [
-                                (
-                                    measured_q[i],
-                                    remaining_q[(i + self.stride) % len(remaining_q)],
-                                )
-                                for i in range(len(measured_q))
-                            ]
-                    else:
-                        # No qubits were pooled
-                        Ep_l = []
-                        remaining_q = Qp_l
-                else:
-                    # General pattern functionality:
-                    # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
-                    # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
-                    # if isinstance(self.pattern, str):
-                    #     if len(self.pattern) != self.arity:
-                    #         raise ValueError(
-                    #             f"Pattern string should be of length arity {self.arity}, if it is a string."
-                    #         )
-                    #
-                    nq_available = len(Qp_l)
-                    if self.stride % nq_available == 0:
-                        self.stride = 1  # TODO test if this is neccesary
-                    # We generate edges the same way as convolutions
-                    if self.boundary == "open":
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[i + j * self.stride]
-                                    for j in range(self.arity)
-                                    if i + j * self.stride < nq_available
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete"
-                        Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
+                # Populate merge pattern
+                merge_within_pop = self.wildcard_populate(
+                    self.merge_within, self.arity
+                )
+                # Count the number of 1s in the merge pattern
+                arity_m = merge_within_pop.count("1")
+                arity_r = self.arity - arity_m
+                # Generate edges for measured split
+                # Count the number of 1s in the merge pattern
+                E_m = self.cycle(
+                    measured_q,
+                    stride=self.strides[0],
+                    step=self.steps[0],
+                    offset=self.offsets[0],
+                    boundary=self.boundaries[0],
+                    arity=arity_m,
+                )
+                # Generate edges for remaining split
+                E_r = self.cycle(
+                    remaining_q,
+                    stride=self.strides[1],
+                    step=self.steps[1],
+                    offset=self.offsets[1],
+                    boundary=self.boundaries[1],
+                    arity=arity_r,
+                )
+                # Generate edges for measured to remaining
+                # If there is a merge_between pattern
+                if not (self.merge_between == None):
+                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                    E_r = pattern_fn(E_r)
 
-                    else:
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[mod_nq(i + j * self.stride)]
-                                    for j in range(self.arity)
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete", i.e. contain duplicates
-                        Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.arity]
-                    if (
-                        len(Ep_l) == self.arity
-                        and sum(
-                            [
-                                len(set(Ep_l[0]) - set(Ep_l[k])) == 0
-                                for k in range(self.arity)
-                            ]
-                        )
-                        == self.arity
-                    ):
-                        # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-                        Ep_l = [Ep_l[0]]
-                    # Then we apply the pattern to record which edges go away
-                    self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
-                    measured_q = [
-                        qubit for edge in Ep_l for qubit in self.mask_pattern_fn(edge)
-                    ]
-                    remaining_q = [q for q in Qp_l if not (q in measured_q)]
+                E_b = self.cycle_between_splits(
+                    E_a=E_m,
+                    E_b=E_r,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+                # Merge the two splits based on merge pattern
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        else:
-            # raise ValueError(
-            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
-            # )
-            # No qubits were pooled
-            # TODO make clear in documentation, no pooling is done if 1 qubit remain
-            Ep_l = []
-            remaining_q = Qp_l
         if len(remaining_q) == 0:
             # Don't do anything if all qubits were removed
             remaining_q = Qp_l

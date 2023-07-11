@@ -25,7 +25,9 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2
 # qft = Qinit(N)  + Qpivot("1*1*1", stride=2,step=2, mapping=u, boundary="periodic")
 # circuit= qft(backend="qiskit")
 # circuit.draw("mpl")
+
 # =======
+
 
 
 N = 8
