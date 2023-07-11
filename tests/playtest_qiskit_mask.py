@@ -270,11 +270,15 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2, U3
 # circuit.draw("mpl")
 
 # MERA
-N=16
-c1 = Qcycle(1,2,1,mapping=Qunitary("crx(x)^01"), boundary="open")
-c2 = Qcycle(1,2,0,mapping=Qunitary("crx(x)^01"), boundary="open")
-m1 = Qmask("1001", merge_within="1001", steps=[2,2,1], boundaries=["open","open","open"] ,mapping=Qunitary("cnot()^01;cnot()^32"))
-hierq = Qinit(N) + c1 + (m1+c2)*int(np.log2(N))
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# N=16
+# c1 = Qcycle(1,2,1,mapping=Qunitary("crx(x)^01"), boundary="open")
+# c2 = Qcycle(1,2,0,mapping=Qunitary("crx(x)^01"), boundary="open")
+# m1 = Qmask("1001", merge_within="1001", steps=[2,2,1], boundaries=["open","open","open"] ,mapping=Qunitary("cnot()^01;cnot()^32"))
+# hierq = Qinit(N) + c1 + (m1+c2)*int(np.log2(N))
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+
+
+
 print("hi")
