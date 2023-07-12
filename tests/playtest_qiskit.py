@@ -87,18 +87,18 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2
 #     circuit = hierq(backend="qiskit")
 #     circuit.draw("mpl")
 
-# # 'nearest tower'
-# u = Qunitary(V2, 0, 2)
-# hierq = Qinit(8) + Qmask("1*1*1", merge_between="1*1*1", mapping=u)
-# circuit = hierq(backend="qiskit")
-# circuit.draw("mpl")
+# 'nearest tower'
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qmask("1*1*1", merge_between="1*1*1", mapping=u)
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
 
 
-# 'nearest tower' TODO how to get what we want?
-# u = Qunitary(V2, 0, 2)
-# hierq = Qinit(8) + Qmask("1*1*1", merge_between="1*1*1", mapping=u)*2
-# circuit = hierq(backend="qiskit")
-# circuit.draw("mpl")
+# Test 'to much removal'
+u = Qunitary("H()^0")
+hierq = Qinit(9) + Qmask("1*1*1", mapping=u)*4
+circuit = hierq(backend="qiskit")
+circuit.draw("mpl")
 
 
 
@@ -131,24 +131,24 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2
 # circuit = hierq(backend="qiskit")
 # circuit.draw("mpl")
 
-# Test unmasking patterns TODO test
-hierq = (
-    Qinit(8)
-    + (Qcycle(1, 1, 0) + Qmask("*!")) * 3
-    + (Qunmask("*!") + Qcycle(1, 1, 0)) * 4
-)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# # Test unmasking patterns TODO test
+# hierq = (
+#     Qinit(8)
+#     + (Qcycle(1, 1, 0) + Qmask("*!")) * 3
+#     + Qunmask("!") + Qcycle(1, 1, 0)
+# )
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
 
 # # Test qcnn
-u = Qunitary(V2, 0, 2)
+u = Qunitary("cnot()^01")
 hierq = Qinit(8) + (Qcycle(1, 1, 0) + Qmask("right", mapping=u)) * 3
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
 
 # # Test sub TODO demo
-u = Qunitary(V2, 1, 2)
+u = Qunitary("crx(x)^01")
 sub = Qinit(3) + Qpermute(mapping=u)
 hierq = Qinit(15) + Qcycle(
     1, len(sub.tail.Q), 0, mapping=sub, share_weights=True, boundary="open"
