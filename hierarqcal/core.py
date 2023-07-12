@@ -1410,19 +1410,6 @@ class Qmask(Qsplit):
         # The idea is to mask qubits based on some pattern
         # This can be done with or without applying a unitary. Applying a unitary "preserves" their information (usually through some controlled unitary)
         # This enables patterns of: pooling in quantum neural networks, coarse graining or entanglers or just plain masking
-        # The logic is as follows:
-        # First check if there are more than 1 qubit available, since we don't want to make our last available qubit unavailable.
-        # Then check if there is a associated untitary, if there is:
-        #   If arity is 2 we have some predifined patterns + the general pattern functionality
-        #       Predifined: right, left, inside, outside, even, odd, nearest_circle, nearest_tower
-        #   If arity is more, then we just have general pattern functionality
-        # General pattern works as follows:
-        #   Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
-        #   Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
-        # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
-        # of masked ones, so that we enable deffered measurement.
-        # The most general usage is providing your own pattern function
-        # TODO add this to docs and explain how to provide own pattern function, also update the above comments for new refactor
         # Default is mask without a mapping, making it non operational
         is_operation = False
         # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits to mask etc)
@@ -1435,8 +1422,11 @@ class Qmask(Qsplit):
             # Apply pattern function on all available qubits
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            # Check if there is a operation associated with the motif
-            if not (self.mapping is None):
+            if len(remaining_q) == 0:
+                # Don't do anything if all qubits were removed
+                remaining_q = Qp_l
+            elif not (self.mapping is None):
+                # there is a operation associated with the motif
                 is_operation = True
                 # Populate merge pattern
                 merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
@@ -1444,7 +1434,6 @@ class Qmask(Qsplit):
                 arity_m = merge_within_pop.count("1")
                 arity_r = self.arity - arity_m
                 # Generate edges for measured split
-                # Count the number of 1s in the merge pattern
                 E_m = self.cycle(
                     measured_q,
                     stride=self.strides[0],
@@ -1463,8 +1452,8 @@ class Qmask(Qsplit):
                     arity=arity_r,
                 )
                 # Generate edges for measured to remaining
-                # If there is a merge_between pattern
                 if not (self.merge_between == None):
+                    # If there is a merge_between pattern
                     pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
                     E_r = pattern_fn(E_r)
 
@@ -1479,9 +1468,6 @@ class Qmask(Qsplit):
                 # Merge the two splits based on merge pattern
                 Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        if len(remaining_q) == 0:
-            # Don't do anything if all qubits were removed
-            remaining_q = Qp_l
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
@@ -1535,9 +1521,7 @@ class Qunmask(Qsplit):
                     unmask_counts -= 1
         else:
             q_old = kwargs.get("q_initial", [])
-            self.mask_pattern_fn = self.get_pattern_fn(
-                self.global_pattern, len(q_old)
-            )
+            self.mask_pattern_fn = self.get_pattern_fn(self.global_pattern, len(q_old))
             unmasked_q = self.mask_pattern_fn(q_old)
         is_operation = False
         Ep_l = []
