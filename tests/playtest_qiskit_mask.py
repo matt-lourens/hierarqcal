@@ -15,22 +15,22 @@ from hierarqcal import (
 from hierarqcal.qiskit.qiskit_circuits import V2, U2, U3
 
 # Strides between, open between
-# N = 8
-# for stride in range(2 * N):
-#     u = Qunitary("cnot()^01")
-#     hierq = (
-#         Qinit(N)
-#         + Qmask(
-#             "1*1",
-#             strides=[1, 1, stride],
-#             boundaries=["open", "open", "open"],
-#             merge_pattern="01",
-#             mapping=u,
-#         )
-#         + Qcycle(mapping=Qunitary("h()^0"))
-#     )
-#     circuit = hierq(backend="qiskit")
-#     circuit.draw("mpl")
+N = 8
+for stride in range(2 * N):
+    u = Qunitary("cnot()^01")
+    hierq = (
+        Qinit(N)
+        + Qmask(
+            "1*1",
+            strides=[1, 1, stride],
+            boundaries=["open", "open", "open"],
+            merge_pattern="01",
+            mapping=u,
+        )
+        + Qcycle(mapping=Qunitary("h()^0"))
+    )
+    circuit = hierq(backend="qiskit")
+    circuit.draw("mpl")
 
 # # Strides between, periodic between
 # N = 8

@@ -19,7 +19,17 @@ from hierarqcal import (
 N = 10
 u = Qunitary("cnot()^20;cnot()^21")
 boundary = "open"
-qft = Qinit(N) + Qpivot("1*", local_pattern="11*", offset=0, mapping=u, boundary=boundary)
+#qft = Qinit(N) + Qpivot("1*", local_pattern="11*", offset=0, mapping=u, boundary=boundary)
+qft = Qinit(N) + Qpivot(
+    global_pattern="1*",
+    merge_within="1*",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 1, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=u,
+    )
 circuit = qft(backend="qiskit")
 circuit.draw("mpl")
 

@@ -668,145 +668,6 @@ class Qcycle(Qmotif):
         return False
 
 
-class Qpivot(Qsplit):
-    """
-    A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
-    This motif changes the available qubits for the next motif in the stack.
-    """
-
-    def __init__(
-        self,
-        global_pattern="1*",
-        merge_within="1*",
-        merge_between=None,
-        strides=[1, 1, 0],
-        steps=[1, 1, 1],
-        offsets=[0, 0, 0],
-        boundaries=["open", "open", "periodic"],
-        **kwargs,
-    ):
-        """
-        TODO allow strides,steps,offsets to be one value and repeat what was given
-        """
-        if isinstance(strides, int):
-            strides = [strides] * 3
-        if isinstance(strides, int):
-            steps = [steps] * 3
-        if isinstance(offsets, int):
-            offsets = [offsets] * 3
-        super().__init__(
-            global_pattern=global_pattern,
-            merge_within=merge_within,
-            merge_between=merge_between,
-            strides=strides,
-            steps=steps,
-            offsets=offsets,
-            boundaries=boundaries,
-            mask=False,
-            type=Primitive_Types.PIVOT,
-            **kwargs,
-        )
-
-    def __call__(self, Qp_l, *args, **kwargs):
-        """
-        
-        Args:
-            Qp_l (list): List of available qubits.
-            *args: Variable length argument list.
-            **kwargs: Arbitrary keyword arguments, such as:
-
-                * mapping (tuple(function, int)):
-                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
-
-        Returns:
-
-        """
-
-        # Default is mask without a mapping, making it non operational
-        is_operation = False
-        # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits)
-        Ep_l = []
-        remaining_q = Qp_l
-        # If there are qubits to pivot
-        if len(Qp_l) > 1 and not (self.mapping is None):
-            # there is a operation associated with the motif
-            is_operation = True
-
-            # Get global pattern function based on the pattern attribute
-            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
-            # # Apply pattern function on all available qubits
-            # measured_q = self.mask_pattern_fn(Qp_l)
-
-            merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
-            # Count the number of 1s in the merge pattern
-            arity_p = merge_within_pop.count("1")
-            arity_r = self.arity - arity_p
-
-            # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
-            pivot_q = [
-                tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
-                for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
-            ]
-
-            remaining_q = [q for q in Qp_l if not (q in pivot_q)]
-
-            if len(remaining_q) == 0:
-                # Don't do anything if all qubits were removed
-                remaining_q = Qp_l
-            else:
-                
-                E_p = self.cycle(
-                    pivot_q,
-                    stride=self.strides[0],
-                    step=self.steps[0],
-                    offset=self.offsets[0],
-                    boundary=self.boundaries[0],
-                    arity=arity_p,
-                )
-                # Generate edges for remaining split
-                E_r = self.cycle(
-                    remaining_q,
-                    stride=self.strides[1],
-                    step=self.steps[1],
-                    offset=self.offsets[1],
-                    boundary=self.boundaries[1],
-                    arity=arity_r,
-                )
-                # Generate edges for measured to remaining
-                if not (self.merge_between == None):
-                    # If there is a merge_between pattern
-                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
-                    E_r = pattern_fn(E_r)
-
-                E_b = self.cycle_between_splits(
-                    E_a=E_p,
-                    E_b=E_r,
-                    stride=self.strides[2],
-                    step=self.steps[2],
-                    offset=self.offsets[2],
-                    boundary=self.boundaries[2],
-                )
-                # Merge the two splits based on merge pattern
-                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
-
-        super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
-        )
-        return self
-
-    def __eq__(self, other):
-        if isinstance(other, Qmask):
-            self_attrs = vars(self)
-            other_attrs = vars(other)
-
-            for attr, value in self_attrs.items():
-                if not (attr == "mask_pattern_fn"):
-                    if attr not in other_attrs or other_attrs[attr] != value:
-                        return False
-
-            return True
-        return False
-
 
 class Qpermute(Qmotif):
     """
@@ -1523,6 +1384,148 @@ class Qunmask(Qsplit):
             Q=Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
         return self
+
+
+class Qpivot(Qsplit):
+    """
+    A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
+    This motif changes the available qubits for the next motif in the stack.
+    """
+
+    def __init__(
+        self,
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
+        **kwargs,
+    ):
+        """
+        TODO allow strides,steps,offsets to be one value and repeat what was given
+        """
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        super().__init__(
+            global_pattern=global_pattern,
+            merge_within=merge_within,
+            merge_between=merge_between,
+            strides=strides,
+            steps=steps,
+            offsets=offsets,
+            boundaries=boundaries,
+            mask=False,
+            type=Primitive_Types.PIVOT,
+            **kwargs,
+        )
+
+    def __call__(self, Qp_l, *args, **kwargs):
+        """
+        
+        Args:
+            Qp_l (list): List of available qubits.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments, such as:
+
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+        Returns:
+
+        """
+
+        # Default is mask without a mapping, making it non operational
+        is_operation = False
+        # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits)
+        Ep_l = []
+        remaining_q = Qp_l
+        # If there are qubits to pivot
+        if len(Qp_l) > 1 and not (self.mapping is None):
+            # there is a operation associated with the motif
+            is_operation = True
+
+            # Get global pattern function based on the pattern attribute
+            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
+            # # Apply pattern function on all available qubits
+            # measured_q = self.mask_pattern_fn(Qp_l)
+
+            merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+            # Count the number of 1s in the merge pattern
+            arity_p = merge_within_pop.count("1")
+            arity_r = self.arity - arity_p
+
+            # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
+            pivot_q = [
+                tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
+                for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
+            ]
+
+            remaining_q = [q for q in Qp_l if not (q in pivot_q)]
+
+            if len(remaining_q) == 0:
+                # Don't do anything if all qubits were removed
+                remaining_q = Qp_l
+            else:
+                
+                E_p = self.cycle(
+                    pivot_q,
+                    stride=self.strides[0],
+                    step=self.steps[0],
+                    offset=self.offsets[0],
+                    boundary=self.boundaries[0],
+                    arity=arity_p,
+                )
+                # Generate edges for remaining split
+                E_r = self.cycle(
+                    remaining_q,
+                    stride=self.strides[1],
+                    step=self.steps[1],
+                    offset=self.offsets[1],
+                    boundary=self.boundaries[1],
+                    arity=arity_r,
+                )
+                # Generate edges for measured to remaining
+                if not (self.merge_between == None):
+                    # If there is a merge_between pattern
+                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                    E_r = pattern_fn(E_r)
+
+                E_b = self.cycle_between_splits(
+                    E_a=E_p,
+                    E_b=E_r,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+                # Merge the two splits based on merge pattern
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+
+        super().__call__(
+            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+        )
+        return self
+
+    def __eq__(self, other):
+        if isinstance(other, Qmask):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+
+            for attr, value in self_attrs.items():
+                if not (attr == "mask_pattern_fn"):
+                    if attr not in other_attrs or other_attrs[attr] != value:
+                        return False
+
+            return True
+        return False
+
+
 
 
 class Qhierarchy:
