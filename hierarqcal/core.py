@@ -964,6 +964,24 @@ class Qsplit(Qmotif):
             raise Exception("Boundary must be either open or periodic")
         return E
 
+# edge order based on local pattern
+#                 dummy = []
+#                 for p, edge in zip(
+#                     [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l
+#                 ):
+#                     i_p = 0
+#                     i_e = 0
+#                     t = []
+#                     for i in range(self.arity):
+#                         if l_pattern[i] == "1":
+#                             t.append(p[i_p])
+#                             i_p += 1
+#                         else:
+#                             t.append(edge[i_e])
+#                             i_e += 1
+#                     dummy.append(tuple(t))
+#                 Ec_l = dummy
+
     def merge_within_splits(self, E, merge_pattern):
         E_out = []
         for e in E:
