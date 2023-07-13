@@ -668,238 +668,142 @@ class Qcycle(Qmotif):
         return False
 
 
-class Qpivot(Qmotif):
+class Qpivot(Qsplit):
     """
-    A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
+    A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
+    This motif changes the available qubits for the next motif in the stack.
     """
 
     def __init__(
         self,
-        pattern="1*",
-        local_pattern="*1",
-        stride=1,
-        step=1,
-        offset=0,
-        boundary="open",
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
         **kwargs,
     ):
         """
-        TODO
-
-        Args:
-            stride (int, optional): Stride of the pivot. Defaults to 1.
-            step (int, optional): Step of the pivot. Defaults to 1.
-            offset (int, optional): Offset of the pivot. Defaults to 0.
-
+        TODO allow strides,steps,offsets to be one value and repeat what was given
         """
-        self.type = Primitive_Types.PIVOT
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        super().__init__(
+            global_pattern=global_pattern,
+            merge_within=merge_within,
+            merge_between=merge_between,
+            strides=strides,
+            steps=steps,
+            offsets=offsets,
+            boundaries=boundaries,
+            mask=False,
+            type=Primitive_Types.PIVOT,
+            **kwargs,
+        )
 
-        self.pattern = pattern
-        self.local_pattern = local_pattern
-
-        self.stride = stride
-        self.step = step
-        self.offset = offset
-        self.boundary = boundary
-        if self.boundary not in ["open", "periodic"]:
-            raise ValueError(
-                f"Boundary {self.boundary} not recognized, please use either 'open' or 'periodic'"
-            )
-        # Specify sequence of gates:
-        mapping = kwargs.get("mapping", None)
-        is_default_mapping = True if mapping is None else False
-
-        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
-
-    def wildcard_populate(self, pivot_pattern, N):
-        # Wildcard pattern
-        n_ones = pivot_pattern.count("1")
-        n_stars = pivot_pattern.count("*")
-        n_zeros = N - n_ones
-        zero_per_star = n_zeros // n_stars
-        base = pivot_pattern.replace("*", "0" * zero_per_star)
-        max_it = N
-        while len(base) < N and max_it > 0:
-            # get index of first 0
-            idx = base.find("0")
-            # Insert 0 next to it
-            base = base[:idx] + "0" + base[idx:]
-            max_it -= 1
-
-        return base
-
-    def get_pivot_pattern_fn(self, pivot_pattern, Qp_l=[]):
+    def __call__(self, Qp_l, *args, **kwargs):
         """
-        Get the pattern function for the pivot operation.
-
+        
         Args:
-            mask_pattern (str or lambda): The string can also be a bit string, i.e. "01000" which pivots the 2nd qubit.
-            If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e. the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent, meaning the same kind of pattern will be applied as the list grows or shrinks.
             Qp_l (list): List of available qubits.
-        """
-        if isinstance(pivot_pattern, str):
-            if len(pivot_pattern) == len(Qp_l):
-                pivot_pattern_fn = lambda arr: [
-                    item
-                    for item, indicator in zip(arr, pivot_pattern)
-                    if indicator == "1"
-                ]
-            else:
-                # Attempt to use the pattern as a base pattern
-                # TODO explain in docs and maybe print a warning
-                # For example "101" will be used as "10110110" if there are 8 qubits
-                if any("*" == c for c in pivot_pattern):
-                    # # Wildcard pattern
-                    # n_ones = pivot_pattern.count("1")
-                    # n_stars = pivot_pattern.count("*")
-                    # n_zeros = len(Qp_l) - n_ones
-                    # zero_per_star = n_zeros // n_stars
-                    # base = pivot_pattern.replace("*", "0" * zero_per_star)
-                    # max_it = len(Qp_l)
-                    # while len(base) < len(Qp_l) and max_it > 0:
-                    #     # get index of first 0
-                    #     idx = base.find("0")
-                    #     # Insert 0 next to it
-                    #     base = base[:idx] + "0" + base[idx:]
-                    #     max_it -= 1
-                    base = self.wildcard_populate(pivot_pattern, len(Qp_l))
-
-                    pivot_pattern_fn = lambda arr: [
-                        item for item, indicator in zip(arr, base) if indicator == "1"
-                    ]
-                else:
-                    # If there are no wildcard characters, then we assume that the pattern is a base pattern and we will repeat it until it is the same length as the current number of qubits
-                    base = pivot_pattern * (len(Qp_l) // len(pivot_pattern))
-                    base = base[: len(Qp_l)]
-                    pivot_pattern_fn = lambda arr: [
-                        item for item, indicator in zip(arr, base) if indicator == "1"
-                    ]
-        else:
-            pivot_pattern_fn = pivot_pattern
-        return pivot_pattern_fn
-
-    def __call__(self, Qc_l, *args, **kwargs):
-        """
-        Call the motif, this generates the edges and qubits of the motif (directed graph) based on it's available qubits.
-        Each time a motif in the stack changes, a loop runs through the stack from the beginning and calls each motif to update the graph (the available qubits, the edges etc).
-
-        Args:
-            Qc_l (list): List of available qubits.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments, such as:
-                * mapping (tuple(function, int)): TODO update this docstring, it's not a tuple anymore.
+
+                * mapping (tuple(function, int)):
                     Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
 
         Returns:
-            Qconv: Returns the updated version of itself, with correct nodes and edges.
+
         """
-        n_pivot = len([x for x in self.local_pattern if x == "1"])
 
-        if len(self.local_pattern.replace("*", "")) > self.arity:
-            # TODO explain this...
-            self.local_pattern == "*1"
+        # Default is mask without a mapping, making it non operational
+        is_operation = False
+        # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits)
+        Ep_l = []
+        remaining_q = Qp_l
+        # If there are qubits to pivot
+        if len(Qp_l) > 1 and not (self.mapping is None):
+            # there is a operation associated with the motif
+            is_operation = True
 
-        l_pattern = self.wildcard_populate(self.local_pattern, self.arity)
+            # Get global pattern function based on the pattern attribute
+            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
+            # # Apply pattern function on all available qubits
+            # measured_q = self.mask_pattern_fn(Qp_l)
 
-        if len(self.pattern.replace("1", "1" * n_pivot).replace("*", "")) > len(Qc_l):
-            # TODO explain this...
-            print(
-                self.pattern.replace("1", "1" * n_pivot),
-                len(self.pattern.replace("1", "1" * n_pivot)),
-                len(Qc_l),
-            )
-            raise ValueError(
-                "Pattern, taking into account the local pattern, is longer than available qubits, please use a shorter pattern or more qubits"
-            )
+            merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+            # Count the number of 1s in the merge pattern
+            arity_p = merge_within_pop.count("1")
+            arity_r = self.arity - arity_p
 
-        self.pivot_pattern_fn = self.get_pivot_pattern_fn(
-            self.pattern.replace("1", "1" * n_pivot), Qc_l
-        )
+            # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
+            pivot_q = [
+                tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
+                for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
+            ]
 
-        # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
-        pivot_q = [
-            tuple(self.pivot_pattern_fn(Qc_l)[i * n_pivot : (i + 1) * n_pivot])
-            for i in range((len(self.pivot_pattern_fn(Qc_l)) + n_pivot - 1) // n_pivot)
-        ]
+            remaining_q = [q for q in Qp_l if not (q in pivot_q)]
 
-        remaining_q = [q for q in Qc_l if q not in [p for P in pivot_q for p in P]]
-
-        if self.arity > 1:
-            nq_available = len(remaining_q)
-
-            if nq_available > 0:
-                if self.stride % nq_available == 0:
-                    # TODO make this clear in documentation
-                    # warnings.warn(
-                    #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
-                    # )
-                    self.stride = 1
-
-                r_q = remaining_q[self.offset :: self.step]
-                if self.boundary == "periodic":
-                    while len(r_q) < len(remaining_q):
-                        r_q += [q for q in remaining_q if q not in r_q][:: self.step]
-                Ec_l = []
-                while len(r_q) > 0:
-                    t = [
-                        r_q[(j * self.stride) % len(r_q)]
-                        for j in range(self.arity - n_pivot)
-                    ]
-                    Ec_l.append(tuple(t))
-                    r_q = [q for q in r_q if q not in list(t)]
-
-                # Add the pivot qubit to each edge
-                Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
-
-                # edge order based on local pattern
-                dummy = []
-                for p, edge in zip(
-                    [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l
-                ):
-                    i_p = 0
-                    i_e = 0
-                    t = []
-                    for i in range(self.arity):
-                        if l_pattern[i] == "1":
-                            t.append(p[i_p])
-                            i_p += 1
-                        else:
-                            t.append(edge[i_e])
-                            i_e += 1
-                    dummy.append(tuple(t))
-                Ec_l = dummy
-
-                # Remove all that is not "complete"
-                Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
-                # Remove all containing duplicated qubits
-                Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
-
+            if len(remaining_q) == 0:
+                # Don't do anything if all qubits were removed
+                remaining_q = Qp_l
             else:
-                Ec_l = []
+                
+                E_p = self.cycle(
+                    pivot_q,
+                    stride=self.strides[0],
+                    step=self.steps[0],
+                    offset=self.offsets[0],
+                    boundary=self.boundaries[0],
+                    arity=arity_p,
+                )
+                # Generate edges for remaining split
+                E_r = self.cycle(
+                    remaining_q,
+                    stride=self.strides[1],
+                    step=self.steps[1],
+                    offset=self.offsets[1],
+                    boundary=self.boundaries[1],
+                    arity=arity_r,
+                )
+                # Generate edges for measured to remaining
+                if not (self.merge_between == None):
+                    # If there is a merge_between pattern
+                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                    E_r = pattern_fn(E_r)
 
-        else:
-            Ec_l = [p for p in pivot_q]
+                E_b = self.cycle_between_splits(
+                    E_a=E_p,
+                    E_b=E_r,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+                # Merge the two splits based on merge pattern
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        self.set_Q(Qc_l)
-
-        self.set_Qavail(Qc_l)
-        mapping = kwargs.get("mapping", None)
-        if mapping:
-            self.set_mapping(mapping)
-        # It is important that set_E gets called last, as sets of symbol creation for the motif
-        self.set_E(Ec_l)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_symbols(start_idx=start_idx)
-
+        super().__call__(
+            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+        )
         return self
 
     def __eq__(self, other):
-        if isinstance(other, Qpivot):
+        if isinstance(other, Qmask):
             self_attrs = vars(self)
             other_attrs = vars(other)
+
             for attr, value in self_attrs.items():
-                if attr not in other_attrs or other_attrs[attr] != value:
-                    return False
+                if not (attr == "mask_pattern_fn"):
+                    if attr not in other_attrs or other_attrs[attr] != value:
+                        return False
+
             return True
         return False
 
@@ -961,6 +865,94 @@ class Qpermute(Qmotif):
                     return False
             return True
         return False
+
+# class Qpivot_old(Qmotif):
+#     """
+#     A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
+#     """
+
+#     def __init__(
+#         self,
+#         pattern="1*",
+#         local_pattern="*1",
+#         stride=1,
+#         step=1,
+#         offset=0,
+#         boundary="open",
+#         **kwargs,
+#     ):
+#         pass
+
+#     def __call__(self, Qc_l, *args, **kwargs):
+       
+#         if self.arity > 1:
+#             nq_available = len(remaining_q)
+
+#             if nq_available > 0:
+#                 if self.stride % nq_available == 0:
+#                     # TODO make this clear in documentation
+#                     # warnings.warn(
+#                     #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
+#                     # )
+#                     self.stride = 1
+
+#                 r_q = remaining_q[self.offset :: self.step]
+#                 if self.boundary == "periodic":
+#                     while len(r_q) < len(remaining_q):
+#                         r_q += [q for q in remaining_q if q not in r_q][:: self.step]
+#                 Ec_l = []
+#                 while len(r_q) > 0:
+#                     t = [
+#                         r_q[(j * self.stride) % len(r_q)]
+#                         for j in range(self.arity - n_pivot)
+#                     ]
+#                     Ec_l.append(tuple(t))
+#                     r_q = [q for q in r_q if q not in list(t)]
+
+#                 # Add the pivot qubit to each edge
+#                 Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
+
+#                 # edge order based on local pattern
+#                 dummy = []
+#                 for p, edge in zip(
+#                     [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l
+#                 ):
+#                     i_p = 0
+#                     i_e = 0
+#                     t = []
+#                     for i in range(self.arity):
+#                         if l_pattern[i] == "1":
+#                             t.append(p[i_p])
+#                             i_p += 1
+#                         else:
+#                             t.append(edge[i_e])
+#                             i_e += 1
+#                     dummy.append(tuple(t))
+#                 Ec_l = dummy
+
+#                 # Remove all that is not "complete"
+#                 Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
+#                 # Remove all containing duplicated qubits
+#                 Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
+
+#             else:
+#                 Ec_l = []
+
+#         else:
+#             Ec_l = [p for p in pivot_q]
+
+#         self.set_Q(Qc_l)
+
+#         self.set_Qavail(Qc_l)
+#         mapping = kwargs.get("mapping", None)
+#         if mapping:
+#             self.set_mapping(mapping)
+#         # It is important that set_E gets called last, as sets of symbol creation for the motif
+#         self.set_E(Ec_l)
+#         start_idx = kwargs.get("start_idx", 0)
+#         self.set_symbols(start_idx=start_idx)
+
+#         return self
 
 
 class Qsplit(Qmotif):
