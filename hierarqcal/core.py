@@ -268,10 +268,18 @@ class Qmotif:
         else:
             if isinstance(self.mapping, Qhierarchy):
                 # If mapping was specified as sub-hierarchy, convert it to a qunitary
+                if any([ isinstance(symbol, sp.Symbol) for symbol in self.mapping.get_symbols()]):
+                    # if any symbols are symbolic, then we scrap them TODO ensure if we want to do this
+                    new_symbols=None
+                else:
+                    # If they are numeric
+                    new_symbols = list(self.mapping.get_symbols())
+                       
                 new_mapping = Qunitary(
                     function=None,
                     n_symbols=self.mapping.n_symbols,
                     arity=len(self.mapping.tail.Q),
+                    symbols=new_symbols,
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
