@@ -16,23 +16,146 @@ from hierarqcal import (
     # plot_motif,
     Qunitary,
 )
-N = 10
+
+n = 4
+qft = Qinit(n) + (
+    Qpivot(global_pattern="1*", merge_within="*1", mapping=Qunitary("h()^0"))
+    + Qpivot(mapping=Qunitary("cp(x)^01"), share_weights=False)
+    + Qmask("1*")
+) * (n)
+circuit = qft(backend="qiskit")
+circuit.draw("mpl")
+
+N = 8
+cnot = Qunitary("H()^0")
+pivot_test = (
+    Qinit(1)
+    + (
+        Qpivot(
+            global_pattern="1*",
+            merge_within="*1",
+            merge_between=None,
+            strides=[1, 1, 0],
+            steps=[1, 1, 1],
+            offsets=[0, 0, 0],
+            boundaries=["open", "open", "periodic"],
+            mapping=cnot,
+        )
+    )
+    * 2
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+
+N = 8
+cnot = Qunitary("cnot()^01")
+pivot_test = (
+    Qinit(N)
+    + (
+        Qmask("1*")
+        + Qpivot(
+            global_pattern="1*",
+            merge_within="*1",
+            merge_between=None,
+            strides=[1, 1, 0],
+            steps=[1, 1, 1],
+            offsets=[0, 0, 0],
+            boundaries=["open", "open", "periodic"],
+            mapping=cnot,
+        )
+    )
+    * 2
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+
+N = 8
+cnot = Qunitary("cnot()^01")
+pivot_test = Qinit(N) + Qpivot(
+    global_pattern="1*",
+    merge_within="*1",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 1, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=cnot,
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+ccnot = Qunitary("cnot()^03;cnot()^12")
+pivot_test = Qinit(N) + Qpivot(
+    global_pattern="*1",
+    merge_within="*11",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 1, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=ccnot,
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+pivot_test = Qinit(N) + Qpivot(
+    global_pattern="*1",
+    merge_within="*11",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 2, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=ccnot,
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+t = Qunitary("cnot()^02;cnot()^12")
+pivot_test = Qinit(N) + Qpivot(
+    global_pattern="*1*",
+    merge_within="*1",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 2, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=t,
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+
+pivot_test = Qinit(6) + Qpivot(
+    global_pattern="1*1",
+    merge_within="*1",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 1, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=cnot,
+)
+circuit = pivot_test(backend="qiskit")
+circuit.draw("mpl")
+
+#######################################
+
 u = Qunitary("cnot()^20;cnot()^21")
 
-#qft = Qinit(N) + Qpivot("1*", local_pattern="11*", offset=0, mapping=u, boundary=boundary)
-qft = (Qinit(N) 
-       + Qpivot(
-           global_pattern="1*",            
-           merge_within="11*",
-           pivot_pattern="11*",
-           merge_between=None,
-           strides=[1, 1, 0],
-           steps=[1, 1, 1],
-           offsets=[0, 0, 0],
-           boundaries=["open", "open", "periodic"],
-           mapping=u,
-       )
-       )
+# qft = Qinit(N) + Qpivot("1*", local_pattern="11*", offset=0, mapping=u, boundary=boundary)
+qft = Qinit(N) + Qpivot(
+    global_pattern="1*",
+    merge_within="11*",
+    merge_between=None,
+    strides=[1, 1, 0],
+    steps=[1, 1, 1],
+    offsets=[0, 0, 0],
+    boundaries=["open", "open", "periodic"],
+    mapping=u,
+)
 circuit = qft(backend="qiskit")
 circuit.draw("mpl")
 

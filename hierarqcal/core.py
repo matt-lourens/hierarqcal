@@ -944,27 +944,6 @@ class Qsplit(Qmotif):
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
-
-        # E_a_tmp = E_a[ :: step]
-        # while len(E_a_tmp) < len(E_a):
-        #     E_a_tmp += [e for e in E_b if e not in E_a_tmp][:: step]
-
-        # E_b_tmp = E_b[offset :: stride]
-        # if boundary == "periodic":
-        #     while len(E_b_tmp) < len(E_b):
-        #         E_b_tmp += [e for e in E_b if e not in E_b_tmp][:: stride]
-
-        # E = [
-        #     (
-        #         E_a_tmp[i],
-        #         E_b_tmp[i],
-        #     )
-        #     for i in range(len(E_a_tmp))
-        #     if i < len(E_b_tmp)
-        # ]
-
-        ##########################
-
         if boundary == "open":
             E = [
                 (
@@ -1419,7 +1398,6 @@ class Qpivot(Qsplit):
         global_pattern="1*",
         merge_within="1*",
         merge_between=None,
-        pivot_pattern="1*",
         strides=[1, 1, 0],
         steps=[1, 1, 1],
         offsets=[0, 0, 0],
@@ -1436,7 +1414,6 @@ class Qpivot(Qsplit):
         if isinstance(offsets, int):
             offsets = [offsets] * 3
 
-        self.pivot_pattern = pivot_pattern
 
         super().__init__(
             global_pattern=global_pattern,
@@ -1471,27 +1448,19 @@ class Qpivot(Qsplit):
         # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits)
         Ep_l = []
         remaining_q = Qp_l
-        # If there are qubits to pivot
-        if len(Qp_l) > 1 and not (self.mapping is None):
+        # TODO Redundant
+        if self.arity<=len(Qp_l): #len(Qp_l) >= 1 and not (self.mapping is None):
             # there is a operation associated with the motif
             is_operation = True
 
-            pivot_pattern = self.wildcard_populate(self.pivot_pattern, self.arity)
             merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
             # Count the number of 1s in the merge pattern
-            arity_p = pivot_pattern.count("1")
+            arity_p = self.merge_within.count("1")
             arity_r = self.arity - arity_p
 
             # Get global pattern function based on the pattern attribute
-            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1',pivot_pattern), len(Qp_l))
-            # # Apply pattern function on all available qubits
-            # measured_q = self.mask_pattern_fn(Qp_l)
-
-            # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
-            # pivot_q = [
-            #     tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
-            #     for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
-            # ]
+            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1','1'*arity_p), len(Qp_l))
+ 
             pivot_q = [
                 p
                 for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
@@ -1500,21 +1469,17 @@ class Qpivot(Qsplit):
 
             remaining_q = [q for q in Qp_l if not (q in pivot_q)]
 
-            if len(remaining_q) == 0:
-                # Don't do anything if all qubits were removed
-                remaining_q = Qp_l
-            else:
-                
-                E_p = self.cycle(
-                    pivot_q,
-                    stride=self.strides[0],
-                    step=self.steps[0],
-                    offset=self.offsets[0],
-                    boundary=self.boundaries[0],
-                    arity=arity_p,
-                )
-
-                # Generate edges for remaining split
+             
+            E_p = self.cycle(
+                pivot_q,
+                stride=self.strides[0],
+                step=self.steps[0],
+                offset=self.offsets[0],
+                boundary=self.boundaries[0],
+                arity=arity_p,
+            )
+            if len(remaining_q)>0:
+            # Generate edges for remaining split
                 E_r = self.cycle(
                     remaining_q,
                     stride=self.strides[1],
@@ -1524,11 +1489,10 @@ class Qpivot(Qsplit):
                     arity=arity_r,
                 )
                 
-                E_tmp=E_p
+                E_tmp=E_p.copy()
                 while len(E_tmp+E_p)<len(E_r):
                     E_tmp += E_p
-                E_p = E_tmp
-
+                E_p = E_tmp.copy()
 
                 # Generate edges for measured to remaining
                 if not (self.merge_between == None):
@@ -1536,22 +1500,74 @@ class Qpivot(Qsplit):
                     pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
                     E_r = pattern_fn(E_r)
 
+                # TODO is E_r empty then E_b = E_p
+            
                 E_b = self.cycle_between_splits(
-                    E_a=E_p,
-                    E_b=E_r,
+                    E_a=E_r,
+                    E_b=E_p,
                     stride=self.strides[2],
                     step=self.steps[2],
                     offset=self.offsets[2],
                     boundary=self.boundaries[2],
                 )
+
+                E_b = [(e[1],e[0]) for e in E_b]
+                
                 # Merge the two splits based on merge pattern
                 Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+            else:
+                Ep_l = E_p
 
         super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+            Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=is_operation, **kwargs
         )
         return self
 
+    def cycle_between_splits(
+        self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
+    ):
+
+        # E_a_tmp = E_a[::step]
+        # while len(E_a_tmp) < len(E_a):
+        #     E_a_tmp += [e for e in E_b if e not in E_a_tmp][:: step]
+
+        # E_b_tmp = E_b[offset :: stride]
+        # if boundary == "periodic":
+        #     while len(E_b_tmp) < len(E_b):
+        #         E_b_tmp += [e for e in E_b if e not in E_b_tmp][:: stride]
+
+        # E = [
+        #     (
+        #         E_a_tmp[i],
+        #         E_b_tmp[i],
+        #     )
+        #     for i in range(len(E_a_tmp))
+        #     if i < len(E_b_tmp)
+        # ]
+
+        ##########################
+
+        if boundary == "open":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride)],
+                )
+                for i in range(offset, len(E_a), step)
+                if (i + stride) < len(E_b)
+            ]
+        elif boundary == "periodic":
+                E = [
+                    (
+                        E_a[i],
+                        E_b[(i + stride) % len(E_b)],
+                    )
+                    for i in range(offset, len(E_a), step)
+                ]
+        else:
+            raise Exception("Boundary must be either open or periodic")
+        return E
+    
     def __eq__(self, other):
         if isinstance(other, Qmask):
             self_attrs = vars(self)
