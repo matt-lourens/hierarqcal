@@ -940,9 +940,31 @@ class Qsplit(Qmotif):
                 raise Exception("Pattern must be a string or a lambda function")
         return pattern_fn
 
+
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
+
+        # E_a_tmp = E_a[ :: step]
+        # while len(E_a_tmp) < len(E_a):
+        #     E_a_tmp += [e for e in E_b if e not in E_a_tmp][:: step]
+
+        # E_b_tmp = E_b[offset :: stride]
+        # if boundary == "periodic":
+        #     while len(E_b_tmp) < len(E_b):
+        #         E_b_tmp += [e for e in E_b if e not in E_b_tmp][:: stride]
+
+        # E = [
+        #     (
+        #         E_a_tmp[i],
+        #         E_b_tmp[i],
+        #     )
+        #     for i in range(len(E_a_tmp))
+        #     if i < len(E_b_tmp)
+        # ]
+
+        ##########################
+
         if boundary == "open":
             E = [
                 (
@@ -953,34 +975,16 @@ class Qsplit(Qmotif):
                 if (i + stride) < len(E_b)
             ]
         elif boundary == "periodic":
-            E = [
-                (
-                    E_a[i],
-                    E_b[(i + stride) % len(E_b)],
-                )
-                for i in range(offset, len(E_a), step)
-            ]
+                E = [
+                    (
+                        E_a[i],
+                        E_b[(i + stride) % len(E_b)],
+                    )
+                    for i in range(offset, len(E_a), step)
+                ]
         else:
             raise Exception("Boundary must be either open or periodic")
         return E
-
-# edge order based on local pattern
-#                 dummy = []
-#                 for p, edge in zip(
-#                     [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l
-#                 ):
-#                     i_p = 0
-#                     i_e = 0
-#                     t = []
-#                     for i in range(self.arity):
-#                         if l_pattern[i] == "1":
-#                             t.append(p[i_p])
-#                             i_p += 1
-#                         else:
-#                             t.append(edge[i_e])
-#                             i_e += 1
-#                     dummy.append(tuple(t))
-#                 Ec_l = dummy
 
     def merge_within_splits(self, E, merge_pattern):
         E_out = []
@@ -1415,6 +1419,7 @@ class Qpivot(Qsplit):
         global_pattern="1*",
         merge_within="1*",
         merge_between=None,
+        pivot_pattern="1*",
         strides=[1, 1, 0],
         steps=[1, 1, 1],
         offsets=[0, 0, 0],
@@ -1430,6 +1435,9 @@ class Qpivot(Qsplit):
             steps = [steps] * 3
         if isinstance(offsets, int):
             offsets = [offsets] * 3
+
+        self.pivot_pattern = pivot_pattern
+
         super().__init__(
             global_pattern=global_pattern,
             merge_within=merge_within,
@@ -1468,20 +1476,26 @@ class Qpivot(Qsplit):
             # there is a operation associated with the motif
             is_operation = True
 
+            pivot_pattern = self.wildcard_populate(self.pivot_pattern, self.arity)
+            merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+            # Count the number of 1s in the merge pattern
+            arity_p = pivot_pattern.count("1")
+            arity_r = self.arity - arity_p
+
             # Get global pattern function based on the pattern attribute
-            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
+            self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1',pivot_pattern), len(Qp_l))
             # # Apply pattern function on all available qubits
             # measured_q = self.mask_pattern_fn(Qp_l)
 
-            merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
-            # Count the number of 1s in the merge pattern
-            arity_p = merge_within_pop.count("1")
-            arity_r = self.arity - arity_p
-
             # group every n_pivot elements of self.pivot_pattern_fn(Qc_l) into a tuple
+            # pivot_q = [
+            #     tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
+            #     for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
+            # ]
             pivot_q = [
-                tuple(self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p])
+                p
                 for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
+                for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
             ]
 
             remaining_q = [q for q in Qp_l if not (q in pivot_q)]
@@ -1499,6 +1513,7 @@ class Qpivot(Qsplit):
                     boundary=self.boundaries[0],
                     arity=arity_p,
                 )
+
                 # Generate edges for remaining split
                 E_r = self.cycle(
                     remaining_q,
@@ -1508,6 +1523,13 @@ class Qpivot(Qsplit):
                     boundary=self.boundaries[1],
                     arity=arity_r,
                 )
+                
+                E_tmp=E_p
+                while len(E_tmp+E_p)<len(E_r):
+                    E_tmp += E_p
+                E_p = E_tmp
+
+
                 # Generate edges for measured to remaining
                 if not (self.merge_between == None):
                     # If there is a merge_between pattern
