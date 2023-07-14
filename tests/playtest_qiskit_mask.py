@@ -14,6 +14,87 @@ from hierarqcal import (
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2, U3
 
+
+n = 5
+N = 2 ** (2 * (n) - 3)
+random_int = np.random.randint(0, N)
+target_string = bin(random_int)[2:].zfill(n-3)
+print(int((np.pi / 2 * np.sqrt(N) - 1) / 2), "interactions of Grover")
+print("With target", target_string)
+print("Search space size", N, "Qubit", 2 * (n) - 3)
+# Ration around the zero state but an angle of pi
+H = Qunitary("H()^0")
+X = Qunitary("X()^0")
+H_bottom = Qpivot(mapping=H, global_pattern="*1")
+
+U_psi = Qcycle(mapping=H)
+U_T = Qpivot(mapping=X, global_pattern=target_string)
+U_t = Qpivot(mapping=H, global_pattern="*1")
+U_t += Qpivot(
+    mapping=Qunitary("cp(x)^01", symbols=[np.pi / 2]),
+    global_pattern="*1",
+    merge_within="1*",
+)
+U_t += Qpivot(
+    mapping=Qunitary("cnot()^01;cp(x)^12;cnot()^01", symbols=[np.pi / 2]),
+    global_pattern="*1",
+    merge_within="*1",
+)
+U_t += Qpivot(mapping=H, global_pattern="*1")
+
+U_toffoli = Qinit(3) + U_t
+
+
+maskAncillas = Qmask("0" + "01" * (n - 3) + "00")
+multiCZ = (
+    Qcycle(step=2, mapping=U_toffoli, boundary="open")
+    + Qmask("*1")
+    + Qcycle(
+        step=2, mapping=U_toffoli, share_weights=True, boundary="open", edge_order=[-1]
+    )
+    + Qunmask("previous")
+)
+
+U_rotate = H_bottom + Qunmask("previous") + multiCZ + maskAncillas + H_bottom
+
+U_oracle = U_T + U_rotate + U_T
+U_defuse = U_psi + U_rotate + U_psi
+
+ancilla_str = "0" + "01" * (n - 3) + "00"
+q_names = [f"q_{i}" if ancilla_str[i] == "0" else f"a_{i}" for i in range(2 * n - 3)]
+U = (
+    Qinit(q_names)
+    + U_psi
+    + (maskAncillas + U_oracle + U_defuse) * int((np.pi / 2 * np.sqrt(N) - 1) / 2)
+)  # int((np.pi/2*np.sqrt(N)-1)/2)
+
+circuit = U(backend="qiskit", barriers=False)
+circuit.draw("mpl")
+# Add measurements
+circuit.measure_all()
+
+# execute circuit
+from qiskit import Aer, execute
+
+shots=1000
+aer_backend = Aer.get_backend("qasm_simulator")
+job = execute(circuit, aer_backend, shots=shots)
+result = job.result()
+counts = result.get_counts(circuit)
+
+print(f"Counts: {counts}")
+# get most likely result
+most_likely = result.get_counts(circuit).most_frequent()
+output_wo_ancilla = ''.join([most_likely[i]  for i in range(2 * n - 3) if ancilla_str[i] == "1" ] )
+# Get count of most likely
+most_likely_count = result.get_counts(circuit).get(most_likely)
+print(
+    f"target string: {target_string}\n returned string: {output_wo_ancilla}\n counts: {most_likely_count}\n shots {shots}"
+)
+
+circuit.draw("mpl")
+
+
 # Strides between, open between
 # N = 8
 # for stride in range(2 * N):
@@ -277,8 +358,6 @@ from hierarqcal.qiskit.qiskit_circuits import V2, U2, U3
 # hierq = Qinit(N) + c1 + (m1+c2)*int(np.log2(N))
 # circuit = hierq(backend="qiskit")
 # circuit.draw("mpl")
-
-
 
 
 print("hi")
