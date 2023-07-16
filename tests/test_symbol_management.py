@@ -125,6 +125,7 @@ def test_symbol_function_share_weights():
         expectation: the numeric symbol should be transformed by the symbol_fn based on the # edge it is.
     """
     # === dev ===
+    nq = 5
     arity = 2
     motif = Qcycle
     symbols = [np.pi]
@@ -157,6 +158,7 @@ def test_symbol_function_by_idx():
         TODO finish test, I don't think share weights should influence the ne functions.
     """
     # === dev ===
+    nq = 10
     arity = 2
     motif = Qcycle
     symbols = [np.pi, np.sqrt(2)]
@@ -193,7 +195,7 @@ def test_symbol_function_by_idx():
     )
     test_11 = Qinit(nq) + motif(mapping=u, share_weights=True, symbol_fn=symbol_fn) * 2
     circuit = test_00(backend="qiskit")
-    circuit.draw("mpl")
+    # circuit.draw("mpl")
 
 
 def test_symbol_function_sub():
@@ -206,15 +208,15 @@ def test_symbol_function_sub():
     # === dev ===
     nq1 = 3
     nq2 = 10
-    nq3=20
+    nq3 = 20
     motif = Qcycle
     symbols = [-1, 1]
     symbol_fn = lambda x, ns, ne: x / (ne)
     u = Qunitary("crx(x)^01;cry(y)^10", symbols=symbols)
     # === dev ===
     # Test across idx
-    test_0 = Qinit(nq1) + motif(mapping=u, share_weights=False, symbol_fn=symbol_fn)
-    test_1 = Qinit(nq1) + motif(mapping=u, share_weights=True, symbol_fn=symbol_fn)
+    test_0 = Qinit(nq1) + motif(mapping=u, share_weights=False)
+    test_1 = Qinit(nq1) + motif(mapping=u, share_weights=True)
 
     test_00 = Qinit(nq2) + motif(
         step=3, mapping=test_0, share_weights=False, boundary="open"
@@ -263,12 +265,11 @@ def test_symbol_function_sub():
         symbol_fn=symbol_fn,
     )
 
-    test_000 = Qinit(nq3) + motif(step=nq2,
-        mapping=test_00,
-        share_weights=True,
-        symbol_fn=symbol_fn)
+    test_000 = Qinit(nq3) + motif(
+        step=nq2, mapping=test_00, share_weights=True, symbol_fn=symbol_fn
+    )
     circuit = test_000(backend="qiskit", barriers=True)
-    circuit.draw("mpl")
+    # circuit.draw("mpl")
 
 
 if __name__ == "__main__":
@@ -284,4 +285,4 @@ if __name__ == "__main__":
     # test_motif_share_weights_numeric(nq, motif, arity, symbols)
     # test_symbol_function_share_weights()
     # test_symbol_function_by_idx()
-    # test_symbol_function_sub()
+    test_symbol_function_sub()
