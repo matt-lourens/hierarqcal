@@ -464,11 +464,12 @@ class Qmotif:
             start_idx (int): Starting index of symbols, this is used when :py:class:Qhierarchy updates the stack, it loops through each motif counting symbols, at each motif it updates the symbols (inderectly calls this function) and send the current count as starting inde so that correct sympy symbol indices are used.
         """
         if not (self.mapping is None) and len(self.E) > 0:
+            symbol_fn = self.symbol_fn
             if symbols is None:
-                # if (
-                #     isinstance(next(self.get_symbols(), False), sp.Symbol)
-                #     or len(list(self.get_symbols())) == 0
-                # ):
+                if (
+                    isinstance(next(self.get_symbols(), False), sp.Symbol)
+                    or len(list(self.get_symbols())) == 0
+                ):
                     # If no new symbols are provided and current symbols are still symbolic or no symbols exist
                     # Generate symbols, this is used when Qhierarchy updates the stack.
                     if self.mapping.symbols is None:
@@ -489,20 +490,22 @@ class Qmotif:
                                 )
                                 for symbol in symbols
                             ]
-                # else:
-                #     # If no new symbols are provided but old symbols exist
-                #     symbols = list(self.get_symbols())
-                #     if len(symbols) != self.mapping.n_symbols * (
-                #         len(self.E) if not (self.share_weights) else 1
-                #     ):
-                #         # If old sybmbols don't match current setup
-                #         symbols = sp.symbols(
-                #             f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
-                #         )
-                #         raise Warning(
-                #             f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
-                #         )
+                else:
+                    # If no new symbols are provided but old symbols exist
+                    symbols = list(self.get_symbols())
+                    if len(symbols) != self.mapping.n_symbols * (
+                        len(self.E) if not (self.share_weights) else 1
+                    ):
+                        # If old symbols don't match current setup
+                        symbols = sp.symbols(
+                            f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
+                        )
+                        raise Warning(
+                            f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
+                        )
             else:
+                # Don't apply symbol fn (just identity) if symbols are set explicitly
+                symbol_fn = lambda x, ns, ne: x
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
                 ):
@@ -517,7 +520,7 @@ class Qmotif:
                 tmp_mapping.set_edge(edge)
                 tmp_mapping.set_symbols(
                     [
-                        self.symbol_fn(symbols[idx], idx + 1, n_edge)
+                        symbol_fn(symbols[idx], idx + 1, n_edge)
                         for idx in range(idx, idx + self.mapping.n_symbols, 1)
                     ]
                 )
@@ -1786,7 +1789,7 @@ class Qhierarchy:
             Qhierarchy: A new Qhierarchy object with the new motif added to the stack.
         """
         motif = deepcopy(motif)
-        #old_head = deepcopy(self.head) TODO test
+        # old_head = deepcopy(self.head) TODO test
         self.head.set_next(motif)
         self.head.next.set_prev(self.head)
         self.head = self.head.next
@@ -1806,9 +1809,7 @@ class Qhierarchy:
             else:
                 # If no function mapping was provided
                 mapping = getattr(Default_Mappings, motif.type.name).value
-            self.head(
-                self.head.prev.Q_avail, mapping=mapping, q_initial=self.tail.Q
-            )
+            self.head(self.head.prev.Q_avail, mapping=mapping, q_initial=self.tail.Q)
             # self.update_symbols(motif) TODO
 
         else:
@@ -1817,7 +1818,7 @@ class Qhierarchy:
                 self.head.prev.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
             )
             # self.update_symbols(motif) TODO
-        
+
         self.n_symbols = len([_ for _ in self.get_symbols()])
         return self
 
