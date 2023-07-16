@@ -1786,10 +1786,10 @@ class Qhierarchy:
             Qhierarchy: A new Qhierarchy object with the new motif added to the stack.
         """
         motif = deepcopy(motif)
-        new_hierarchy = deepcopy(self)
-        new_hierarchy.head.set_next(motif)
-        new_hierarchy.head.next.set_prev(new_hierarchy.head)
-        new_hierarchy.head = new_hierarchy.head.next
+        #old_head = deepcopy(self.head) TODO test
+        self.head.set_next(motif)
+        self.head.next.set_prev(self.head)
+        self.head = self.head.next
 
         if motif.is_operation & motif.is_default_mapping:
             mapping = None
@@ -1806,20 +1806,20 @@ class Qhierarchy:
             else:
                 # If no function mapping was provided
                 mapping = getattr(Default_Mappings, motif.type.name).value
-            new_hierarchy.head(
-                self.head.Q_avail, mapping=mapping, q_initial=self.tail.Q
+            self.head(
+                self.head.prev.Q_avail, mapping=mapping, q_initial=self.tail.Q
             )
             # self.update_symbols(motif) TODO
 
         else:
             n_symbols = len([_ for _ in self.get_symbols()])
-            new_hierarchy.head(
-                self.head.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
+            self.head(
+                self.head.prev.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
             )
             # self.update_symbols(motif) TODO
-
-        new_hierarchy.n_symbols = len([_ for _ in new_hierarchy.get_symbols()])
-        return new_hierarchy
+        
+        self.n_symbols = len([_ for _ in self.get_symbols()])
+        return self
 
     def extend(self, motifs):
         """
