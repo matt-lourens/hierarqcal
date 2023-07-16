@@ -64,8 +64,8 @@ class Qunitary:
             self.arity = len(unique_bits)
         else:
             self.circuit_instructions = None
-        self.n_symbols = len(symbols) if not (symbols is None) else n_symbols
-        self.arity = arity
+            self.n_symbols = len(symbols) if not (symbols is None) else n_symbols
+            self.arity = arity
         self.symbols = symbols
         self.edge = None
 
