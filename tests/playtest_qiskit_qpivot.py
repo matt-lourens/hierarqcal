@@ -17,6 +17,19 @@ from hierarqcal import (
     Qunitary,
 )
 
+n = 10
+random_int = np.random.randint(0, 2**n)
+Target_string = bin(random_int)[2:].zfill(n)
+print('With target',Target_string)
+
+test = Qinit(n) + Qpivot(mapping=Qunitary("X()^0"), global_pattern=Target_string)
+# create the circuit using the chose backend
+circuit_test = test(backend="qiskit", barriers=True)#circuit.copy()
+circuit_test.draw()
+
+
+
+
 n = 4
 qft = Qinit(n) + (
     Qpivot(global_pattern="1*", merge_within="*1", mapping=Qunitary("h()^0"))
