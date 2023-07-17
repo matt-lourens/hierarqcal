@@ -64,7 +64,7 @@ class Qunitary:
             self.arity = len(unique_bits)
         else:
             self.circuit_instructions = None
-            self.n_symbols = n_symbols
+            self.n_symbols = len(symbols) if not (symbols is None) else n_symbols
             self.arity = arity
         self.symbols = symbols
         self.edge = None
@@ -223,7 +223,7 @@ class Qmotif:
         next (:py:class:`Qmotif`, optional): Next motif in the stack. Defaults to None.
         prev (Qmotif, optional): Previous motif in the stack. Defaults to None.
         mapping (:py:class:`Qunitary` or :py:class:`Qhierarchy`, optional): Either a :py:class:`Qunitary` instance or a :py:class:`Qhierarchy` that will be converted to an :py:class:`Qunitary` object. Defaults to None.
-        symbols (list, optional): List of symbol values (rotation angles). Each element in the list can be a sympy symbol, complex number, or qiskit parameter. Defaults to None.
+        symbol_fn (lambda): TODO
         is_default_mapping (bool, optional): Flag to determine if default mapping is used. Defaults to True.
         is_operation (bool, optional): Flag to determine if the motif is an operation. Defaults to True.
         share_weights (bool, optional): Flag to determine if weights are shared within a motif. Defaults to True.
@@ -238,7 +238,7 @@ class Qmotif:
         next=None,
         prev=None,
         mapping=None,
-        symbols=None,
+        symbol_fn=lambda x, ns, ne: x,
         is_default_mapping=True,
         is_operation=True,
         share_weights=True,
@@ -253,7 +253,7 @@ class Qmotif:
         self.edge_order = edge_order
         # higher level graph
         self.mapping = mapping
-        self.symbols = symbols
+        self.symbol_fn = symbol_fn
         self.share_weights = share_weights
         self.edge_mapping = (
             []
@@ -268,13 +268,18 @@ class Qmotif:
         else:
             if isinstance(self.mapping, Qhierarchy):
                 # If mapping was specified as sub-hierarchy, convert it to a qunitary
-                if any([ isinstance(symbol, sp.Symbol) for symbol in self.mapping.get_symbols()]):
+                if any(
+                    [
+                        isinstance(symbol, sp.Symbol)
+                        for symbol in self.mapping.get_symbols()
+                    ]
+                ):
                     # if any symbols are symbolic, then we scrap them TODO ensure if we want to do this
-                    new_symbols=None
+                    new_symbols = None
                 else:
                     # If they are numeric
                     new_symbols = list(self.mapping.get_symbols())
-                       
+
                 new_mapping = Qunitary(
                     function=None,
                     n_symbols=self.mapping.n_symbols,
@@ -459,6 +464,7 @@ class Qmotif:
             start_idx (int): Starting index of symbols, this is used when :py:class:Qhierarchy updates the stack, it loops through each motif counting symbols, at each motif it updates the symbols (inderectly calls this function) and send the current count as starting inde so that correct sympy symbol indices are used.
         """
         if not (self.mapping is None) and len(self.E) > 0:
+            symbol_fn = self.symbol_fn
             if symbols is None:
                 if (
                     isinstance(next(self.get_symbols(), False), sp.Symbol)
@@ -473,13 +479,24 @@ class Qmotif:
                         )
                     else:
                         symbols = self.mapping.symbols
+                        if len(symbols) != self.mapping.n_symbols * (
+                            len(self.E) if not (self.share_weights) else 1
+                        ):
+                            # If old symbols don't match current setup
+                            symbols = [
+                                symbol
+                                for _ in range(
+                                    (len(self.E) if not (self.share_weights) else 1)
+                                )
+                                for symbol in symbols
+                            ]
                 else:
                     # If no new symbols are provided but old symbols exist
                     symbols = list(self.get_symbols())
                     if len(symbols) != self.mapping.n_symbols * (
                         len(self.E) if not (self.share_weights) else 1
                     ):
-                        # If old sybmbols don't match current setup
+                        # If old symbols don't match current setup
                         symbols = sp.symbols(
                             f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
                         )
@@ -487,6 +504,8 @@ class Qmotif:
                             f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
                         )
             else:
+                # Don't apply symbol fn (just identity) if symbols are set explicitly
+                symbol_fn = lambda x, ns, ne: x
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
                 ):
@@ -495,13 +514,20 @@ class Qmotif:
                     )
             self.edge_mapping = []
             idx = 0
+            n_edge = 1
             for edge in self.E:
                 tmp_mapping = deepcopy(self.mapping)
                 tmp_mapping.set_edge(edge)
-                tmp_mapping.set_symbols(symbols[idx : idx + self.mapping.n_symbols])
+                tmp_mapping.set_symbols(
+                    [
+                        symbol_fn(symbols[idx], idx + 1, n_edge)
+                        for idx in range(idx, idx + self.mapping.n_symbols, 1)
+                    ]
+                )
                 if not (self.share_weights):
                     idx += self.mapping.n_symbols
                 self.edge_mapping.append(tmp_mapping)
+                n_edge += 1
             self.n_symbols = len(symbols)
 
     def cycle(self, Q, stride=1, step=1, offset=0, boundary="periodic", arity=2):
@@ -676,7 +702,6 @@ class Qcycle(Qmotif):
         return False
 
 
-
 class Qpermute(Qmotif):
     """
     A dense motif, it connects unitaries to all possible combinations of qubits (all possible edges given Q) in the quantum circuit.
@@ -735,6 +760,7 @@ class Qpermute(Qmotif):
             return True
         return False
 
+
 # class Qpivot_old(Qmotif):
 #     """
 #     A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
@@ -753,7 +779,7 @@ class Qpermute(Qmotif):
 #         pass
 
 #     def __call__(self, Qc_l, *args, **kwargs):
-       
+
 #         if self.arity > 1:
 #             nq_available = len(remaining_q)
 
@@ -948,7 +974,6 @@ class Qsplit(Qmotif):
                 raise Exception("Pattern must be a string or a lambda function")
         return pattern_fn
 
-
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
@@ -962,13 +987,13 @@ class Qsplit(Qmotif):
                 if (i + stride) < len(E_b)
             ]
         elif boundary == "periodic":
-                E = [
-                    (
-                        E_a[i],
-                        E_b[(i + stride) % len(E_b)],
-                    )
-                    for i in range(offset, len(E_a), step)
-                ]
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride) % len(E_b)],
+                )
+                for i in range(offset, len(E_a), step)
+            ]
         else:
             raise Exception("Boundary must be either open or periodic")
         return E
@@ -1422,7 +1447,6 @@ class Qpivot(Qsplit):
         if isinstance(offsets, int):
             offsets = [offsets] * 3
 
-
         super().__init__(
             global_pattern=global_pattern,
             merge_within=merge_within,
@@ -1438,7 +1462,7 @@ class Qpivot(Qsplit):
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
-        
+
         Args:
             Qp_l (list): List of available qubits.
             *args: Variable length argument list.
@@ -1458,23 +1482,45 @@ class Qpivot(Qsplit):
         Ep_l = []
 
         # TODO Redundant
+<<<<<<< HEAD
         
         merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
         # Count the number of 1s in the merge pattern
         arity_p = self.merge_within.count("1")
         arity_r = self.arity - arity_p
+=======
+        if self.arity <= len(Qp_l):  # len(Qp_l) >= 1 and not (self.mapping is None):
+            # there is a operation associated with the motif
+            is_operation = True
+>>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         # Get global pattern function based on the pattern attribute
         self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1','1'*arity_p), len(Qp_l))
 
+<<<<<<< HEAD
         pivot_q = [
             p
             for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
             for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
         ]
+=======
+            # Get global pattern function based on the pattern attribute
+            self.pivot_pattern_fn = self.get_pattern_fn(
+                self.global_pattern.replace("1", "1" * arity_p), len(Qp_l)
+            )
+
+            pivot_q = [
+                p
+                for i in range(
+                    (len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p
+                )
+                for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
+            ]
+>>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         remaining_q = [q for q in Qp_l if not (q in pivot_q)]
 
+<<<<<<< HEAD
             
         E_p = self.cycle(
             pivot_q,
@@ -1524,6 +1570,55 @@ class Qpivot(Qsplit):
             Ep_l = self.merge_within_splits(E_b, merge_within_pop)
         else:
             Ep_l = E_p
+=======
+            E_p = self.cycle(
+                pivot_q,
+                stride=self.strides[0],
+                step=self.steps[0],
+                offset=self.offsets[0],
+                boundary=self.boundaries[0],
+                arity=arity_p,
+            )
+            if len(remaining_q) > 0:
+                # Generate edges for remaining split
+                E_r = self.cycle(
+                    remaining_q,
+                    stride=self.strides[1],
+                    step=self.steps[1],
+                    offset=self.offsets[1],
+                    boundary=self.boundaries[1],
+                    arity=arity_r,
+                )
+
+                E_tmp = E_p.copy()
+                while len(E_tmp + E_p) < len(E_r):
+                    E_tmp += E_p
+                E_p = E_tmp.copy()
+
+                # Generate edges for measured to remaining
+                if not (self.merge_between == None):
+                    # If there is a merge_between pattern
+                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                    E_r = pattern_fn(E_r)
+
+                # TODO is E_r empty then E_b = E_p
+
+                E_b = self.cycle_between_splits(
+                    E_a=E_r,
+                    E_b=E_p,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+
+                E_b = [(e[1], e[0]) for e in E_b]
+
+                # Merge the two splits based on merge pattern
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+            else:
+                Ep_l = E_p
+>>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=is_operation, **kwargs
@@ -1533,7 +1628,6 @@ class Qpivot(Qsplit):
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
-
         # E_a_tmp = E_a[::step]
         # while len(E_a_tmp) < len(E_a):
         #     E_a_tmp += [e for e in E_b if e not in E_a_tmp][:: step]
@@ -1564,17 +1658,17 @@ class Qpivot(Qsplit):
                 if (i + stride) < len(E_b)
             ]
         elif boundary == "periodic":
-                E = [
-                    (
-                        E_a[i],
-                        E_b[(i + stride) % len(E_b)],
-                    )
-                    for i in range(offset, len(E_a), step)
-                ]
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride) % len(E_b)],
+                )
+                for i in range(offset, len(E_a), step)
+            ]
         else:
             raise Exception("Boundary must be either open or periodic")
         return E
-    
+
     def __eq__(self, other):
         if isinstance(other, Qmask):
             self_attrs = vars(self)
@@ -1587,8 +1681,6 @@ class Qpivot(Qsplit):
 
             return True
         return False
-
-
 
 
 class Qhierarchy:
@@ -1764,10 +1856,10 @@ class Qhierarchy:
             Qhierarchy: A new Qhierarchy object with the new motif added to the stack.
         """
         motif = deepcopy(motif)
-        new_hierarchy = deepcopy(self)
-        new_hierarchy.head.set_next(motif)
-        new_hierarchy.head.next.set_prev(new_hierarchy.head)
-        new_hierarchy.head = new_hierarchy.head.next
+        # old_head = deepcopy(self.head) TODO test
+        self.head.set_next(motif)
+        self.head.next.set_prev(self.head)
+        self.head = self.head.next
 
         if motif.is_operation & motif.is_default_mapping:
             mapping = None
@@ -1784,20 +1876,18 @@ class Qhierarchy:
             else:
                 # If no function mapping was provided
                 mapping = getattr(Default_Mappings, motif.type.name).value
-            new_hierarchy.head(
-                self.head.Q_avail, mapping=mapping, q_initial=self.tail.Q
-            )
+            self.head(self.head.prev.Q_avail, mapping=mapping, q_initial=self.tail.Q)
             # self.update_symbols(motif) TODO
 
         else:
             n_symbols = len([_ for _ in self.get_symbols()])
-            new_hierarchy.head(
-                self.head.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
+            self.head(
+                self.head.prev.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
             )
             # self.update_symbols(motif) TODO
 
-        new_hierarchy.n_symbols = len([_ for _ in new_hierarchy.get_symbols()])
-        return new_hierarchy
+        self.n_symbols = len([_ for _ in self.get_symbols()])
+        return self
 
     def extend(self, motifs):
         """

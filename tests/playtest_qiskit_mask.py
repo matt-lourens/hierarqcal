@@ -14,86 +14,60 @@ from hierarqcal import (
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2, U3
 
+# n = 10
+# N = 2**(2*(n)-3)
+# random_int = 1#np.random.randint(0, 2**n)
+# Target_string = bin(random_int)[2:].zfill(n)
+# N_iterations = 20
+# print('Number of qubits', n)
+# print('Number of ancillas', 2*(n)-3-n)
+# print('Total number of qubits', 2*(n)-3)
+# print('Search space size', 2**n)
+# print('With target',Target_string)
 
-n = 5
-N = 2 ** (2 * (n) - 3)
-random_int = np.random.randint(0, N)
-target_string = bin(random_int)[2:].zfill(n-3)
-print(int((np.pi / 2 * np.sqrt(N) - 1) / 2), "interactions of Grover")
-print("With target", target_string)
-print("Search space size", N, "Qubit", 2 * (n) - 3)
-# Ration around the zero state but an angle of pi
-H = Qunitary("H()^0")
-X = Qunitary("X()^0")
-H_bottom = Qpivot(mapping=H, global_pattern="*1")
+# print('\nInteractions of Grover to perform', N_iterations)
+# print('Optimal number of iterations', int((np.pi/2/np.arctan(1/np.sqrt(2**n))-1)/2))
+# # Ration around the zero state but an angle of pi
+# H = Qunitary("H()^0")
+# X = Qunitary("X()^0")
+# H_bottom = Qpivot(mapping=H, global_pattern="*1")
 
-U_psi = Qcycle(mapping=H)
-U_T = Qpivot(mapping=X, global_pattern=target_string)
-U_t = Qpivot(mapping=H, global_pattern="*1")
-U_t += Qpivot(
-    mapping=Qunitary("cp(x)^01", symbols=[np.pi / 2]),
-    global_pattern="*1",
-    merge_within="1*",
-)
-U_t += Qpivot(
-    mapping=Qunitary("cnot()^01;cp(x)^12;cnot()^01", symbols=[np.pi / 2]),
-    global_pattern="*1",
-    merge_within="*1",
-)
-U_t += Qpivot(mapping=H, global_pattern="*1")
+# U_psi = Qcycle(mapping=H)
+# U_T = Qpivot(mapping=X, global_pattern=Target_string)
 
-U_toffoli = Qinit(3) + U_t
+# U_t = Qpivot(mapping=H, global_pattern="*1")
+# U_t += Qpivot(
+#     mapping=Qunitary("cp(x)^01", symbols=[np.pi / 2]),
+#     global_pattern="*1",
+#     merge_within="1*",
+# )
+# U_t += Qpivot(
+#     mapping=Qunitary("cnot()^01;cp(x)^12;cnot()^01", symbols=[-np.pi / 2]),
+#     global_pattern="*1",
+#     merge_within="*1",
+# )
+# U_t += Qpivot(mapping=H, global_pattern="*1")
 
+# U_toffoli = Qinit(3) + U_t
 
-maskAncillas = Qmask("0" + "01" * (n - 3) + "00")
-multiCZ = (
-    Qcycle(step=2, mapping=U_toffoli, boundary="open")
-    + Qmask("*1")
-    + Qcycle(
-        step=2, mapping=U_toffoli, share_weights=True, boundary="open", edge_order=[-1]
-    )
-    + Qunmask("previous")
-)
+# maskAncillas = Qmask('0'+'01'*(n-3)+'00')
+# multiCZ =  Qcycle(step=2, mapping=U_toffoli, boundary='open') + Qmask('*1') + Qcycle(step = 2, mapping=U_toffoli, edge_order = [-1], boundary='open') + Qunmask('previous') 
 
-U_rotate = H_bottom + Qunmask("previous") + multiCZ + maskAncillas + H_bottom
+# U_rotate = Qcycle(mapping=X)  + H_bottom +  Qunmask('previous') + multiCZ + maskAncillas  + H_bottom + Qcycle(mapping=X)
 
-U_oracle = U_T + U_rotate + U_T
-U_defuse = U_psi + U_rotate + U_psi
+# U_oracle = U_T + U_rotate + U_T
+# U_defuse = U_psi + U_rotate + U_psi
 
-ancilla_str = "0" + "01" * (n - 3) + "00"
-q_names = [f"q_{i}" if ancilla_str[i] == "0" else f"a_{i}" for i in range(2 * n - 3)]
-U = (
-    Qinit(q_names)
-    + U_psi
-    + (maskAncillas + U_oracle + U_defuse) * int((np.pi / 2 * np.sqrt(N) - 1) / 2)
-)  # int((np.pi/2*np.sqrt(N)-1)/2)
-
-circuit = U(backend="qiskit", barriers=False)
-circuit.draw("mpl")
-# Add measurements
-circuit.measure_all()
-
-# execute circuit
-from qiskit import Aer, execute
-
-shots=1000
-aer_backend = Aer.get_backend("qasm_simulator")
-job = execute(circuit, aer_backend, shots=shots)
-result = job.result()
-counts = result.get_counts(circuit)
-
-print(f"Counts: {counts}")
-# get most likely result
-most_likely = result.get_counts(circuit).most_frequent()
-output_wo_ancilla = ''.join([most_likely[i]  for i in range(2 * n - 3) if ancilla_str[i] == "1" ] )
-# Get count of most likely
-most_likely_count = result.get_counts(circuit).get(most_likely)
-print(
-    f"target string: {target_string}\n returned string: {output_wo_ancilla}\n counts: {most_likely_count}\n shots {shots}"
-)
-
-circuit.draw("mpl")
-
+# ancilla_str = '0'+'01'*(n-3)+'00'
+# q_names = [f'q_{i}' if ancilla_str[i]== '0' else f'a_{i}' for i in range(2*n-3)]
+# if N_iterations>0:
+#     U = Qinit(q_names) + maskAncillas + U_psi +  ( U_oracle + U_defuse)*N_iterations 
+# else:
+#     U = Qinit(q_names) + maskAncillas + U_psi
+# # create the circuit using the chose backend
+# circuit = U(backend="qiskit", barriers=True)#circuit.copy()
+# circuit.measure_all()
+# circuit.draw("mpl", fold=50)
 
 # Strides between, open between
 # N = 8
