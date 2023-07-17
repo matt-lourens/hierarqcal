@@ -1482,45 +1482,23 @@ class Qpivot(Qsplit):
         Ep_l = []
 
         # TODO Redundant
-<<<<<<< HEAD
         
         merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
         # Count the number of 1s in the merge pattern
         arity_p = self.merge_within.count("1")
         arity_r = self.arity - arity_p
-=======
-        if self.arity <= len(Qp_l):  # len(Qp_l) >= 1 and not (self.mapping is None):
-            # there is a operation associated with the motif
-            is_operation = True
->>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         # Get global pattern function based on the pattern attribute
         self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1','1'*arity_p), len(Qp_l))
 
-<<<<<<< HEAD
         pivot_q = [
             p
             for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
             for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
         ]
-=======
-            # Get global pattern function based on the pattern attribute
-            self.pivot_pattern_fn = self.get_pattern_fn(
-                self.global_pattern.replace("1", "1" * arity_p), len(Qp_l)
-            )
-
-            pivot_q = [
-                p
-                for i in range(
-                    (len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p
-                )
-                for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
-            ]
->>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         remaining_q = [q for q in Qp_l if not (q in pivot_q)]
 
-<<<<<<< HEAD
             
         E_p = self.cycle(
             pivot_q,
@@ -1570,55 +1548,6 @@ class Qpivot(Qsplit):
             Ep_l = self.merge_within_splits(E_b, merge_within_pop)
         else:
             Ep_l = E_p
-=======
-            E_p = self.cycle(
-                pivot_q,
-                stride=self.strides[0],
-                step=self.steps[0],
-                offset=self.offsets[0],
-                boundary=self.boundaries[0],
-                arity=arity_p,
-            )
-            if len(remaining_q) > 0:
-                # Generate edges for remaining split
-                E_r = self.cycle(
-                    remaining_q,
-                    stride=self.strides[1],
-                    step=self.steps[1],
-                    offset=self.offsets[1],
-                    boundary=self.boundaries[1],
-                    arity=arity_r,
-                )
-
-                E_tmp = E_p.copy()
-                while len(E_tmp + E_p) < len(E_r):
-                    E_tmp += E_p
-                E_p = E_tmp.copy()
-
-                # Generate edges for measured to remaining
-                if not (self.merge_between == None):
-                    # If there is a merge_between pattern
-                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
-                    E_r = pattern_fn(E_r)
-
-                # TODO is E_r empty then E_b = E_p
-
-                E_b = self.cycle_between_splits(
-                    E_a=E_r,
-                    E_b=E_p,
-                    stride=self.strides[2],
-                    step=self.steps[2],
-                    offset=self.offsets[2],
-                    boundary=self.boundaries[2],
-                )
-
-                E_b = [(e[1], e[0]) for e in E_b]
-
-                # Merge the two splits based on merge pattern
-                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
-            else:
-                Ep_l = E_p
->>>>>>> d1a42b6f1224887be15dd4d02de32a9c1fe589ad
 
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=is_operation, **kwargs
