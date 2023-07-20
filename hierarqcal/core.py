@@ -1521,8 +1521,10 @@ class Qpivot(Qsplit):
             )
             
             E_tmp=E_p.copy()
-            while len(E_tmp+E_p)<len(E_r):
+            while len(E_tmp+E_p)<=len(E_r):
                 E_tmp += E_p
+            
+            E_tmp = E_tmp[::2]+E_tmp[1::2]
             E_p = E_tmp.copy()
 
             # Generate edges for measured to remaining
@@ -1557,9 +1559,17 @@ class Qpivot(Qsplit):
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
+        # max_it = len(E_a)
         # E_a_tmp = E_a[::step]
-        # while len(E_a_tmp) < len(E_a):
-        #     E_a_tmp += [e for e in E_b if e not in E_a_tmp][:: step]
+        # count = 0
+        # while len(E_a_tmp) < len(E_a) and count<max_it:
+        #     E_a_tmp += [e for e in E_a if e not in E_a_tmp][:: step]
+        #     count+=1
+        #     if len([e for e in E_a if e not in E_a_tmp])==1:
+        #         E_a_tmp += [e for e in E_a if e not in E_a_tmp]
+        #         break
+            
+
 
         # E_b_tmp = E_b[offset :: stride]
         # if boundary == "periodic":
@@ -1596,6 +1606,9 @@ class Qpivot(Qsplit):
             ]
         else:
             raise Exception("Boundary must be either open or periodic")
+
+         #########################
+
         return E
 
     def __eq__(self, other):
