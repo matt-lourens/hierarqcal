@@ -1738,11 +1738,13 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
+            state = self.tail.state
             for layer in self:
                 for unitary in layer.edge_mapping:
                     state = unitary.function(
                         bits=unitary.edge, symbols=unitary.symbols, state=state
                     )
+            return state
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1900,12 +1902,13 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, **kwargs) -> None:
+    def __init__(self, Q, state=None, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i + 1 for i in range(Q)]
         self.type = Primitive_Types.INIT
+        self.state = state
         # Initialize graph
         super().__init__(Q=Qinit, Q_avail=Qinit, is_operation=False, **kwargs)
 
