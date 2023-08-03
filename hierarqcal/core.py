@@ -1422,8 +1422,7 @@ class Qunmask(Qsplit):
 
 class Qpivot(Qsplit):
     """
-    A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
-    This motif changes the available qubits for the next motif in the stack.
+    The pivot connects the set of avaible qubits sequentially to a fixed set or qubits. The global pattern determins the pivot points while the merge pattern determines how the qubits are passed to the mapping.
     """
 
     def __init__(
@@ -1438,13 +1437,15 @@ class Qpivot(Qsplit):
         **kwargs,
     ):
         """
-        TODO allow strides,steps,offsets to be one value and repeat what was given
+        Allow strides,steps,offsets and boundaries to be one value and repeat what was given
         """
         if isinstance(strides, int):
             strides = [strides] * 3
         if isinstance(strides, int):
             steps = [steps] * 3
         if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        if isinstance(boundaries, str):
             offsets = [offsets] * 3
 
         super().__init__(
@@ -1467,30 +1468,25 @@ class Qpivot(Qsplit):
             Qp_l (list): List of available qubits.
             *args: Variable length argument list.
             **kwargs: Arbitrary keyword arguments, such as:
-
                 * mapping (tuple(function, int)):
                     Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
 
         Returns:
-
         """
 
         # Pivot must have a mapping
         # TODO add a defualt mapping?
-        is_operation = True
-        
-        Ep_l = []
+        if self.mapping is None:
+            raise Exception("Pivot must have a mapping")
 
-        # TODO Redundant
-        
-        merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
         # Count the number of 1s in the merge pattern
         arity_p = self.merge_within.count("1")
         arity_r = self.arity - arity_p
 
         # Get global pattern function based on the pattern attribute
-        self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern.replace('1','1'*arity_p), len(Qp_l))
-
+        self.pivot_pattern_fn = self.get_pattern_fn(
+            self.global_pattern.replace("1", "1" * arity_p), len(Qp_l)
+        )
         pivot_q = [
             p
             for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
@@ -1499,7 +1495,6 @@ class Qpivot(Qsplit):
 
         remaining_q = [q for q in Qp_l if not (q in pivot_q)]
 
-            
         E_p = self.cycle(
             pivot_q,
             stride=self.strides[0],
@@ -1509,7 +1504,7 @@ class Qpivot(Qsplit):
             arity=arity_p,
         )
 
-        if arity_r > 0: #len(remaining_q)>0 and
+        if arity_r > 0:
             # Generate edges for remaining split
             E_r = self.cycle(
                 remaining_q,
@@ -1519,74 +1514,53 @@ class Qpivot(Qsplit):
                 boundary=self.boundaries[1],
                 arity=arity_r,
             )
-            
-            E_tmp=E_p.copy()
-            while len(E_tmp+E_p)<=len(E_r):
-                E_tmp += E_p
-            
-            E_tmp = E_tmp[::2]+E_tmp[1::2]
-            E_p = E_tmp.copy()
 
-            # Generate edges for measured to remaining
-            if not (self.merge_between == None):
-                # If there is a merge_between pattern
-                pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
-                E_r = pattern_fn(E_r)
+            # If E_r empty then there were not enough qubits to satisfiy the arity
+            if len(E_r) > 0:
+                # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
+                max_it = 0  # prevent infinite loop
+                E_tmp = E_p.copy()
+                N = len(E_r)
+                while len(E_tmp + E_p) <= N and max_it < N:
+                    E_tmp += E_p
+                    max_it += 1
+                E_p = E_tmp.copy()
 
-            # TODO is E_r empty then E_b = E_p
-        
-            E_b = self.cycle_between_splits(
-                E_a=E_r,
-                E_b=E_p,
-                stride=self.strides[2],
-                step=self.steps[2],
-                offset=self.offsets[2],
-                boundary=self.boundaries[2],
-            )
+                # Reorder E_p so that like pivots are grouped together, i.e. remaining avaliable qubits are assigned first to the first pivot point, then the second and so on.
+                E_tmp = []
+                for i in range(N):
+                    E_tmp += E_p[i::N]
+                E_p = E_tmp.copy()
 
-            E_b = [(e[1],e[0]) for e in E_b]
-            
-            # Merge the two splits based on merge pattern
-            Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                # TODO what could merge_between be used for?
+                if not (self.merge_between == None):
+                    pass
+
+                E_b = self.cycle_between_splits(
+                    E_a=E_r,
+                    E_b=E_p,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+
+                E_b = [(e[1], e[0]) for e in E_b]
+
+                # Merge the two splits based on merge pattern
+                merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+            else:
+                Ep_l = []
         else:
             Ep_l = E_p
 
-        super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=is_operation, **kwargs
-        )
+        super().__call__(Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
         return self
 
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
-        # max_it = len(E_a)
-        # E_a_tmp = E_a[::step]
-        # count = 0
-        # while len(E_a_tmp) < len(E_a) and count<max_it:
-        #     E_a_tmp += [e for e in E_a if e not in E_a_tmp][:: step]
-        #     count+=1
-        #     if len([e for e in E_a if e not in E_a_tmp])==1:
-        #         E_a_tmp += [e for e in E_a if e not in E_a_tmp]
-        #         break
-            
-
-
-        # E_b_tmp = E_b[offset :: stride]
-        # if boundary == "periodic":
-        #     while len(E_b_tmp) < len(E_b):
-        #         E_b_tmp += [e for e in E_b if e not in E_b_tmp][:: stride]
-
-        # E = [
-        #     (
-        #         E_a_tmp[i],
-        #         E_b_tmp[i],
-        #     )
-        #     for i in range(len(E_a_tmp))
-        #     if i < len(E_b_tmp)
-        # ]
-
-        ##########################
-
         if boundary == "open":
             E = [
                 (
@@ -1606,8 +1580,6 @@ class Qpivot(Qsplit):
             ]
         else:
             raise Exception("Boundary must be either open or periodic")
-
-         #########################
 
         return E
 
