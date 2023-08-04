@@ -14,9 +14,9 @@ Usage:
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.patches import PathPatch
+from matplotlib.patches import PathPatch, FancyArrowPatch
 from matplotlib.path import Path
-from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask
+from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot
 
 
 def plot_motif(
@@ -233,47 +233,83 @@ def plot_motif(
     return fig, ax
 
 
-# def plot_motifs(
-#     hierq,
-#     all_motifs=False,
-#     cycle_color="#0096ff",
-#     mask_color="#ff7e79",
-#     permute_colour="#a9449d",
-#     init_colour="#92a9bd",
-#     **kwargs,
-# ):
-#     """
-#     Plot all motifs in a Hierarchical object TODO update for new version
+def plot_circuit(
+    hierq,
+    depth=20,
+    cycle_color="#0096ff",
+    mask_color="#ff7e79",
+    permute_colour="#a9449d",
+    init_colour="#92a9bd",
+):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_xlim(0, depth)
+    ax.set_ylim(-len(hierq.tail.Q) - 1, 1)
+    ax.set_aspect("equal")
+    layer = hierq.tail
+    x = 1
+    dx = 0.5
+    small_r = 0.1
+    ddx = 0
+    while layer is not None:
+        if isinstance(layer, Qcycle):
+            node_colour = cycle_color
+        elif isinstance(layer, Qmask):
+            node_colour = mask_color
+        elif isinstance(layer, Qunmask):
+            node_colour = mask_color
+        elif isinstance(layer, Qpermute):
+            node_colour = cycle_color
+        elif isinstance(layer, Qpivot):
+            node_colour = cycle_color
+        elif isinstance(layer, Qinit):
+            node_colour = init_colour
+        if isinstance(layer, Qinit):
+            # plot ket tensors
+            for label, i in enumerate(layer.Q):
+                # Give border
+                circle = plt.Circle(
+                    (x, -i), 0.4, facecolor=node_colour, edgecolor="black", linewidth=1
+                )
+                ax.add_artist(circle)
+                ax.text(x, -i, label, ha="center", va="center")
+                ax.hlines(-i, x, depth, color="gray", zorder=-2)
+            ddx += 0.5
+        elif isinstance(layer, Qmask) and len(layer.E) == 0:
+            for label, i in enumerate(
+                [q for q in hierq.tail.Q if q not in layer.Q_avail]
+            ):
+                circle1 = plt.Circle(
+                    (x + ddx, -i), small_r, fill=True, color=node_colour
+                )
+                ax.add_artist(circle1)
+        elif isinstance(layer, Qunmask):
+            for label, i in enumerate([q for q in hierq.tail.Q if q not in layer.Q]):
+                circle1 = plt.Circle((x + ddx, -i), small_r, fill=True, color="green")
+                ax.add_artist(circle1)
+        else:
+            # plot ket tensors
+            for ind, e in enumerate(layer.E):
+                q_prev = e[0]
 
-#     Args:
-#         hierq (Hierarchical): The Hierarchical object to plot.
-#         all_motifs (bool, optional): Whether to plot all motifs in the Hierarchical object or just the operational ones. Defaults to False (just operations)
-#         cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
-#         mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
-#         permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
-#         init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
-#         **kwargs: Additional keyword arguments to pass to the networkx draw function.
-
-#     Returns:
-#         figs (list): A list of matplotlib figure objects.
-#     """
-#     figs = []
-#     if all_motifs:
-#         motif = hierq.tail
-#         while motif is not None:
-#             fig, ax = plot_motif(
-#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-#             )
-#             motif = motif.next
-#             # oPlot.add_plot(ax)
-#             figs.append(fig)
-#             plt.close()
-#     else:
-#         for motif in hierq:
-#             fig, ax = plot_motif(
-#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-#             )
-#             # oPlot.add_plot(ax)
-#             figs.append(fig)
-#             plt.close()
-#     return figs
+                circle1 = plt.Circle(
+                    (x + ddx, -q_prev), small_r, fill=True, color=node_colour
+                )
+                ax.add_artist(circle1)
+                for q_next in e[1:]:
+                    ax.plot(
+                        [x + ddx, x + ddx], [-q_prev, -q_next], color="black", zorder=-1
+                    )
+                    # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
+                    # ax.add_patch(arrow)
+                    circle1 = plt.Circle(
+                        (x + ddx, -q_next), 0.1, fill=True, color=node_colour
+                    )
+                    ax.add_artist(circle1)
+                    q_prev = q_next
+                ddx += 0.5
+        x = x + ddx + dx
+        ddx = 0
+        layer = layer.next
+    plt.axis("off")
+    plt.show()
+    return fig, ax

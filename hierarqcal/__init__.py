@@ -11,7 +11,7 @@ from .core import (
     Qmotif,
     Qunitary,
 )
-from .utils import plot_motif
+from .utils import plot_motif, plot_circuit
 
 __all__ = [
     "Qhierarchy",
@@ -26,4 +26,5 @@ __all__ = [
     "Qmotif",
     "Qmotifs",
     "plot_motif",
+    "plot_circuit",
 ]

@@ -10,6 +10,7 @@ from hierarqcal import (
     Qmotif,
     Qmotifs,
     plot_motif,
+    plot_circuit,
     Qunitary,
     Qsplit,
 )
@@ -75,8 +76,6 @@ pattern_fn = Qsplit.get_pattern_fn(
     None, pattern="1" + "01" * (int(n / 2) - 1) + "1", length=n
 )
 z = pattern_fn(b)
-print(f"hierarchichal: {z}")
-print(f"target {binary_addition(x, y)}")
 
 print(
     f"""
@@ -88,5 +87,5 @@ print(
     """
 )
 
-
+plot_circuit(addition)
 print("hi")

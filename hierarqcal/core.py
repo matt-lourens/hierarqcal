@@ -42,6 +42,7 @@ class Qunitary:
     """
     Base class for all unitary operations, the main purpose is to store the operation, its arity and parameters (symbols) for later use.
     # TODO add support for function as matrix
+    # TODO add share_weights parameter
     """
 
     def __init__(self, function=None, n_symbols=0, arity=2, symbols=None):
