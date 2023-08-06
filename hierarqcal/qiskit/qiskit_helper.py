@@ -13,6 +13,7 @@ def get_qiskit_default_unitary(layer):
     if layer.type in [
         Primitive_Types.CYCLE,
         Primitive_Types.PERMUTE,
+        Primitive_Types.PIVOT,
     ]:
         unitary_function = U2
     elif layer.type in [Primitive_Types.MASK]:

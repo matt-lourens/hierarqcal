@@ -5,6 +5,7 @@ import numpy as np
 from hierarqcal import (
     Qhierarchy,
     Qcycle,
+    Qpivot,
     Qpermute,
     Qmask,
     Qunmask,
@@ -16,114 +17,138 @@ from hierarqcal import (
 )
 from hierarqcal.qiskit.qiskit_circuits import V2, U2
 
+# =======
+# Breaks:
+# =======
+# N=10
+# u = Qunitary("cnot()^10")
+# qft = Qinit(N)  + Qpivot("1*1*1", stride=2,step=2, mapping=u, boundary="periodic")
+# circuit= qft(backend="qiskit")
+# circuit.draw("mpl")
 
-# tmp
-#from hierarqcal import Qinit, Qcycle, Qunitary, Qmask, Qunmask
-# Motif to mask all qubits except outer two
-mask_middle = Qmask(pattern="0!0")
-unmask = Qunmask("previous")
-hrx_layer = mask_middle + Qcycle(mapping=Qunitary("RX(x)^0;H()^1")) + unmask
-hrx_layer_r = mask_middle + Qcycle(mapping=Qunitary("RX(x)^1;H()^0")) + unmask
+# =======
 
-# Create ladder motif
-cnot_ladder = Qcycle(mapping=Qunitary("CNOT()^01"), boundary="open")
-cnot_ladder_r = Qcycle(mapping=Qunitary("CNOT()^01"), edge_order=[-1], boundary="open")
-rz_last = Qmask("*1", mapping = Qunitary("Rz(x)^0")) + Qunmask("previous") # TODO replace with Qpivot once it's ready
-ladder = cnot_ladder + rz_last + cnot_ladder_r
+# u = Qunitary("cnot()^10;cnot()^01")
+# hierq = Qinit(10)+Qmask("1001", mapping=u)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
-# Create two excitations TODO term?
-excitation1 = hrx_layer + ladder + hrx_layer
-excitation2 = hrx_layer_r + ladder + hrx_layer_r
+# # Motif to mask all qubits except outer two
+# mask_middle = Qmask(global_pattern="0!0")
+# unmask = Qunmask("previous")
+# hrx_layer = mask_middle + Qcycle(mapping=Qunitary("RX(x)^0;H()^1")) + unmask
+# hrx_layer_r = mask_middle + Qcycle(mapping=Qunitary("RX(x)^1;H()^0")) + unmask
 
-hierq = Qinit(5) + excitation1 + excitation2
-hierq(backend="qiskit", barriers=False).draw("mpl")
+# # Create ladder motif
+# cnot_ladder = Qcycle(mapping=Qunitary("CNOT()^01"), boundary="open")
+# cnot_ladder_r = Qcycle(mapping=Qunitary("CNOT()^01"), edge_order=[-1], boundary="open")
+# rz_last = Qmask("*1", mapping = Qunitary("Rz(x)^0")) + Qunmask("previous") # TODO replace with Qpivot once it's ready
+# ladder = cnot_ladder + rz_last + cnot_ladder_r
 
-# Test masking
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("!*", mapping=u)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# # Create two excitations TODO term?
+# excitation1 = hrx_layer + ladder + hrx_layer
+# excitation2 = hrx_layer_r + ladder + hrx_layer_r
 
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("*!*", mapping=u)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# hierq = Qinit(5) + excitation1 + excitation2
+# hierq(backend="qiskit", barriers=False).draw("mpl")
 
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("0!0", mapping=u)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# # Test masking
+# u = Qunitary(V2, 0, 2)
+# hierq = Qinit(8) + Qmask("!*", mapping=u)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# u = Qunitary(V2, 0, 2)
+# hierq = Qinit(8) + Qmask("*!*", mapping=u)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# u = Qunitary(V2, 0, 2)
+# hierq = Qinit(8) + Qmask("0!0", mapping=u)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
 
-# Test default
-hierq = Qinit(8) + Qcycle(1, 1, 0)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# # Test default
+# hierq = Qinit(8) + Qcycle(1, 1, 0)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
-# Test masking
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("1*1*1", mapping=u)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
-
-# Test masking
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("1*1*1", connection_type="nearest_tower", mapping=u)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
-
-# Test masking TODO DEMO
-u = Qunitary(V2, 0, 2)
-hierq = Qinit(8) + Qmask("1**1", connection_type="nearest_tower", mapping=u)*4
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
-
-# Test masking
-hierq = Qinit(8) + (Qcycle(1, 1, 0) + Qmask("right")) * 3
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+# # Test masking
+# u = Qunitary(V2, 0, 2)
+# hierq = Qinit(8) + Qmask("1*1*1", mapping=u)
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
 # Test masking
-hierq = (
-    Qinit(8)
-    + (Qcycle(1, 1, 0) + Qmask("right")) * 3
-    + (Qunmask("previous") + Qcycle(1, 1, 0)) * 3
-)
+# for stride in range(10):
+#     u = Qunitary(V2, 0, 2)
+#     hierq = Qinit(8) + Qmask("1*1*1",strides=stride, boundaries=["periodic","periodic","periodic"], mapping=u)
+#     circuit = hierq(backend="qiskit")
+#     circuit.draw("mpl")
+
+# 'nearest tower'
+u = Qunitary(V2, 0, 2)
+hierq = Qinit(8) + Qmask("1*1*1", merge_between="1*1*1", mapping=u)
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
 
-# Test unmasking nothing
-hierq = Qinit(8) + Qunmask("previous") + Qunmask("previous")
+
+# Test 'to much removal'
+u = Qunitary("H()^0")
+hierq = Qinit(9) + Qmask("1*1*1", mapping=u)*4
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
 
-# Test unmasking nothing
-hierq = (
-    Qinit(8)
-    + (Qcycle(1, 1, 0) + Qmask("right")) * 3
-    + (Qunmask("previous") + Qcycle(1, 1, 0)) * 4
-)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
 
-# Test unmasking patterns
-hierq = (
-    Qinit(8)
-    + (Qcycle(1, 1, 0) + Qmask("right")) * 3
-    + (Qunmask("right") + Qcycle(1, 1, 0)) * 4
-)
-circuit = hierq(backend="qiskit")
-circuit.draw("mpl")
+
+
+# # Test masking
+# hierq = Qinit(8) + (Qcycle(1, 1, 0) + Qmask("right")) * 3
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# # Test masking
+# hierq = (
+#     Qinit(8)
+#     + (Qcycle(1, 1, 0) + Qmask("right")) * 3
+#     + (Qunmask("previous") + Qcycle(1, 1, 0)) * 3
+# )
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# # Test unmasking nothing
+# hierq = Qinit(8) + Qunmask("previous") + Qunmask("previous")
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# Test unmasking right
+# hierq = (
+#     Qinit(8)
+#     + (Qcycle(1, 1, 0) + Qmask("*!")) * 3
+#     + (Qunmask("previous") + Qcycle(1, 1, 0)) * 4
+# )
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
+
+# # Test unmasking patterns TODO test
+# hierq = (
+#     Qinit(8)
+#     + (Qcycle(1, 1, 0) + Qmask("*!")) * 3
+#     + Qunmask("!") + Qcycle(1, 1, 0)
+# )
+# circuit = hierq(backend="qiskit")
+# circuit.draw("mpl")
 
 
 # # Test qcnn
-u = Qunitary(V2, 0, 2)
+u = Qunitary("cnot()^01")
 hierq = Qinit(8) + (Qcycle(1, 1, 0) + Qmask("right", mapping=u)) * 3
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
 
 # # Test sub TODO demo
-u = Qunitary(V2, 1, 2)
+u = Qunitary("crx(x)^01")
 sub = Qinit(3) + Qpermute(mapping=u)
 hierq = Qinit(15) + Qcycle(
     1, len(sub.tail.Q), 0, mapping=sub, share_weights=True, boundary="open"
@@ -188,4 +213,15 @@ hierq.set_symbols(np.random.uniform(0, 2 * np.pi, hierq.n_symbols))
 list(hierq.get_symbols())
 circuit = hierq(backend="qiskit")
 circuit.draw("mpl")
+
+
+
+# Test pivot
+N = 8
+h_top = Qpivot(mapping=Qunitary("h()^0"))
+controlled_rs = Qpivot(mapping=Qunitary("crx(x)^01"), share_weights=False)
+qft = Qinit(N)  + (h_top + controlled_rs + Qmask("1*"))*(N)
+circuit= qft(backend="qiskit")
+circuit.draw("mpl")
+
 print("Hello")

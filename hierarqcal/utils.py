@@ -12,11 +12,12 @@ Usage:
     figs = plot_motifs(hierq, all_motifs=True, figsize=(4,4))
 """
 import numpy as np
+import sympy as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.patches import PathPatch
+from matplotlib.patches import PathPatch, FancyArrowPatch
 from matplotlib.path import Path
-from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask
+from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot
 
 
 def plot_motif(
@@ -25,6 +26,7 @@ def plot_motif(
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
+    pivot_colour="#0096ff",
     node_large=0.12,  # radius of node
     node_small=0.08,  # radius of node
     edge_width=1.5,
@@ -75,6 +77,9 @@ def plot_motif(
     elif isinstance(primitive, Qinit):
         node_radi = [node_large for q in primitive.Q]
         node_colour = init_colour
+    elif isinstance(primitive, Qpivot):
+        node_radi = [node_large for q in primitive.Q]
+        node_colour = pivot_colour
     else:
         raise NotImplementedError(f"No plot specified for {primitive} primitive")
 
@@ -233,47 +238,149 @@ def plot_motif(
     return fig, ax
 
 
-# def plot_motifs(
-#     hierq,
-#     all_motifs=False,
-#     cycle_color="#0096ff",
-#     mask_color="#ff7e79",
-#     permute_colour="#a9449d",
-#     init_colour="#92a9bd",
-#     **kwargs,
-# ):
-#     """
-#     Plot all motifs in a Hierarchical object TODO update for new version
+def plot_circuit(
+    hierq,
+    depth=20,
+    cycle_color="#0096ff",
+    mask_color="#ff7e79",
+    permute_colour="#a9449d",
+    init_colour="#92a9bd",
+):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_xlim(0, depth)
+    ax.set_ylim(-len(hierq.tail.Q) - 1, 1)
+    ax.set_aspect("equal")
+    layer = hierq.tail
+    x = 1
+    dx = 0.5
+    small_r = 0.1
+    ddx = 0
+    while layer is not None:
+        if isinstance(layer, Qcycle):
+            node_colour = cycle_color
+        elif isinstance(layer, Qmask):
+            node_colour = mask_color
+        elif isinstance(layer, Qunmask):
+            node_colour = mask_color
+        elif isinstance(layer, Qpermute):
+            node_colour = cycle_color
+        elif isinstance(layer, Qpivot):
+            node_colour = cycle_color
+        elif isinstance(layer, Qinit):
+            node_colour = init_colour
+        if isinstance(layer, Qinit):
+            # plot ket tensors
+            for label, i in enumerate(layer.Q):
+                # Give border
+                circle = plt.Circle(
+                    (x, -i), 0.4, facecolor=node_colour, edgecolor="black", linewidth=1
+                )
+                ax.add_artist(circle)
+                ax.text(x, -i, label, ha="center", va="center")
+                ax.hlines(-i, x, depth, color="gray", zorder=-2)
+            ddx += 0.5
+        elif isinstance(layer, Qmask) and len(layer.E) == 0:
+            for label, i in enumerate(
+                [q for q in hierq.tail.Q if q not in layer.Q_avail]
+            ):
+                circle1 = plt.Circle(
+                    (x + ddx, -i), small_r, fill=True, color=node_colour
+                )
+                ax.add_artist(circle1)
+        elif isinstance(layer, Qunmask):
+            for label, i in enumerate([q for q in hierq.tail.Q if q not in layer.Q]):
+                circle1 = plt.Circle((x + ddx, -i), small_r, fill=True, color="green")
+                ax.add_artist(circle1)
+        else:
+            # plot ket tensors
+            for ind, e in enumerate(layer.E):
+                q_prev = e[0]
 
-#     Args:
-#         hierq (Hierarchical): The Hierarchical object to plot.
-#         all_motifs (bool, optional): Whether to plot all motifs in the Hierarchical object or just the operational ones. Defaults to False (just operations)
-#         cycle_color (str, optional): The colour of nodes for cycle motifs. Defaults to "#0096ff".
-#         mask_color (str, optional): The colour of nodes for masking motifs. Defaults to "#ff7e79".
-#         permute_colour (str, optional): The colour of nodes for permute motifs. Defaults to "#a9449d".
-#         init_colour (str, optional): The colour of nodes for init motifs. Defaults to "#92a9bd".
-#         **kwargs: Additional keyword arguments to pass to the networkx draw function.
+                circle1 = plt.Circle(
+                    (x + ddx, -q_prev), small_r, fill=True, color=node_colour
+                )
+                ax.add_artist(circle1)
+                for q_next in e[1:]:
+                    ax.plot(
+                        [x + ddx, x + ddx], [-q_prev, -q_next], color="black", zorder=-1
+                    )
+                    # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
+                    # ax.add_patch(arrow)
+                    circle1 = plt.Circle(
+                        (x + ddx, -q_next), 0.1, fill=True, color=node_colour
+                    )
+                    ax.add_artist(circle1)
+                    q_prev = q_next
+                ddx += 0.5
+        x = x + ddx + dx
+        ddx = 0
+        layer = layer.next
+    plt.axis("off")
+    plt.show()
+    return fig, ax
 
-#     Returns:
-#         figs (list): A list of matplotlib figure objects.
-#     """
-#     figs = []
-#     if all_motifs:
-#         motif = hierq.tail
-#         while motif is not None:
-#             fig, ax = plot_motif(
-#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-#             )
-#             motif = motif.next
-#             # oPlot.add_plot(ax)
-#             figs.append(fig)
-#             plt.close()
-#     else:
-#         for motif in hierq:
-#             fig, ax = plot_motif(
-#                 motif, cycle_color, mask_color, permute_colour, init_colour, **kwargs
-#             )
-#             # oPlot.add_plot(ax)
-#             figs.append(fig)
-#             plt.close()
-#     return figs
+
+def tensor_to_matrix_rowmajor(t0, indices):
+    # Get all indices that are going to form rows
+    t0_ind_rows = [ind for ind in range(len(t0.shape)) if ind not in indices]
+    # Get all indices that are going to form columns
+    t0_ind_cols = list(indices)
+    new_ind_order = t0_ind_rows + t0_ind_cols
+    # Get number of rows
+    remaining_idx_ranges = [t0.shape[ind] for ind in t0_ind_rows]
+    n_rows = int(np.multiply.reduce(remaining_idx_ranges))
+    n_cols = int(np.multiply.reduce([t0.shape[ind] for ind in t0_ind_cols]))
+    matrix = np.ascontiguousarray(t0.transpose(new_ind_order).reshape(n_rows, n_cols))
+    return matrix, t0_ind_rows, remaining_idx_ranges
+
+
+def tensor_to_matrix_colmajor(t0, indices):
+    # Get all indices that are going to form columns
+    t0_ind_cols = [ind for ind in range(len(t0.shape)) if ind not in indices[0]]
+    # Get all indices that are going to form rows
+    t0_ind_rows = list(indices)
+    new_ind_order = t0_ind_cols + t0_ind_rows
+    # Get number of rows
+    remaining_idx_ranges = [t0.shape[ind] for ind in t0_ind_cols]
+    n_rows = int(np.multiply.reduce([t0.shape[ind] for ind in t0_ind_rows]))
+    n_cols = int(np.multiply.reduce(remaining_idx_ranges))
+    matrix = np.ascontiguousarray(t0.transpose(new_ind_order).reshape(n_rows, n_cols))
+    return matrix, t0_ind_cols, remaining_idx_ranges
+
+
+def contract(t0, t1, indices):
+    a, a_remaining_d, a_idx_ranges = tensor_to_matrix_rowmajor(t0, indices[0])
+    b, b_remaining_d, b_idx_ranges = tensor_to_matrix_rowmajor(t1, indices[1])
+    result = a @ b
+    result = result.reshape(a_idx_ranges + b_idx_ranges)
+    # The matrix is currently in this order
+    current_order = a_remaining_d + list(indices[0])
+    # But needs to be transposed back to its original:
+    new_ind_order = [current_order.index(i) for i in range(len(result.shape))]
+    result = result.transpose(new_ind_order)
+    return result
+
+
+def get_tensor_as_f(u):
+    def generic_f(bits, symbols=None, state=None, u=u):
+        if len(u.shape) == 2:
+            # if u is provided as a matrix, we turn it into the correct tensor
+            # for quantum circuits all tensors have as many inputs as outputs
+            # all inputs indices also have the same range
+            n_inputs = len(bits)
+            idx_range = int(
+                u.shape[0] ** (1 / n_inputs)
+            )  # matrix is square so we can take first or second axis
+            if isinstance(u, sp.Matrix):
+                # convert to numpy matrix
+                f = sp.lambdify(list(u.free_symbols), u, "numpy")
+                u = f(*symbols)
+            u = u.reshape([idx_range for i in range(n_inputs * 2)])
+        if len(bits)>2:
+            print("oi")
+        new_tensor = contract(state, u, [bits, [i for i in range(len(bits))]])
+        # new_tensor = np.tensordot(u, state, axes=[[i for i in range(len(bits))], bits])
+        state = new_tensor
+        return state
+
+    return generic_f
