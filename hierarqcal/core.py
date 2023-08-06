@@ -20,7 +20,10 @@ import numpy as np
 import itertools as it
 import sympy as sp
 
-CircuitInstruction = namedtuple('CircuitInstruction', ['gate_name', 'symbol_info', 'sub_bits'])
+CircuitInstruction = namedtuple(
+    "CircuitInstruction", ["gate_name", "symbol_info", "sub_bits"]
+)
+
 
 class Primitive_Types(Enum):
     """
@@ -29,8 +32,10 @@ class Primitive_Types(Enum):
 
     CYCLE = "cycle"
     MASK = "mask"
+    SPLIT = "split"
     PERMUTE = "permute"
     INIT = "init"
+    PIVOT = "pivot"
 
 
 class Qunitary:
@@ -49,15 +54,19 @@ class Qunitary:
         """
         self.function = function
         if isinstance(self.function, str):
-            circuit_instructions, unique_bits, unique_params = self.get_circ_info_from_string(function)
-            self.circuit_instructions = circuit_instructions    
+            (
+                circuit_instructions,
+                unique_bits,
+                unique_params,
+            ) = self.get_circ_info_from_string(function)
+            self.circuit_instructions = circuit_instructions
             self.n_symbols = len(unique_params)
             self.arity = len(unique_bits)
         else:
             self.circuit_instructions = None
-            self.n_symbols = n_symbols
+            self.n_symbols = len(symbols) if not (symbols is None) else n_symbols
             self.arity = arity
-        self.symbols = None
+        self.symbols = symbols
         self.edge = None
 
     def __call__(self, *args, **kwargs):
@@ -97,19 +106,19 @@ class Qunitary:
             `input_str` (str)
         Returns:
             `substr_list` (list): a list of circuit instructions, where each entry
-            represents a distinct gate operation. 
+            represents a distinct gate operation.
             Each entry is a list of three components: [gate_name,symbol_info, sub_bits]
                 1. `gate_name` (str) is the name of the Qiskit gate being implemented.
-                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and 
+                2. `symbol_info` (list) keeps track of whether the gate is parametrized, and
                         if so, whether it is the same parameter as another gate.
                 3. `sub_bits` (list of ints) keeps track of the bits the gates are applied on.
             `unique_bits` (list of ints): set of qubits
             `unique_params` (list of strs): set of gate parameters
-        
+
         Workflow:
             Step 1: partition the string into lists of individual gate instructions
-                    in the form `{gate_string}(parameters)^{bits}` 
-            Step 2: split each substring into the gate string, the relevant 
+                    in the form `{gate_string}(parameters)^{bits}`
+            Step 2: split each substring into the gate string, the relevant
                     parameters, and the bits it acts on
             Step 3: convert the bits, the gate string, and the relevant parameters
                     into integers/functions
@@ -118,7 +127,7 @@ class Qunitary:
         # Step 1 #
 
         # Split the input string based on ';' into a list where each entry is a gate instruction
-        substrings = input_str.split(';')
+        substrings = input_str.split(";")
         # Remove any leading or trailing whitespaces from each substring
         substrings = [substring.strip() for substring in substrings]
 
@@ -129,30 +138,30 @@ class Qunitary:
         unique_params = []
         for substring in substrings:
             instruction = []
-            
+
             # Separating the parameters, gates, and bits in the substring
-            start_index = substring.find('{')
-            end_index = substring.find('}')
+            start_index = substring.find("{")
+            end_index = substring.find("}")
 
-            param_start_index = substring.find('(')
-            param_end_index = substring.find(')')
+            param_start_index = substring.find("(")
+            param_end_index = substring.find(")")
 
-            bits_start_index = substring.find('^')
+            bits_start_index = substring.find("^")
             bits_end_index = len(substring)
 
             # getting gate string
             if start_index == -1:
-                gate_string = substring[start_index+1:param_start_index]
+                gate_string = substring[start_index + 1 : param_start_index]
             else:
-                gate_string = substring[start_index+1:end_index]
+                gate_string = substring[start_index + 1 : end_index]
             instruction.append(gate_string.lower())
 
             # getting param string and index
-            params_string = substring[param_start_index+1:param_end_index]
-            if params_string == '':
-                instruction.append([0,0,0])
+            params_string = substring[param_start_index + 1 : param_end_index]
+            if params_string == "":
+                instruction.append([0, 0, 0])
             else:
-                param_list = params_string.split(',')
+                param_list = params_string.split(",")
                 p_list = []
                 p_inds = []
                 for param_entry in param_list:
@@ -169,10 +178,10 @@ class Qunitary:
                     param_indx = np.where(np.array(unique_params) == p_entry)[0][0]
                     p_inds.append(param_indx)
 
-                instruction.append([len(p_list),p_inds, isinlist])
+                instruction.append([len(p_list), p_inds, isinlist])
 
             # getting list of bits
-            bits_string = substring[bits_start_index+1:bits_end_index]
+            bits_string = substring[bits_start_index + 1 : bits_end_index]
             bits = []
             for bit in bits_string:
                 bit = int(bit)
@@ -182,7 +191,9 @@ class Qunitary:
             instruction.append(bits)
 
             # add to list of circuit instructions
-            circuit_instruction = CircuitInstruction(instruction[0], instruction[1], instruction[2])
+            circuit_instruction = CircuitInstruction(
+                instruction[0], instruction[1], instruction[2]
+            )
             circuit_instructions.append(circuit_instruction)
 
         return circuit_instructions, unique_bits, unique_params
@@ -194,7 +205,9 @@ class Default_Mappings(Enum):
     """
 
     CYCLE = Qunitary(n_symbols=1, arity=2)
+    PIVOT = Qunitary(n_symbols=1, arity=2)
     MASK = None
+    SPLIT = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
 
 
@@ -206,11 +219,11 @@ class Qmotif:
         Q (list, optional): Qubit labels of the motif. Defaults to [].
         E (list, optional): Edges of the motif. Defaults to [].
         Q_avail (list, optional): Available qubits of the motif. This is calculated by the previous motif in the stack. Defaults to [].
-        edge_order (list, optional): Order of unitaries applied. Defaults to [1].
+        edge_order (list, optional): Order of unitaries applied. Defaults to [1], [-1] will reverse the order, [5,6] does the 5th and 6th edge first and then the rest in the normal order.
         next (:py:class:`Qmotif`, optional): Next motif in the stack. Defaults to None.
         prev (Qmotif, optional): Previous motif in the stack. Defaults to None.
         mapping (:py:class:`Qunitary` or :py:class:`Qhierarchy`, optional): Either a :py:class:`Qunitary` instance or a :py:class:`Qhierarchy` that will be converted to an :py:class:`Qunitary` object. Defaults to None.
-        symbols (list, optional): List of symbol values (rotation angles). Each element in the list can be a sympy symbol, complex number, or qiskit parameter. Defaults to None.
+        symbol_fn (lambda): TODO
         is_default_mapping (bool, optional): Flag to determine if default mapping is used. Defaults to True.
         is_operation (bool, optional): Flag to determine if the motif is an operation. Defaults to True.
         share_weights (bool, optional): Flag to determine if weights are shared within a motif. Defaults to True.
@@ -225,7 +238,7 @@ class Qmotif:
         next=None,
         prev=None,
         mapping=None,
-        symbols=None,
+        symbol_fn=lambda x, ns, ne: x,
         is_default_mapping=True,
         is_operation=True,
         share_weights=True,
@@ -240,7 +253,7 @@ class Qmotif:
         self.edge_order = edge_order
         # higher level graph
         self.mapping = mapping
-        self.symbols = symbols
+        self.symbol_fn = symbol_fn
         self.share_weights = share_weights
         self.edge_mapping = (
             []
@@ -255,10 +268,23 @@ class Qmotif:
         else:
             if isinstance(self.mapping, Qhierarchy):
                 # If mapping was specified as sub-hierarchy, convert it to a qunitary
+                if any(
+                    [
+                        isinstance(symbol, sp.Symbol)
+                        for symbol in self.mapping.get_symbols()
+                    ]
+                ):
+                    # if any symbols are symbolic, then we scrap them TODO ensure if we want to do this
+                    new_symbols = None
+                else:
+                    # If they are numeric
+                    new_symbols = list(self.mapping.get_symbols())
+
                 new_mapping = Qunitary(
                     function=None,
                     n_symbols=self.mapping.n_symbols,
                     arity=len(self.mapping.tail.Q),
+                    symbols=new_symbols,
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
@@ -298,7 +324,10 @@ class Qmotif:
         Returns:
             Qmotifs: A 2-tuple of motifs: (self, other) in the order they were added. The tuples contain copies of the original motifs.
         """
-        return Qmotifs((deepcopy(self), deepcopy(other)))
+        if isinstance(other, Sequence):
+            return Qmotifs((deepcopy(self),) + deepcopy(other))
+        else:
+            return Qmotifs((deepcopy(self), deepcopy(other)))
 
     def set_Q(self, Q):
         """
@@ -321,9 +350,13 @@ class Qmotif:
             raise ValueError(
                 "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
             )
-        E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
-        E_rest = [edge for edge in E if edge not in E_ordered]
-        Ep_l = E_ordered + E_rest
+        if -1 in self.edge_order:
+            # Reverse edge order if -1 is in edge order
+            Ep_l = [E[i] for i in range(len(E) - 1, -1, -1)]
+        else:
+            E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
+            E_rest = [edge for edge in E if edge not in E_ordered]
+            Ep_l = E_ordered + E_rest
         self.E = Ep_l
 
     def set_arity(self, arity):
@@ -431,27 +464,48 @@ class Qmotif:
             start_idx (int): Starting index of symbols, this is used when :py:class:Qhierarchy updates the stack, it loops through each motif counting symbols, at each motif it updates the symbols (inderectly calls this function) and send the current count as starting inde so that correct sympy symbol indices are used.
         """
         if not (self.mapping is None) and len(self.E) > 0:
+            symbol_fn = self.symbol_fn
             if symbols is None:
-                if isinstance(next(self.get_symbols(), False), sp.Symbol) or len(list(self.get_symbols()))==0:
+                if (
+                    isinstance(next(self.get_symbols(), False), sp.Symbol)
+                    or len(list(self.get_symbols())) == 0
+                ):
                     # If no new symbols are provided and current symbols are still symbolic or no symbols exist
                     # Generate symbols, this is used when Qhierarchy updates the stack.
-                    symbols = sp.symbols(
-                        f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
-                    )
+                    if self.mapping.symbols is None:
+                        # If no symbols exist in the mapping
+                        symbols = sp.symbols(
+                            f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
+                        )
+                    else:
+                        symbols = self.mapping.symbols
+                        if len(symbols) != self.mapping.n_symbols * (
+                            len(self.E) if not (self.share_weights) else 1
+                        ):
+                            # If old symbols don't match current setup
+                            symbols = [
+                                symbol
+                                for _ in range(
+                                    (len(self.E) if not (self.share_weights) else 1)
+                                )
+                                for symbol in symbols
+                            ]
                 else:
                     # If no new symbols are provided but old symbols exist
                     symbols = list(self.get_symbols())
                     if len(symbols) != self.mapping.n_symbols * (
                         len(self.E) if not (self.share_weights) else 1
                     ):
-                        # If old sybmbols don't match current setup
+                        # If old symbols don't match current setup
                         symbols = sp.symbols(
                             f"x_{start_idx}:{start_idx + self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}"
                         )
                         raise Warning(
                             f"Number of symbols {len(symbols)} does not match number of symbols in motif {self.mapping.n_symbols*(len(self.E) if not(self.share_weights) else 1)}, symbolic ones will be generated"
-                        )                        
+                        )
             else:
+                # Don't apply symbol fn (just identity) if symbols are set explicitly
+                symbol_fn = lambda x, ns, ne: x
                 if len(symbols) != self.mapping.n_symbols * (
                     len(self.E) if not (self.share_weights) else 1
                 ):
@@ -460,14 +514,57 @@ class Qmotif:
                     )
             self.edge_mapping = []
             idx = 0
+            n_edge = 1
             for edge in self.E:
                 tmp_mapping = deepcopy(self.mapping)
                 tmp_mapping.set_edge(edge)
-                tmp_mapping.set_symbols(symbols[idx : idx + self.mapping.n_symbols])
+                tmp_mapping.set_symbols(
+                    [
+                        symbol_fn(symbols[idx], idx + 1, n_edge)
+                        for idx in range(idx, idx + self.mapping.n_symbols, 1)
+                    ]
+                )
                 if not (self.share_weights):
                     idx += self.mapping.n_symbols
                 self.edge_mapping.append(tmp_mapping)
+                n_edge += 1
             self.n_symbols = len(symbols)
+
+    def cycle(self, Q, stride=1, step=1, offset=0, boundary="periodic", arity=2):
+        """
+        The cycle pattern
+        """
+        nq_available = len(Q)
+        if boundary == "open":
+            mod_nq = lambda x: x % nq_available
+            E = [
+                tuple(
+                    (
+                        Q[i + j * stride]
+                        for j in range(arity)
+                        if i + j * stride < nq_available
+                    )
+                )
+                for i in range(offset, nq_available, step)
+            ]
+            # Remove all that is not "complete"
+            E = [edge for edge in E if len(edge) == arity]
+
+        else:
+            mod_nq = lambda x: x % nq_available
+            E = [
+                tuple((Q[mod_nq(i + j * stride)] for j in range(arity)))
+                for i in range(offset, nq_available, step)
+            ]
+            # Remove all that is not "complete", i.e. contain duplicates
+            E = [edge for edge in E if len(set(edge)) == arity]
+        if (
+            len(E) == arity
+            and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
+        ):
+            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+            E = [E[0]]
+        return E
 
 
 class Qmotifs(tuple):
@@ -566,60 +663,28 @@ class Qcycle(Qmotif):
             Qconv: Returns the updated version of itself, with correct nodes and edges.
         """
         # Determine cycle operation
-        nq_available = len(Qc_l)
-        if self.stride % nq_available == 0:
+        if self.stride % len(Qc_l) == 0:
             # TODO make this clear in documentation
             # warnings.warn(
             #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
             # )
             self.stride = 1
-        if self.boundary == "open":
-            mod_nq = lambda x: x % nq_available
-            Ec_l = [
-                tuple(
-                    (
-                        Qc_l[i + j * self.stride]
-                        for j in range(self.arity)
-                        if i + j * self.stride < nq_available
-                    )
-                )
-                for i in range(self.offset, nq_available, self.step)
-            ]
-            # Remove all that is not "complete"
-            Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
-
-        else:
-            mod_nq = lambda x: x % nq_available
-            Ec_l = [
-                tuple((Qc_l[mod_nq(i + j * self.stride)] for j in range(self.arity)))
-                for i in range(self.offset, nq_available, self.step)
-            ]
-            # Remove all that is not "complete", i.e. contain duplicates
-            Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
-        if (
-            len(Ec_l) == self.arity
-            and sum([len(set(Ec_l[0]) - set(Ec_l[k])) == 0 for k in range(self.arity)])
-            == self.arity
-        ):
-            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-            Ec_l = [Ec_l[0]]
+        E = self.cycle(
+            Qc_l,
+            stride=self.stride,
+            step=self.step,
+            offset=self.offset,
+            boundary=self.boundary,
+            arity=self.arity,
+        )
         self.set_Q(Qc_l)
-        # Set order of edges
-        # if 0 in self.edge_order: TODO check if this is removable
-        #     # Raise error if 0 is in edge order
-        #     raise ValueError(
-        #         "Edge order can't contain 0, as there is no 0th edge. Use 1 instead, edge order is based on ordering, that is [1] means first edge comes first [2,8] means second edge comes first, then 8th edge comes second. There is no 0th edge"
-        #     )
-        # Ec_l_ordered = [Ec_l[i - 1] for i in self.edge_order if i - 1 < len(Ec_l)]
-        # Ec_l_rest = [edge for edge in Ec_l if edge not in Ec_l_ordered]
-        # Ec_l = Ec_l_ordered + Ec_l_rest
         # All qubits are still available for the next operation
         self.set_Qavail(Qc_l)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
         # It is important that set_E gets called last, as sets of symbol creation for the motif
-        self.set_E(Ec_l)
+        self.set_E(E)
         start_idx = kwargs.get("start_idx", 0)
         self.set_symbols(start_idx=start_idx)
 
@@ -636,23 +701,6 @@ class Qcycle(Qmotif):
             return True
         return False
 
-class Qpivot(Qmotif):
-    """
-    A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
-    """
-
-    def __init__(
-        self,
-        stride=1,
-        step=1,
-        offset=0,
-        boundary="periodic",
-        **kwargs,
-    ):
-        pass
-
-    def dummy_func():
-        pass
 
 class Qpermute(Qmotif):
     """
@@ -713,6 +761,313 @@ class Qpermute(Qmotif):
         return False
 
 
+# class Qpivot_old(Qmotif):
+#     """
+#     A pivot motif. Qpivot will receive a pattern string, where '1' indicates the pivot qubit and 0 the control. The star is a wild card which gets filled with '0''s based on the number of available qubits. 1* pivots to the top qubit, *1 to the bottom, *1* to the middle, 1*1*1 has 3 pivots which can be connected based on nearest neighbour or the normal cycle pattern, something similar is already implemented in Qmask which I can take you through. For one qubit unitaries (such as the h_top for the Hadamard) the unitary gets placed only on pivot qubits.
+#     """
+
+#     def __init__(
+#         self,
+#         pattern="1*",
+#         local_pattern="*1",
+#         stride=1,
+#         step=1,
+#         offset=0,
+#         boundary="open",
+#         **kwargs,
+#     ):
+#         pass
+
+#     def __call__(self, Qc_l, *args, **kwargs):
+
+#         if self.arity > 1:
+#             nq_available = len(remaining_q)
+
+#             if nq_available > 0:
+#                 if self.stride % nq_available == 0:
+#                     # TODO make this clear in documentation
+#                     # warnings.warn(
+#                     #     f"Stride and number of available qubits can't be the same, received:\nstride: {self.stride}\n available qubits:{nq_available}. Defaulting to stride of 1"
+#                     # )
+#                     self.stride = 1
+
+#                 r_q = remaining_q[self.offset :: self.step]
+#                 if self.boundary == "periodic":
+#                     while len(r_q) < len(remaining_q):
+#                         r_q += [q for q in remaining_q if q not in r_q][:: self.step]
+#                 Ec_l = []
+#                 while len(r_q) > 0:
+#                     t = [
+#                         r_q[(j * self.stride) % len(r_q)]
+#                         for j in range(self.arity - n_pivot)
+#                     ]
+#                     Ec_l.append(tuple(t))
+#                     r_q = [q for q in r_q if q not in list(t)]
+
+#                 # Add the pivot qubit to each edge
+#                 Ec_l = Ec_l[: len(Ec_l) - len(Ec_l) % len(pivot_q)]
+
+#                 # edge order based on local pattern
+#                 dummy = []
+#                 for p, edge in zip(
+#                     [P for P in pivot_q for _ in range(len(Ec_l) // len(pivot_q))], Ec_l
+#                 ):
+#                     i_p = 0
+#                     i_e = 0
+#                     t = []
+#                     for i in range(self.arity):
+#                         if l_pattern[i] == "1":
+#                             t.append(p[i_p])
+#                             i_p += 1
+#                         else:
+#                             t.append(edge[i_e])
+#                             i_e += 1
+#                     dummy.append(tuple(t))
+#                 Ec_l = dummy
+
+#                 # Remove all that is not "complete"
+#                 Ec_l = [edge for edge in Ec_l if len(edge) == self.arity]
+#                 # Remove all containing duplicated qubits
+#                 Ec_l = [edge for edge in Ec_l if len(set(edge)) == self.arity]
+
+#             else:
+#                 Ec_l = []
+
+#         else:
+#             Ec_l = [p for p in pivot_q]
+
+#         self.set_Q(Qc_l)
+
+#         self.set_Qavail(Qc_l)
+#         mapping = kwargs.get("mapping", None)
+#         if mapping:
+#             self.set_mapping(mapping)
+#         # It is important that set_E gets called last, as sets of symbol creation for the motif
+#         self.set_E(Ec_l)
+#         start_idx = kwargs.get("start_idx", 0)
+#         self.set_symbols(start_idx=start_idx)
+
+#         return self
+
+
+class Qsplit(Qmotif):
+    def __init__(
+        self,
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,  # either this or third item in strides
+        mask=False,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
+        type=Primitive_Types.SPLIT,
+        **kwargs,
+    ) -> None:
+        # If strides, steps or offsets are provided as integers, convert to list that repeats that integer
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        # Set attributes
+        self.type = type
+        self.global_pattern = global_pattern
+        self.merge_within = merge_within
+        self.merge_between = merge_between
+        self.mask = mask
+        self.strides = strides
+        self.steps = steps
+        self.offsets = offsets
+        self.boundaries = boundaries
+        mapping = kwargs.get("mapping", None)
+        is_default_mapping = True if mapping is None else False
+        # Initialize Qmotif
+        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+
+    def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
+        mapping = kwargs.get("mapping", None)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_Q(Q)
+        self.set_Qavail(remaining_q)
+        if mapping:
+            self.set_mapping(mapping)
+        self.set_is_operation(is_operation)
+        self.set_E(E)
+        self.set_symbols(start_idx=start_idx)
+        return self
+
+    def wildcard_populate(self, pattern, length):
+        # Wildcard pattern
+        n_stars = pattern.count("*")
+        n_excl = pattern.count("!")
+        # base = pattern.replace("*", "0" * zero_per_star)
+        # base = base.replace("!", "1" * zero_per_star)
+        base = pattern
+        max_it = length
+        do_star = True if n_stars > 0 else False
+        just_changed = False
+        stars_found = 0
+        excls_found = 0
+        while len(base) < (length + n_stars + n_excl) and max_it > 0:
+            """
+            TODO refactor this code so that it is more readable. The idea is this:
+            There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
+            1*1 -> 10000001
+            0!0 -> 01111110
+            *! -> 00001111
+            *1* -> 00001000
+            The algorithm alternates between finding a star and an excl and inserts a 0 or 1 next to it. The first iteration checks for a star (since we need to pick one), therefore it has a kind of precedence, but only effects the first insertion. From there it alternates between star and excl.
+
+            We have another alternation which is between using find and rfind, this is to handle the case when there's 2 stars or 2 exclamations. I don't think 3 wild cards make sense TODO think about this.
+            """
+            if do_star:
+                if stars_found % 2 == 0:
+                    idx = base.find("*")
+                else:
+                    idx = base.rfind("*")
+                stars_found += 1
+                # Insert 0 next to it
+                base = base[:idx] + "0" + base[idx:]
+                do_star = False if n_excl > 0 else True
+                just_changed = True
+            if (not do_star) and (not just_changed):
+                if excls_found % 2 == 0:
+                    idx = base.find("!")
+                else:
+                    idx = base.rfind("!")
+                excls_found += 1
+                # Insert 1 next to it
+                base = base[:idx] + "1" + base[idx:]
+                do_star = True if n_stars > 0 else False
+            just_changed = False
+            max_it -= 1
+        base = base.replace("*", "")
+        base = base.replace("!", "")
+        return base
+
+    def get_pattern_fn(self, pattern, length):
+        # If pattern is a string then convert it to a lambda function
+        if isinstance(pattern, str):
+            # If pattern contains wild cards, then we need to populate it
+            if any(("*" == c) or ("!" == c) for c in pattern):
+                pattern = self.wildcard_populate(pattern, length)
+            if len(pattern) < length:
+                # If there are no wildcard characters, then we assume that the pattern is a base pattern and we will repeat it until it is the same length as the current number of qubits
+                base = pattern * (length // len(pattern))
+                pattern = base[:length]
+            # Pattern is now a string of 1's and 0's and have length >= lengthor some predefined string
+            if all(c in ["0", "1"] for c in pattern):
+                pattern_fn = lambda arr: [
+                    item for item, indicator in zip(arr, pattern) if indicator == "1"
+                ]
+            else:
+                # Pattern must be predefined string
+                pattern_fn = self.get_predefined_pattern_fn(pattern)
+        # If pattern is already in lambda function form, then just use it
+        else:
+            # Check if pattern is function
+            if callable(pattern):
+                pattern_fn = pattern
+            else:
+                raise Exception("Pattern must be a string or a lambda function")
+        return pattern_fn
+
+    def cycle_between_splits(
+        self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
+    ):
+        if boundary == "open":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride)],
+                )
+                for i in range(offset, len(E_a), step)
+                if (i + stride) < len(E_b)
+            ]
+        elif boundary == "periodic":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride) % len(E_b)],
+                )
+                for i in range(offset, len(E_a), step)
+            ]
+        else:
+            raise Exception("Boundary must be either open or periodic")
+        return E
+
+    def merge_within_splits(self, E, merge_pattern):
+        E_out = []
+        for e in E:
+            i_0 = 0
+            i_1 = 0
+            dummy = tuple()
+            for char in merge_pattern:
+                if char == "1":
+                    dummy += (e[0][i_0],)
+                    i_0 += 1
+                elif char == "0":
+                    dummy += (e[1][i_1],)
+                    i_1 += 1
+                else:
+                    raise Exception("Merge pattern must be a string of 0's and 1's")
+            E_out.append(dummy)
+        return E_out
+
+    def get_predefined_pattern_fn(self, pattern):
+        # Mapping words to the pattern type
+        if pattern == "left":
+            # 0 1 2 3 4 5 6 7
+            # x x x x
+            pattern_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
+        elif pattern == "right":
+            # 0 1 2 3 4 5 6 7
+            #         x x x x
+            pattern_fn = lambda arr: arr[len(arr) // 2 : len(arr) : 1]
+        elif pattern == "even":
+            # 0 1 2 3 4 5 6 7
+            # x   x   x   x
+            pattern_fn = lambda arr: arr[0::2]
+        elif pattern == "odd":
+            # 0 1 2 3 4 5 6 7
+            #   x   x   x   x
+            pattern_fn = lambda arr: arr[1::2]
+        elif pattern == "inside":
+            # 0 1 2 3 4 5 6 7
+            #     x x x x
+            pattern_fn = (
+                lambda arr: arr[
+                    len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1
+                ]
+                if len(arr) > 2
+                else [arr[1]]
+            )  # inside
+        elif pattern == "outside":
+            # 0 1 2 3 4 5 6 7
+            # x x         x x
+            pattern_fn = (
+                lambda arr: [
+                    item
+                    for item in arr
+                    if not (
+                        item
+                        in arr[
+                            len(arr) // 2
+                            - len(arr) // 4 : len(arr) // 2
+                            + len(arr) // 4 : 1
+                        ]
+                    )
+                ]
+                if len(arr) > 2
+                else [arr[0]]
+            )  # outside
+        else:
+            raise ValueError(f"{pattern} - Pattern not recognized")
+        return pattern_fn
+
+
 class Qmask_Base(Qmotif):
     def __init__(
         self,
@@ -745,6 +1100,7 @@ class Qmask_Base(Qmotif):
         Args:
             mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
                                             The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
+                                            There is also the option to the use wild cards: *,!. 1*1 masks the outer two qubits and 0!0 mask all inner qubits except the outer two, i.e. * fills zeros and ! fills ones.
                                             If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
                                             the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
@@ -803,57 +1159,87 @@ class Qmask_Base(Qmotif):
                 # Assume pattern is in form contains a string specifying which indices to remove
                 # For example "01001" removes idx 1 and 4 or qubit 2 and 5
                 # The important thing here is for pool pattern to be the same length as the current number of qubits
-                if len(mask_pattern) == len(Qp_l):
+
+                # First check for !,* wild cards
+                if any(("*" == c) or ("!" == c) for c in mask_pattern):
+                    # Wildcard pattern
+                    n_ones = mask_pattern.count("1")
+                    n_stars = mask_pattern.count("*")
+                    n_excl = mask_pattern.count("!")
+                    n_zeros = len(Qp_l) - n_ones
+                    # base = mask_pattern.replace("*", "0" * zero_per_star)
+                    # base = base.replace("!", "1" * zero_per_star)
+                    base = mask_pattern
+                    max_it = len(Qp_l)
+                    do_star = True if n_stars > 0 else False
+                    just_changed = False
+                    stars_found = 0
+                    excls_found = 0
+                    while len(base) < len(Qp_l) and max_it > 0:
+                        """
+                        TODO refactor this code so that it is more readable. The idea is this:
+                        There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
+                        1*1 -> 10000001
+                        0!0 -> 01111110
+                        *! -> 00001111
+                        *1* -> 00001000
+                        The algorithm alternates between finding a star and an excl and inserts a 0 or 1 next to it. The first iteration checks for a star (since we need to pick one), therefore it has a kind of precedence, but only effects the first insertion. From there it alternates between star and excl.
+
+                        We have another alternation which is between using find and rfind, this is to handle the case when there's 2 stars or 2 exclamations. I don't think 3 wild cards make sense TODO think about this.
+                        """
+                        if do_star:
+                            if stars_found % 2 == 0:
+                                idx = base.find("*")
+                            else:
+                                idx = base.rfind("*")
+                            stars_found += 1
+                            # Insert 0 next to it
+                            base = base[:idx] + "0" + base[idx:]
+                            do_star = False if n_excl > 0 else True
+                            just_changed = True
+                        if (not do_star) and (not just_changed):
+                            if excls_found % 2 == 0:
+                                idx = base.find("!")
+                            else:
+                                idx = base.rfind("!")
+                            excls_found += 1
+                            # Insert 1 next to it
+                            base = base[:idx] + "1" + base[idx:]
+                            do_star = True if n_stars > 0 else False
+                        just_changed = False
+                        max_it -= 1
+                    base = base.replace("*", "0")
+                    base = base.replace("!", "1")
+                    # if n_zeros <= 0:
+                    #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
+                    #     base = "0" * len(Qp_l)
+                    # else:
+                    #     base = mask_pattern.replace("*", "0" * n_zeros)
+                    mask_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
+                elif len(mask_pattern) == len(Qp_l):
                     mask_pattern_fn = lambda arr: [
                         item
                         for item, indicator in zip(arr, mask_pattern)
                         if indicator == "1"
                     ]
+
                 else:
-                    # Attempt to use the pattern as a base pattern
-                    # TODO explain in docs and maybe print a warning
-                    # For example "101" will be used as "10110110" if there are 8 qubits
-                    if any("*" == c for c in mask_pattern):
-                        # Wildcard pattern
-                        n_ones = mask_pattern.count("1")
-                        n_stars = mask_pattern.count("*")
-                        n_zeros = len(Qp_l) - n_ones
-                        zero_per_star = n_zeros // n_stars
-                        base = mask_pattern.replace("*", "0" * zero_per_star)
-                        max_it = len(Qp_l)
-                        while len(base) < len(Qp_l) and max_it > 0:
-                            # get index of first 0
-                            idx = base.find("0")
-                            # Insert 0 next to it
-                            base = base[:idx] + "0" + base[idx:]
-                            max_it -= 1
-                        # if n_zeros <= 0:
-                        #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                        #     base = "0" * len(Qp_l)
-                        # else:
-                        #     base = mask_pattern.replace("*", "0" * n_zeros)
-                        mask_pattern_fn = lambda arr: [
-                            item
-                            for item, indicator in zip(arr, base)
-                            if indicator == "1"
-                        ]
-                    else:
-                        # If there are no wildcard characters, then we assume that the pattern is a base pattern
-                        # and we will repeat it until it is the same length as the current number of qubits
-                        base = mask_pattern * (len(Qp_l) // len(mask_pattern))
-                        base = base[: len(Qp_l)]
-                        mask_pattern_fn = lambda arr: [
-                            item
-                            for item, indicator in zip(arr, base)
-                            if indicator == "1"
-                        ]
+                    # If there are no wildcard characters, then we assume that the pattern is a base pattern
+                    # and we will repeat it until it is the same length as the current number of qubits
+                    base = mask_pattern * (len(Qp_l) // len(mask_pattern))
+                    base = base[: len(Qp_l)]
+                    mask_pattern_fn = lambda arr: [
+                        item for item, indicator in zip(arr, base) if indicator == "1"
+                    ]
 
         else:
             mask_pattern_fn = mask_pattern
         return mask_pattern_fn
 
 
-class Qmask(Qmask_Base):
+class Qmask(Qsplit):
     """
     A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
     This motif changes the available qubits for the next motif in the stack.
@@ -861,27 +1247,36 @@ class Qmask(Qmask_Base):
 
     def __init__(
         self,
-        pattern="right",  # right, left, up, down, 1*1*1, lambda function
-        connection_type="cycle",  # nearest_circle, nearest_tower, nearest_square,
-        stride=0,
-        step=1,
-        offset=0,
-        boundary="periodic",
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
         **kwargs,
     ):
         """
-        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
-        TODO Open, Periodic boundary
+        TODO allow strides,steps,offsets to be one value and repeat what was given
         """
-        self.connection_type = connection_type
-        self.stride = stride
-        self.step = step
-        self.offset = offset
-        self.boundary = boundary
-        mapping = kwargs.get("mapping", None)
-        is_default_mapping = True if mapping is None else False
-        # Initialize graph
-        super().__init__(pattern, is_default_mapping=is_default_mapping, **kwargs)
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        super().__init__(
+            global_pattern=global_pattern,
+            merge_within=merge_within,
+            merge_between=merge_between,
+            strides=strides,
+            steps=steps,
+            offsets=offsets,
+            boundaries=boundaries,
+            mask=True,
+            type=Primitive_Types.MASK,
+            **kwargs,
+        )
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -902,144 +1297,64 @@ class Qmask(Qmask_Base):
         # The idea is to mask qubits based on some pattern
         # This can be done with or without applying a unitary. Applying a unitary "preserves" their information (usually through some controlled unitary)
         # This enables patterns of: pooling in quantum neural networks, coarse graining or entanglers or just plain masking
-        # The logic is as follows:
-        # First check if there are more than 1 qubit available, since we don't want to make our last available qubit unavailable.
-        # Then check if there is a associated untitary, if there is:
-        #   If arity is 2 we have some predifined patterns + the general pattern functionality
-        #       Predifined: right, left, inside, outside, even, odd, nearest_circle, nearest_tower
-        #   If arity is more, then we just have general pattern functionality
-        # General pattern works as follows:
-        #   Provided a binary string of length arity, concatenate it to itself until it is of length len(Qp_l)
-        #   Then use this binary string to mask the qubits, where 1 means mask and 0 means keep
-        # Stride, Step, Offset manages the connectivity of masked and unmasked qubits, generally we want unmasked ones to be the target
-        # of masked ones, so that we enable deffered measurement.
-        # The most general usage is providing your own pattern function
-        # TODO add this to docs and explain how to provide own pattern function.
+        # Default is mask without a mapping, making it non operational
         is_operation = False
+        # Defaults for when nothing happens (this gets changed if conditions are met, i.e. there are qubits to mask etc)
+        Ep_l = []
+        remaining_q = Qp_l
+        # If there are qubits to mask
         if len(Qp_l) > 1:
-            # Check if predifined pattern was provided
-            self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
+            # Get global pattern function based on the pattern attribute
+            self.mask_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
+            # Apply pattern function on all available qubits
             measured_q = self.mask_pattern_fn(Qp_l)
             remaining_q = [q for q in Qp_l if not (q in measured_q)]
-            Ep_l = []
-            # Check if there is a unitary associated with the motif
-            if not (self.mapping is None):
+            if len(remaining_q) == 0:
+                # Don't do anything if all qubits were removed
+                remaining_q = Qp_l
+            elif not (self.mapping is None):
+                # there is a operation associated with the motif
                 is_operation = True
-                # All below generates edges for associated unitaries
-                if isinstance(self.pattern, str) and not (
-                    all((c in ("0", "1") for c in self.pattern))
-                ):
-                    if len(remaining_q) > 0:
-                        # TODO add nearest neighbor modulo nq
-                        if self.connection_type == "nearest_circle":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(Qp_l.index(i) - Qp_l.index(x))
-                                        % len(remaining_q)
-                                        // 2,
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        elif self.connection_type == "nearest_tower":
-                            Ep_l = [
-                                (
-                                    Qp_l[Qp_l.index(i)],
-                                    min(
-                                        remaining_q,
-                                        key=lambda x: abs(
-                                            Qp_l.index(i) - Qp_l.index(x)
-                                        ),
-                                    ),
-                                )
-                                for i in measured_q
-                            ]
-                        else:
-                            Ep_l = [
-                                (
-                                    measured_q[i],
-                                    remaining_q[(i + self.stride) % len(remaining_q)],
-                                )
-                                for i in range(len(measured_q))
-                            ]
-                    else:
-                        # No qubits were pooled
-                        Ep_l = []
-                        remaining_q = Qp_l
-                else:
-                    # General pattern functionality:
-                    # TODO maybe generalize better arity > 2, currently my idea is that the pattern string should completely
-                    # specify the form of the n qubit unitary, that is length of pattern string should equal arity.
-                    if isinstance(self.pattern, str):
-                        if len(self.pattern) != self.arity:
-                            raise ValueError(
-                                f"Pattern string should be of length arity {self.arity}, if it is a string."
-                            )
-                        nq_available = len(Qp_l)
-                    if self.stride % nq_available == 0:
-                        self.stride = 1  # TODO test if this is neccesary
-                    # We generate edges the same way as convolutions
-                    if self.boundary == "open":
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[i + j * self.stride]
-                                    for j in range(self.arity)
-                                    if i + j * self.stride < nq_available
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete"
-                        Ep_l = [edge for edge in Ep_l if len(edge) == self.arity]
+                # Populate merge pattern
+                merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+                # Count the number of 1s in the merge pattern
+                arity_m = merge_within_pop.count("1")
+                arity_r = self.arity - arity_m
+                # Generate edges for measured split
+                E_m = self.cycle(
+                    measured_q,
+                    stride=self.strides[0],
+                    step=self.steps[0],
+                    offset=self.offsets[0],
+                    boundary=self.boundaries[0],
+                    arity=arity_m,
+                )
+                # Generate edges for remaining split
+                E_r = self.cycle(
+                    remaining_q,
+                    stride=self.strides[1],
+                    step=self.steps[1],
+                    offset=self.offsets[1],
+                    boundary=self.boundaries[1],
+                    arity=arity_r,
+                )
+                # Generate edges for measured to remaining
+                if not (self.merge_between == None):
+                    # If there is a merge_between pattern
+                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                    E_r = pattern_fn(E_r)
 
-                    else:
-                        mod_nq = lambda x: x % nq_available
-                        Ep_l = [
-                            tuple(
-                                (
-                                    Qp_l[mod_nq(i + j * self.stride)]
-                                    for j in range(self.arity)
-                                )
-                            )
-                            for i in range(self.offset, nq_available, self.step)
-                        ]
-                        # Remove all that is not "complete", i.e. contain duplicates
-                        Ep_l = [edge for edge in Ep_l if len(set(edge)) == self.arity]
-                    if (
-                        len(Ep_l) == self.arity
-                        and sum(
-                            [
-                                len(set(Ep_l[0]) - set(Ep_l[k])) == 0
-                                for k in range(self.arity)
-                            ]
-                        )
-                        == self.arity
-                    ):
-                        # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-                        Ep_l = [Ep_l[0]]
-                    # Then we apply the pattern to record which edges go away
-                    self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, Qp_l)
-                    measured_q = [
-                        qubit for edge in Ep_l for qubit in self.mask_pattern_fn(edge)
-                    ]
-                    remaining_q = [q for q in Qp_l if not (q in measured_q)]
+                E_b = self.cycle_between_splits(
+                    E_a=E_m,
+                    E_b=E_r,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+                # Merge the two splits based on merge pattern
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        else:
-            # raise ValueError(
-            #     "Pooling operation not added, Cannot perform pooling on 1 qubit"
-            # )
-            # No qubits were pooled
-            # TODO make clear in documentation, no pooling is done if 1 qubit remain
-            Ep_l = []
-            remaining_q = Qp_l
-        if len(remaining_q)==0:
-            # Don't do anything if all qubits were removed
-            remaining_q=Qp_l
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
@@ -1059,7 +1374,7 @@ class Qmask(Qmask_Base):
         return False
 
 
-class Qunmask(Qmask_Base):
+class Qunmask(Qsplit):
     def __init__(
         self,
         *args,
@@ -1068,20 +1383,23 @@ class Qunmask(Qmask_Base):
         """
         TODO possibility to give masking motif to undo
         """
+        self.type = Primitive_Types.MASK
         super().__init__(*args, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
         TODO
         """
-        if self.pattern == "previous":
+        if self.global_pattern == "previous":
             current = self
             unmasked_q = []
             unmask_counts = 0
+            q_old = kwargs.get("q_initial", [])
             while current is not None:
                 current = current.prev
                 if isinstance(current, Qmask) and unmask_counts <= 0:
-                    unmasked_q = current.prev.Q
+                    unmasked_q = current.Q
+                    q_old = current.Q
                     current = None
 
                 if isinstance(current, Qunmask):
@@ -1090,16 +1408,193 @@ class Qunmask(Qmask_Base):
                     unmask_counts -= 1
         else:
             q_old = kwargs.get("q_initial", [])
-            self.mask_pattern_fn = self.get_mask_pattern_fn(self.pattern, q_old)
+            self.mask_pattern_fn = self.get_pattern_fn(self.global_pattern, len(q_old))
             unmasked_q = self.mask_pattern_fn(q_old)
         is_operation = False
         Ep_l = []
         unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
-        new_avail_q = Qp_l + unique_unmasked
+        new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
         super().__call__(
             Q=Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
         return self
+
+
+class Qpivot(Qsplit):
+    """
+    The pivot connects the set of avaible qubits sequentially to a fixed set or qubits. The global pattern determins the pivot points while the merge pattern determines how the qubits are passed to the mapping.
+    """
+
+    def __init__(
+        self,
+        global_pattern="1*",
+        merge_within="1*",
+        merge_between=None,
+        strides=[1, 1, 0],
+        steps=[1, 1, 1],
+        offsets=[0, 0, 0],
+        boundaries=["open", "open", "periodic"],
+        **kwargs,
+    ):
+        """
+        Allow strides,steps,offsets and boundaries to be one value and repeat what was given
+        """
+        if isinstance(strides, int):
+            strides = [strides] * 3
+        if isinstance(strides, int):
+            steps = [steps] * 3
+        if isinstance(offsets, int):
+            offsets = [offsets] * 3
+        if isinstance(boundaries, str):
+            offsets = [offsets] * 3
+
+        super().__init__(
+            global_pattern=global_pattern,
+            merge_within=merge_within,
+            merge_between=merge_between,
+            strides=strides,
+            steps=steps,
+            offsets=offsets,
+            boundaries=boundaries,
+            mask=False,
+            type=Primitive_Types.PIVOT,
+            **kwargs,
+        )
+
+    def __call__(self, Qp_l, *args, **kwargs):
+        """
+
+        Args:
+            Qp_l (list): List of available qubits.
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments, such as:
+                * mapping (tuple(function, int)):
+                    Function mapping is specified as a tuple, where the first argument is a function and the second is the number of symbols it uses. A symbol here refers to an variational paramater for a quantum circuit, i.e. crz(theta, q0, q1) <- theta is a symbol for the gate.
+
+        Returns:
+        """
+
+        # Pivot must have a mapping
+        # TODO add a defualt mapping?
+        if self.mapping is None:
+            raise Exception("Pivot must have a mapping")
+
+        # Count the number of 1s in the merge pattern
+        arity_p = self.merge_within.count("1")
+        arity_r = self.arity - arity_p
+
+        # Get global pattern function based on the pattern attribute
+        self.pivot_pattern_fn = self.get_pattern_fn(
+            self.global_pattern.replace("1", "1" * arity_p), len(Qp_l)
+        )
+        pivot_q = [
+            p
+            for i in range((len(self.pivot_pattern_fn(Qp_l)) + arity_p - 1) // arity_p)
+            for p in self.pivot_pattern_fn(Qp_l)[i * arity_p : (i + 1) * arity_p]
+        ]
+
+        remaining_q = [q for q in Qp_l if not (q in pivot_q)]
+
+        E_p = self.cycle(
+            pivot_q,
+            stride=self.strides[0],
+            step=self.steps[0],
+            offset=self.offsets[0],
+            boundary=self.boundaries[0],
+            arity=arity_p,
+        )
+
+        if arity_r > 0:
+            # Generate edges for remaining split
+            E_r = self.cycle(
+                remaining_q,
+                stride=self.strides[1],
+                step=self.steps[1],
+                offset=self.offsets[1],
+                boundary=self.boundaries[1],
+                arity=arity_r,
+            )
+
+            # If E_r empty then there were not enough qubits to satisfiy the arity
+            if len(E_r) > 0:
+                # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
+                max_it = 0  # prevent infinite loop
+                E_tmp = E_p.copy()
+                N = len(E_r)
+                while len(E_tmp + E_p) <= N and max_it < N:
+                    E_tmp += E_p
+                    max_it += 1
+                E_p = E_tmp.copy()
+
+                # Reorder E_p so that like pivots are grouped together, i.e. remaining avaliable qubits are assigned first to the first pivot point, then the second and so on.
+                E_tmp = []
+                for i in range(N):
+                    E_tmp += E_p[i::N]
+                E_p = E_tmp.copy()
+
+                # TODO what could merge_between be used for?
+                if not (self.merge_between == None):
+                    pass
+
+                E_b = self.cycle_between_splits(
+                    E_a=E_r,
+                    E_b=E_p,
+                    stride=self.strides[2],
+                    step=self.steps[2],
+                    offset=self.offsets[2],
+                    boundary=self.boundaries[2],
+                )
+
+                E_b = [(e[1], e[0]) for e in E_b]
+
+                # Merge the two splits based on merge pattern
+                merge_within_pop = self.wildcard_populate(self.merge_within, self.arity)
+                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+            else:
+                Ep_l = []
+        else:
+            Ep_l = E_p
+
+        super().__call__(Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
+        return self
+
+    def cycle_between_splits(
+        self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
+    ):
+        if boundary == "open":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride)],
+                )
+                for i in range(offset, len(E_a), step)
+                if (i + stride) < len(E_b)
+            ]
+        elif boundary == "periodic":
+            E = [
+                (
+                    E_a[i],
+                    E_b[(i + stride) % len(E_b)],
+                )
+                for i in range(offset, len(E_a), step)
+            ]
+        else:
+            raise Exception("Boundary must be either open or periodic")
+
+        return E
+
+    def __eq__(self, other):
+        if isinstance(other, Qmask):
+            self_attrs = vars(self)
+            other_attrs = vars(other)
+
+            for attr, value in self_attrs.items():
+                if not (attr == "mask_pattern_fn"):
+                    if attr not in other_attrs or other_attrs[attr] != value:
+                        return False
+
+            return True
+        return False
 
 
 class Qhierarchy:
@@ -1224,11 +1719,13 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
+            state = self.tail.state
             for layer in self:
                 for unitary in layer.edge_mapping:
                     state = unitary.function(
                         bits=unitary.edge, symbols=unitary.symbols, state=state
                     )
+            return state
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1253,7 +1750,9 @@ class Qhierarchy:
             for layer in self:
                 for unitary in layer.edge_mapping:
                     if isinstance(unitary.function, str):
-                        get_circuit_from_string = kwargs.get("get_circuit_from_string", None)
+                        get_circuit_from_string = kwargs.get(
+                            "get_circuit_from_string", None
+                        )
                         unitary = get_circuit_from_string(unitary)
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
@@ -1273,10 +1772,10 @@ class Qhierarchy:
             Qhierarchy: A new Qhierarchy object with the new motif added to the stack.
         """
         motif = deepcopy(motif)
-        new_hierarchy = deepcopy(self)
-        new_hierarchy.head.set_next(motif)
-        new_hierarchy.head.next.set_prev(new_hierarchy.head)
-        new_hierarchy.head = new_hierarchy.head.next
+        # old_head = deepcopy(self.head) TODO test
+        self.head.set_next(motif)
+        self.head.next.set_prev(self.head)
+        self.head = self.head.next
 
         if motif.is_operation & motif.is_default_mapping:
             mapping = None
@@ -1293,20 +1792,18 @@ class Qhierarchy:
             else:
                 # If no function mapping was provided
                 mapping = getattr(Default_Mappings, motif.type.name).value
-            new_hierarchy.head(
-                self.head.Q_avail, mapping=mapping, q_initial=self.tail.Q
-            )
+            self.head(self.head.prev.Q_avail, mapping=mapping, q_initial=self.tail.Q)
             # self.update_symbols(motif) TODO
 
         else:
             n_symbols = len([_ for _ in self.get_symbols()])
-            new_hierarchy.head(
-                self.head.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
+            self.head(
+                self.head.prev.Q_avail, start_idx=n_symbols, q_initial=self.tail.Q
             )
             # self.update_symbols(motif) TODO
 
-        new_hierarchy.n_symbols = len([_ for _ in new_hierarchy.get_symbols()])
-        return new_hierarchy
+        self.n_symbols = len([_ for _ in self.get_symbols()])
+        return self
 
     def extend(self, motifs):
         """
@@ -1386,12 +1883,13 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, **kwargs) -> None:
+    def __init__(self, Q, state=None, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i + 1 for i in range(Q)]
         self.type = Primitive_Types.INIT
+        self.state = state
         # Initialize graph
         super().__init__(Q=Qinit, Q_avail=Qinit, is_operation=False, **kwargs)
 
@@ -1408,6 +1906,3 @@ class Qinit(Qmotif):
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self
-
-
-# %%

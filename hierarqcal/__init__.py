@@ -1,8 +1,10 @@
 from .core import (
     Qcycle,
+    Qpivot,
     Qpermute,
     Qmask,
     Qunmask,
+    Qsplit,
     Qinit,
     Qhierarchy,
     Qmotifs,
@@ -14,9 +16,11 @@ from .utils import plot_motif
 __all__ = [
     "Qhierarchy",
     "Qcycle",
+    "Qpivot",
     "Qpermute",
     "Qmask",
     "Qunmask",
+    "Qsplit",
     "Qinit",
     "Qunitary",
     "Qmotif",
