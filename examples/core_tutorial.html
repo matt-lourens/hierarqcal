@@ -22,7 +22,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="API Reference" href="../api.html" />
-    <link rel="prev" title="HierarQcal Overview" href="quickstart.html" /> 
+    <link rel="prev" title="HierarQcal Quickstart" href="quickstart.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -49,10 +49,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../getting_started.html">Getting Started</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../getting_started.html#installation">Installation</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../getting_started.html#basic-usage">Basic usage</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="quickstart.html">HierarQcal Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html">HierarQcal Quickstart</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Core functionality tutorial</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#specify-backend">Specify backend</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#building-blocks">Building blocks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#qpivot-primitive">Qpivot primitive</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#classical-and-quantum-computation-advanced-usage-experimental-features">Classical and Quantum computation (Advanced usage + experimental features)</a></li>
 </ul>
 </li>
 </ul>
@@ -99,13 +101,16 @@
     <span class="n">Qhierarchy</span><span class="p">,</span>
     <span class="n">Qcycle</span><span class="p">,</span>
     <span class="n">Qpermute</span><span class="p">,</span>
+    <span class="n">Qpivot</span><span class="p">,</span>
     <span class="n">Qmask</span><span class="p">,</span>
     <span class="n">Qunmask</span><span class="p">,</span>
     <span class="n">Qinit</span><span class="p">,</span>
     <span class="n">Qmotif</span><span class="p">,</span>
     <span class="n">Qmotifs</span><span class="p">,</span>
+    <span class="n">Qsplit</span><span class="p">,</span>
     <span class="n">plot_motif</span><span class="p">,</span>
     <span class="n">Qunitary</span><span class="p">,</span>
+    <span class="n">plot_circuit</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -228,7 +233,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/fc087d70353dc4cf7903b368e2a9b0389689816396a440956f6cc83b37da9930.png" src="../_images/fc087d70353dc4cf7903b368e2a9b0389689816396a440956f6cc83b37da9930.png" />
+<img alt="../_images/356eafc6b56dc727a4fb973e364f839f4fc86216cd11f2113f7eae44df73e5f8.png" src="../_images/356eafc6b56dc727a4fb973e364f839f4fc86216cd11f2113f7eae44df73e5f8.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -239,7 +244,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/9f83286c12892be8e8d3406b5062cfeb8596698d9c21c0795d1a9eb6e32cd8c7.png" src="../_images/9f83286c12892be8e8d3406b5062cfeb8596698d9c21c0795d1a9eb6e32cd8c7.png" />
+<img alt="../_images/f063506b85333c05fcda4582e14beefe73e6ba97e2dc913b0fbf02b464a5712a.png" src="../_images/f063506b85333c05fcda4582e14beefe73e6ba97e2dc913b0fbf02b464a5712a.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -250,7 +255,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/27f9cbecb94dc86672d96a4f016385ecb3a15c35b83aab8b36e5cc7cc33908ef.png" src="../_images/27f9cbecb94dc86672d96a4f016385ecb3a15c35b83aab8b36e5cc7cc33908ef.png" />
+<img alt="../_images/0b97959a438bb9a8fd8b417856ad547ffc0cf2138f938281d3d964c17ec478a2.png" src="../_images/0b97959a438bb9a8fd8b417856ad547ffc0cf2138f938281d3d964c17ec478a2.png" />
 </div>
 </div>
 </div>
@@ -296,8 +301,23 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/5a75638f2634267840266b999a9234b00ac7e6ab27934d277ae28c30053a950e.png" src="../_images/5a75638f2634267840266b999a9234b00ac7e6ab27934d277ae28c30053a950e.png" />
-<img alt="../_images/5dd0d3257906266c2b6aff58e3b74139945a8d78d5bd4b5d72ac36c88ae9abcd.png" src="../_images/5dd0d3257906266c2b6aff58e3b74139945a8d78d5bd4b5d72ac36c88ae9abcd.png" />
+<img alt="../_images/0355f53fb6af8443b97503a79f0cad9f319998d38b4bb8a5515e25c4335b7571.png" src="../_images/0355f53fb6af8443b97503a79f0cad9f319998d38b4bb8a5515e25c4335b7571.png" />
+<img alt="../_images/41694ce53ba8fffa4316f02a1f3f53caad9bb2809a022151cd19c7ce609b0973.png" src="../_images/41694ce53ba8fffa4316f02a1f3f53caad9bb2809a022151cd19c7ce609b0973.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># There is a minimal circuit plotter which converts the sequence of digraph into a two dimensional view.</span>
+<span class="c1"># Notice no specific unitary needs to be specified, it&#39;s seen as a black box where we&#39;re only building the connectivity.</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle_on_8_qubits</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/85fd9f146526cb6b2900e8b45eff7aa0b68a12dc364ac20a76428e7001d84239.png" src="../_images/85fd9f146526cb6b2900e8b45eff7aa0b68a12dc364ac20a76428e7001d84239.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="stride-examples">
@@ -307,14 +327,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/72eacff884561cb138184655d0a329663a473e8c3a2e7f9b47dc7f703f4bf22e.png" src="../_images/72eacff884561cb138184655d0a329663a473e8c3a2e7f9b47dc7f703f4bf22e.png" />
+<img alt="../_images/a87f4bdf5aee954d0821d3245a9505497409c780ca7dea7b2d85a0838f10b056.png" src="../_images/a87f4bdf5aee954d0821d3245a9505497409c780ca7dea7b2d85a0838f10b056.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/a5afa8f88d61ee76f88fba441076edfad1bd26d0032da0bee6fe44cfa7179b3f.png" src="../_images/a5afa8f88d61ee76f88fba441076edfad1bd26d0032da0bee6fe44cfa7179b3f.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -322,14 +344,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/0c7aab2ce478aab96057b02526f1728141872a276098da843ff0567f3e470010.png" src="../_images/0c7aab2ce478aab96057b02526f1728141872a276098da843ff0567f3e470010.png" />
+<img alt="../_images/06202980d8d5d8735bab19b22865734f4f1db6ea48d296f6956f0e87b6db3654.png" src="../_images/06202980d8d5d8735bab19b22865734f4f1db6ea48d296f6956f0e87b6db3654.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/d80c78175b2f05bffb3173502406b01b59ba2c417876aee21b8c89335dc5fc3f.png" src="../_images/d80c78175b2f05bffb3173502406b01b59ba2c417876aee21b8c89335dc5fc3f.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -337,14 +361,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/09dd8cc827052b6217d37eeffa481c57027c89d39457ed7eb969388cce856dfc.png" src="../_images/09dd8cc827052b6217d37eeffa481c57027c89d39457ed7eb969388cce856dfc.png" />
+<img alt="../_images/fd1cec4b67801e0a9486e8532a97ffc8e3b3f0c1aae0b129b52b5fa6c0d079ae.png" src="../_images/fd1cec4b67801e0a9486e8532a97ffc8e3b3f0c1aae0b129b52b5fa6c0d079ae.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/5a857ae58bf8b02a7b8eff4c1a34f34986f1b2ee4fe777f70d3a6cef1b568ec5.png" src="../_images/5a857ae58bf8b02a7b8eff4c1a34f34986f1b2ee4fe777f70d3a6cef1b568ec5.png" />
 </div>
 </div>
 </div>
@@ -355,14 +381,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/dc1ce262ff543035e6c3414ab7635ca6aa513c3408686c5289d6d96a158905a2.png" src="../_images/dc1ce262ff543035e6c3414ab7635ca6aa513c3408686c5289d6d96a158905a2.png" />
+<img alt="../_images/4f0b0a2d9f1cae0698544e2217060c1983f6e1685a0ba55a35f1c2cee5fcbb79.png" src="../_images/4f0b0a2d9f1cae0698544e2217060c1983f6e1685a0ba55a35f1c2cee5fcbb79.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/d23ebb646d253d3df2cea131d02c7c2a29849ac565eb11ab5f1eedc683b9d261.png" src="../_images/d23ebb646d253d3df2cea131d02c7c2a29849ac565eb11ab5f1eedc683b9d261.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -370,14 +398,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/b42a0a46c8f41762180d89081c8627e2cecb9f6e29a988c08d9fcc4f8dbfbcab.png" src="../_images/b42a0a46c8f41762180d89081c8627e2cecb9f6e29a988c08d9fcc4f8dbfbcab.png" />
+<img alt="../_images/7109266347b645b331f042ed033d0be782bb7082bce38308993dc9377b75fba1.png" src="../_images/7109266347b645b331f042ed033d0be782bb7082bce38308993dc9377b75fba1.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/9cd07dd7006e701fc84bf61c9800f457d5a72c47a6f7b2316ed228f7190557c1.png" src="../_images/9cd07dd7006e701fc84bf61c9800f457d5a72c47a6f7b2316ed228f7190557c1.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -385,14 +415,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/bdf82200084844f9a2b366bbe39dd52e32502f7bdeefbec33eec925402617b8a.png" src="../_images/bdf82200084844f9a2b366bbe39dd52e32502f7bdeefbec33eec925402617b8a.png" />
+<img alt="../_images/03f441ce001b2f55baf02a1d40363a760f4f62a99bffc7efcaad7a49df21393b.png" src="../_images/03f441ce001b2f55baf02a1d40363a760f4f62a99bffc7efcaad7a49df21393b.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/43c87a073d309ce70c87bc2e26b49464ba17171abc7ad7413ce997e681dce6bd.png" src="../_images/43c87a073d309ce70c87bc2e26b49464ba17171abc7ad7413ce997e681dce6bd.png" />
 </div>
 </div>
 </div>
@@ -403,14 +435,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/6f6b55dcc363ed962939abb17fc4f4981a3f715122c1968b13d50823b140a75e.png" src="../_images/6f6b55dcc363ed962939abb17fc4f4981a3f715122c1968b13d50823b140a75e.png" />
+<img alt="../_images/03b3f596f0ff66314896b445c29ef742afb9fbec9692c45fcb012b7b15e70c6e.png" src="../_images/03b3f596f0ff66314896b445c29ef742afb9fbec9692c45fcb012b7b15e70c6e.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/1da870c9f6cc63d878f579396f5355f2dc16aed8040415fcb7fb9bfd0efc9dc5.png" src="../_images/1da870c9f6cc63d878f579396f5355f2dc16aed8040415fcb7fb9bfd0efc9dc5.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -418,14 +452,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/9bc22c71d23d627464a04abd05cca1ecedc88e231842fca0f15b057ed91b802e.png" src="../_images/9bc22c71d23d627464a04abd05cca1ecedc88e231842fca0f15b057ed91b802e.png" />
+<img alt="../_images/845203da8ea4eb77745832b3d88a86e5be8210f81c4520337c91f05bf255a799.png" src="../_images/845203da8ea4eb77745832b3d88a86e5be8210f81c4520337c91f05bf255a799.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/6f53c12e7b8ef7f241ce95e5ae7c249b676026ac62c5e184928dedd41767b770.png" src="../_images/6f53c12e7b8ef7f241ce95e5ae7c249b676026ac62c5e184928dedd41767b770.png" />
 </div>
 </div>
 </div>
@@ -436,14 +472,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/ab98576d4100ef02d6bf164fe7f2a0381f24f600d68da7b74d5583e6ef4542ca.png" src="../_images/ab98576d4100ef02d6bf164fe7f2a0381f24f600d68da7b74d5583e6ef4542ca.png" />
+<img alt="../_images/d0e9437850998f7a8e0178ccfcf1af75f2a5f9804e58462d13ef9bd6bebafaae.png" src="../_images/d0e9437850998f7a8e0178ccfcf1af75f2a5f9804e58462d13ef9bd6bebafaae.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/f1b1d6035bc4b1accad8fd852a0181b28f6ab41b7a278dca7330b575a93aed7e.png" src="../_images/f1b1d6035bc4b1accad8fd852a0181b28f6ab41b7a278dca7330b575a93aed7e.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -451,14 +489,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/76df75aef7c9ae02e69d30d373924680c0e207cabf9be4f9541d3572ffc35f43.png" src="../_images/76df75aef7c9ae02e69d30d373924680c0e207cabf9be4f9541d3572ffc35f43.png" />
+<img alt="../_images/410b7713f335c80c8f48711f8ba2eaa29ba1aa0c23dbf27b05330c90fa0aaa59.png" src="../_images/410b7713f335c80c8f48711f8ba2eaa29ba1aa0c23dbf27b05330c90fa0aaa59.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/b9bf935758aaffb7046d40ec7845abf3630f20f64c6c580f2beb1918a9a57c50.png" src="../_images/b9bf935758aaffb7046d40ec7845abf3630f20f64c6c580f2beb1918a9a57c50.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -466,14 +506,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;periodic&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">cycle</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/41694ce53ba8fffa4316f02a1f3f53caad9bb2809a022151cd19c7ce609b0973.png" src="../_images/41694ce53ba8fffa4316f02a1f3f53caad9bb2809a022151cd19c7ce609b0973.png" />
+<img alt="../_images/85fd9f146526cb6b2900e8b45eff7aa0b68a12dc364ac20a76428e7001d84239.png" src="../_images/85fd9f146526cb6b2900e8b45eff7aa0b68a12dc364ac20a76428e7001d84239.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/5dd0d3257906266c2b6aff58e3b74139945a8d78d5bd4b5d72ac36c88ae9abcd.png" src="../_images/5dd0d3257906266c2b6aff58e3b74139945a8d78d5bd4b5d72ac36c88ae9abcd.png" />
 </div>
 </div>
 </div>
@@ -484,7 +526,7 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-    <span class="k">def</span> <span class="nf">U3</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">U3</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">crz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">crx</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">q2</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
@@ -511,39 +553,45 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u3</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/6d604496bc34d622a51badc5f6bbb912bfce81aaa99054f934ff15aa46518add.png" src="../_images/6d604496bc34d622a51badc5f6bbb912bfce81aaa99054f934ff15aa46518add.png" />
+<img alt="../_images/df402765a84fc18c0e0e04216ff02e1381e45194fc91ad7a387b55d6cfb2bcdf.png" src="../_images/df402765a84fc18c0e0e04216ff02e1381e45194fc91ad7a387b55d6cfb2bcdf.png" />
+<img alt="../_images/5f59983b9c7042126858cf9370d601b71629d2d9ddf4bb27716a6ea0d0c75283.png" src="../_images/5f59983b9c7042126858cf9370d601b71629d2d9ddf4bb27716a6ea0d0c75283.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u3</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/b7e98f820776a0ee52db2b379f3698d781630812d4ad805ddb43afb689f625d7.png" src="../_images/b7e98f820776a0ee52db2b379f3698d781630812d4ad805ddb43afb689f625d7.png" />
+<img alt="../_images/0defb6d7f7fa7dd94c11581742550db79f8cd5fb81c29e248e585e6fad8a95d3.png" src="../_images/0defb6d7f7fa7dd94c11581742550db79f8cd5fb81c29e248e585e6fad8a95d3.png" />
+<img alt="../_images/9effbdd155a40bc9b0af9c792ca849928fe1d67a23f611b86460e7d026b1c67b.png" src="../_images/9effbdd155a40bc9b0af9c792ca849928fe1d67a23f611b86460e7d026b1c67b.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cycle</span> <span class="o">=</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="n">offset</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u3</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
 <span class="n">cycle</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">cycle</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">cycle</span><span class="p">)</span>
 <span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/41901db8086ab5df7846834a0a70f79a464122f5018016f2be91acbf8f622a7a.png" src="../_images/41901db8086ab5df7846834a0a70f79a464122f5018016f2be91acbf8f622a7a.png" />
+<img alt="../_images/db827f52a278a050a9206bdd7e5c81b20ecec22d8ab8c0b890d29808fc00d2b6.png" src="../_images/db827f52a278a050a9206bdd7e5c81b20ecec22d8ab8c0b890d29808fc00d2b6.png" />
+<img alt="../_images/ee8ff3652289eaf31ffc2fbbc3d59e884268ac89cd0b7f3975d8d2cc6bc2af3c.png" src="../_images/ee8ff3652289eaf31ffc2fbbc3d59e884268ac89cd0b7f3975d8d2cc6bc2af3c.png" />
 </div>
 </div>
 </div>
@@ -563,14 +611,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">permute</span> <span class="o">=</span> <span class="n">Qpermute</span><span class="p">()</span>
 <span class="n">permute_5_qubits</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">permute</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">permute_5_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">permute_5_qubits</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/ff790f6ae04042f2ad4c6563019f996ff430d6cf046e7c9bf72e381b01f2981c.png" src="../_images/ff790f6ae04042f2ad4c6563019f996ff430d6cf046e7c9bf72e381b01f2981c.png" />
+<img alt="../_images/cad802396ca493b1ac71c6e282bb62f2360f29f6ba75613e798c2d1d700ac999.png" src="../_images/cad802396ca493b1ac71c6e282bb62f2360f29f6ba75613e798c2d1d700ac999.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/fc3b7e5f5c0cb66cad88dc324407ef7c78d56aa1c02fad22d6a0ca4eede8518b.png" src="../_images/fc3b7e5f5c0cb66cad88dc324407ef7c78d56aa1c02fad22d6a0ca4eede8518b.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -578,14 +628,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">permute</span> <span class="o">=</span> <span class="n">Qpermute</span><span class="p">(</span><span class="n">combinations</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">permute_5_qubits</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">permute</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">permute_5_qubits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">permute_5_qubits</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/63aeae20a95a492364354fa725105b3323c7a24f6c7750b8c8aa37ab41932042.png" src="../_images/63aeae20a95a492364354fa725105b3323c7a24f6c7750b8c8aa37ab41932042.png" />
+<img alt="../_images/62aaed4d1e9a6848658651da3631b45917b29cf656a8b60cb5712bd270eb1dfa.png" src="../_images/62aaed4d1e9a6848658651da3631b45917b29cf656a8b60cb5712bd270eb1dfa.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/cbc51d7ad8d3a03316d844200dd82afe0c0350b834b402a85903d413b559fe88.png" src="../_images/cbc51d7ad8d3a03316d844200dd82afe0c0350b834b402a85903d413b559fe88.png" />
 </div>
 </div>
 <div class="cell docutils container">
@@ -622,89 +674,75 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/694097820f124d8b7492eeeee10a3e5fd92a8b70c9ba9106633468c5d0dbf969.png" src="../_images/694097820f124d8b7492eeeee10a3e5fd92a8b70c9ba9106633468c5d0dbf969.png" />
+<img alt="../_images/c36a73306bf550f60759e941d480617b65405fd782f4e5b4cfc85ed81afd6865.png" src="../_images/c36a73306bf550f60759e941d480617b65405fd782f4e5b4cfc85ed81afd6865.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/74b2c73ffc238ef7d69fb1b383068c37918b370a1d9a951a653b08db6565fa89.png" src="../_images/74b2c73ffc238ef7d69fb1b383068c37918b370a1d9a951a653b08db6565fa89.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;even&quot;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;01&quot;</span><span class="p">)</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/28a93e085ae3eb2060857ce811425621a14be94e8f52a5dda8cee5f8df4a3ae4.png" src="../_images/28a93e085ae3eb2060857ce811425621a14be94e8f52a5dda8cee5f8df4a3ae4.png" />
+<img alt="../_images/54bdb88f2b687c083cddf7e7b507c604234eca16bec8e81c5e626b61628d8c98.png" src="../_images/54bdb88f2b687c083cddf7e7b507c604234eca16bec8e81c5e626b61628d8c98.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/15a542b4cfe51e5ea2358d16de512bf426fea5490a82979cc2f4a37983269b7f.png" src="../_images/15a542b4cfe51e5ea2358d16de512bf426fea5490a82979cc2f4a37983269b7f.png" />
 </div>
 </div>
 <p>This might be easier to see with a circuit and a mask between two cycles. We’ll use the following 2 qubit unitaries for the cycles:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-    <span class="k">def</span> <span class="nf">U2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">circuit</span><span class="o">.</span><span class="n">crz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">circuit</span>
-
-<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cirq&quot;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">cirq</span>
-    <span class="k">def</span> <span class="nf">U2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">rz</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">on</span><span class="p">(</span><span class="n">q1</span><span class="p">)</span><span class="o">.</span><span class="n">controlled_by</span><span class="p">(</span><span class="n">q0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">circuit</span>
-
-<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pennylane&quot;</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">U2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">qml</span><span class="o">.</span><span class="n">CRZ</span><span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
-<span class="n">u2</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">U2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;01&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/78f201132e77436358dde78d02d7dea676d04eac1a6344b1d9ec0625f0dfe753.png" src="../_images/78f201132e77436358dde78d02d7dea676d04eac1a6344b1d9ec0625f0dfe753.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;even&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/bce99ff5b460504750caf6eefec328d927671421a7a6971fc573248846418b56.png" src="../_images/bce99ff5b460504750caf6eefec328d927671421a7a6971fc573248846418b56.png" />
+<img alt="../_images/3e4fb11253c476fdbba895636caac8e8cf42bf1d6ef258d06bcf43bbcf50e304.png" src="../_images/3e4fb11253c476fdbba895636caac8e8cf42bf1d6ef258d06bcf43bbcf50e304.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1*1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/141b63427281c52d764a97371add67a41522c2602622ce61f3f637cffede5239.png" src="../_images/141b63427281c52d764a97371add67a41522c2602622ce61f3f637cffede5239.png" />
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1*1&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<img alt="../_images/3ea6465308bd0645f3f62de0cfa9f5c12938c393d05f3429b626ead9888e28b2.png" src="../_images/3ea6465308bd0645f3f62de0cfa9f5c12938c393d05f3429b626ead9888e28b2.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-</div>
-<div class="cell_output docutils container">
-<img alt="../_images/150ea729ae98a38fa99a3abe4350e2bdc8045d5db24b951626f730cb57df2010.png" src="../_images/150ea729ae98a38fa99a3abe4350e2bdc8045d5db24b951626f730cb57df2010.png" />
 </div>
 </div>
 </div>
@@ -712,78 +750,62 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <h4>Masking with a mapping<a class="headerlink" href="#masking-with-a-mapping" title="Permalink to this heading">¶</a></h4>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-    <span class="k">def</span> <span class="nf">V2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">circuit</span>
-
-<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cirq&quot;</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">cirq</span>
-    <span class="k">def</span> <span class="nf">V2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span> <span class="o">=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">cirq</span><span class="o">.</span><span class="n">LineQubit</span><span class="p">(</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">cirq</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span><span class="n">q0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">circuit</span>
-
-<span class="k">elif</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;pennylane&quot;</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">V2</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="n">qml</span><span class="o">.</span><span class="n">CNOT</span><span class="p">(</span><span class="n">wires</span><span class="o">=</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]])</span>
-<span class="n">v2</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">V2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-</div>
-<div class="cell docutils container">
-<div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/87792a2305465a55ddba4690db07febc506421e12029e6fe9614da8dac716f07.png" src="../_images/87792a2305465a55ddba4690db07febc506421e12029e6fe9614da8dac716f07.png" />
+<img alt="../_images/35a401999f67475976e2be32c64a21f74b78d76d9a743e48d430ce4bf2d269c2.png" src="../_images/35a401999f67475976e2be32c64a21f74b78d76d9a743e48d430ce4bf2d269c2.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/c8b045ad6a4ffee5a794d0a16c782359974ab46142d4ea95825cb6b3e92af926.png" src="../_images/c8b045ad6a4ffee5a794d0a16c782359974ab46142d4ea95825cb6b3e92af926.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;even&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;01&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span>
 <span class="n">plot_motif</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 400x400 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+<img alt="../_images/ec5a82d6dbd4f96a22fe071efca56bb503bff5f131dd0a5cb8796d2d6c2bb6b9.png" src="../_images/ec5a82d6dbd4f96a22fe071efca56bb503bff5f131dd0a5cb8796d2d6c2bb6b9.png" />
+<img alt="../_images/f452bdb1aec5106a550af0c4573e9dd234a10a10f1d29b7120a9950898c2b3c0.png" src="../_images/f452bdb1aec5106a550af0c4573e9dd234a10a10f1d29b7120a9950898c2b3c0.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
 </pre></div>
 </div>
-<img alt="../_images/97889dadc37f84f8ecc27f54c97034aec827ba461929b5bd65c9b20870c0f63e.png" src="../_images/97889dadc37f84f8ecc27f54c97034aec827ba461929b5bd65c9b20870c0f63e.png" />
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;*!&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/41d658d0cddf49b0dfe6f75332e87c3eb64c1edf923b3d9da8b928a72b429dbd.png" src="../_images/41d658d0cddf49b0dfe6f75332e87c3eb64c1edf923b3d9da8b928a72b429dbd.png" />
+<img alt="../_images/b412a9aeb8846e78779de12f5fb5fe029799f396e919abb54c7305c39cf83a1d.png" src="../_images/b412a9aeb8846e78779de12f5fb5fe029799f396e919abb54c7305c39cf83a1d.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
 </div>
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1*&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">))</span><span class="o">*</span><span class="mi">6</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;1*&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">))</span><span class="o">*</span><span class="mi">6</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/5aa4fc5f75c6bc40e404fd440bda9d3571d99a33a2e1bc70e80621e1c129570d.png" src="../_images/5aa4fc5f75c6bc40e404fd440bda9d3571d99a33a2e1bc70e80621e1c129570d.png" />
+<img alt="../_images/c7a6a26f0218fe8b89986e12c92a5e9bcd6cffa3cc72ab2db4fbdcac33cd17a7.png" src="../_images/c7a6a26f0218fe8b89986e12c92a5e9bcd6cffa3cc72ab2db4fbdcac33cd17a7.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
 </div>
 </div>
 </div>
@@ -794,7 +816,7 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">qiskit.circuit</span> <span class="kn">import</span> <span class="n">QuantumRegister</span>
-    <span class="k">def</span> <span class="nf">V3</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">V3</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">,</span> <span class="n">q2</span> <span class="o">=</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">QuantumRegister</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">bits</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q0</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
         <span class="n">circuit</span><span class="o">.</span><span class="n">cnot</span><span class="p">(</span><span class="n">q2</span><span class="p">,</span> <span class="n">q1</span><span class="p">)</span>
@@ -819,14 +841,16 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 </div>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;101&quot;</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v3</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> 
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mask</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="n">global_pattern</span><span class="o">=</span><span class="s2">&quot;101&quot;</span><span class="p">,</span><span class="n">merge_within</span><span class="o">=</span><span class="s2">&quot;101&quot;</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">steps</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span> <span class="n">offsets</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">v3</span><span class="p">)</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 <span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
 <span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/1701bb3eae963028ea8917e14de8c887d21a21283ac96668cb2951de991f3021.png" src="../_images/1701bb3eae963028ea8917e14de8c887d21a21283ac96668cb2951de991f3021.png" />
+<img alt="../_images/132f24287b3e1feb31fcdbb566c60d3829913b499fef9d0f7060618b1bb3d030.png" src="../_images/132f24287b3e1feb31fcdbb566c60d3829913b499fef9d0f7060618b1bb3d030.png" />
+<img alt="../_images/a056c981b4d786d267af8e511fc7b189f716f22d858a2a35c89761fc282e4878.png" src="../_images/a056c981b4d786d267af8e511fc7b189f716f22d858a2a35c89761fc282e4878.png" />
 </div>
 </div>
 </div>
@@ -834,14 +858,194 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
 <h4>Qunmask example<a class="headerlink" href="#qunmask-example" title="Permalink to this heading">¶</a></h4>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;right&quot;</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qunmask</span><span class="p">(</span><span class="s2">&quot;previous&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
-<span class="n">circuit</span> <span class="o">=</span> <span class="n">get_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
-<span class="n">draw_circuit</span><span class="p">(</span><span class="n">circuit</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qmask</span><span class="p">(</span><span class="s2">&quot;*!&quot;</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span> <span class="o">+</span> <span class="p">(</span><span class="n">Qunmask</span><span class="p">(</span><span class="s2">&quot;previous&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">u0_2</span><span class="p">))</span><span class="o">*</span><span class="mi">3</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../_images/87758f09358c20bba5cab79bf76e37741118eda6e3d78eaf752fc839f9e456ba.png" src="../_images/87758f09358c20bba5cab79bf76e37741118eda6e3d78eaf752fc839f9e456ba.png" />
+<img alt="../_images/fe6137c87ccc5d559c017d847303b28a0ded2cfbbb3f92d33e12c9fae3721790.png" src="../_images/fe6137c87ccc5d559c017d847303b28a0ded2cfbbb3f92d33e12c9fae3721790.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="qpivot-primitive">
+<h2>Qpivot primitive<a class="headerlink" href="#qpivot-primitive" title="Permalink to this heading">¶</a></h2>
+<p>Qpivot is new, and this part of the tutorial will still get fleshed out. The pivot primitve connects the set of available qubits sequentially to a fixed set of qubits. The global pattern determines the pivot points while the merge pattern determines how the qubits are passed to the mapping. For detailed usage please see the grover and qft tutorials. Here are some quick examples:</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">hierq</span> <span class="o">=</span> <span class="n">Qinit</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span> <span class="o">+</span> <span class="n">Qpivot</span><span class="p">(</span>
+    <span class="n">global_pattern</span><span class="o">=</span><span class="s2">&quot;1*&quot;</span><span class="p">,</span>
+    <span class="n">merge_within</span><span class="o">=</span><span class="s2">&quot;*1&quot;</span><span class="p">,</span>
+    <span class="n">merge_between</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">strides</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">steps</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="n">offsets</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="n">boundaries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;open&quot;</span><span class="p">,</span> <span class="s2">&quot;periodic&quot;</span><span class="p">],</span>
+    <span class="n">mapping</span><span class="o">=</span><span class="n">u1_2</span><span class="p">)</span>
+<span class="n">plot_motif</span><span class="p">(</span><span class="n">hierq</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/b4b88e61c16af597285c82e1d071cc5b13f3e6f3d5492dd8c9d011a2f83e4418.png" src="../_images/b4b88e61c16af597285c82e1d071cc5b13f3e6f3d5492dd8c9d011a2f83e4418.png" />
+<img alt="../_images/6a21207af87539fb16dc2a85d279a8c0f4c66395a9aa4da65df389bbcccb0b88.png" src="../_images/6a21207af87539fb16dc2a85d279a8c0f4c66395a9aa4da65df389bbcccb0b88.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="classical-and-quantum-computation-advanced-usage-experimental-features">
+<h2>Classical and Quantum computation (Advanced usage + experimental features)<a class="headerlink" href="#classical-and-quantum-computation-advanced-usage-experimental-features" title="Permalink to this heading">¶</a></h2>
+<p>At the end of the day we are just building a compute graph in a hierarchichal manner with these primitves. For this reason we aren’t limited to quantum computation and can create classical algorithms also. This section will show how this can be achieved. We’ll also show how a naive quantum state vector simulation can be performed.</p>
+<div class="section" id="classical-computation-addition-example">
+<h3>Classical computation (addition example)<a class="headerlink" href="#classical-computation-addition-example" title="Permalink to this heading">¶</a></h3>
+<p>Here is a completely classical computation for arbitrary integer addition. Notice we define two functions (half_adder and or_top) which changes a <code class="docutils literal notranslate"><span class="pre">state</span></code> variable directly (no matrix multiplication, just logic and overwriting, similar to classical circuits). The state is initialised with Qinit, then hierarqcal just executes these functions in the correct order. So you can create any function that changes the <code class="docutils literal notranslate"><span class="pre">state</span></code> as you desire.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">half_adder</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">xor</span> <span class="o">=</span> <span class="n">b1</span> <span class="o">^</span> <span class="n">b2</span>
+    <span class="n">carry</span> <span class="o">=</span> <span class="n">b1</span> <span class="ow">and</span> <span class="n">b2</span>
+    <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">carry</span>
+    <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">xor</span>
+    <span class="k">return</span> <span class="n">state</span>
+
+
+<span class="k">def</span> <span class="nf">or_top</span><span class="p">(</span><span class="n">bits</span><span class="p">,</span> <span class="n">symbols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+    <span class="n">state</span><span class="p">[</span><span class="n">bits</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">b1</span> <span class="ow">or</span> <span class="n">b2</span>
+    <span class="k">return</span> <span class="n">state</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">bin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">512</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]]</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">bin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">512</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]]</span>
+<span class="n">bits</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">bits</span>
+<span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">bits</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">+</span> <span class="n">x</span>
+<span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">bits</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span> <span class="o">+</span> <span class="n">y</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># program</span>
+<span class="n">full_adder</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Qinit</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">half_adder</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qpivot</span><span class="p">(</span><span class="n">global_pattern</span><span class="o">=</span><span class="s2">&quot;1*&quot;</span><span class="p">,</span> <span class="n">merge_within</span><span class="o">=</span><span class="s2">&quot;11&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">or_top</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="p">)</span>
+<span class="n">addition</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Qinit</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)],</span> <span class="n">state</span><span class="o">=</span><span class="p">[</span><span class="n">elem</span> <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">])</span>
+    <span class="o">+</span> <span class="n">Qpivot</span><span class="p">(</span><span class="s2">&quot;*1&quot;</span><span class="p">,</span> <span class="s2">&quot;11&quot;</span><span class="p">,</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">half_adder</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qcycle</span><span class="p">(</span><span class="n">step</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">edge_order</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">full_adder</span><span class="p">,</span> <span class="n">boundary</span><span class="o">=</span><span class="s2">&quot;open&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">addition</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/b61df78f4b01db8b3fbc924936f7416650d88dd47c65185a39044766de4bc9ed.png" src="../_images/b61df78f4b01db8b3fbc924936f7416650d88dd47c65185a39044766de4bc9ed.png" />
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;Figure size 1000x600 with 1 Axes&gt;, &lt;AxesSubplot:&gt;)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Get the answer, we generate a bitstring and then turn it into a function that return only the array items with corresponding index 1</span>
+<span class="c1"># Qsplit is a lower level primitve that Qmask and Qpivot inherhtis from, the bitstrings we generate for them also gets turned into functions via get_pattern_fn</span>
+<span class="c1"># Don&#39;t run this twice! then you won&#39;t get the correct answer</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">addition</span><span class="p">()</span>
+<span class="n">pattern_fn</span> <span class="o">=</span> <span class="n">Qsplit</span><span class="o">.</span><span class="n">get_pattern_fn</span><span class="p">(</span>
+    <span class="kc">None</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;1&quot;</span> <span class="o">+</span> <span class="s2">&quot;01&quot;</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="n">n</span>
+<span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">pattern_fn</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        </span><span class="si">{</span><span class="nb">sum</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))])</span><span class="si">}</span>
+<span class="s2">        +</span>
+<span class="s2">        </span><span class="si">{</span><span class="nb">sum</span><span class="p">([</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))])</span><span class="si">}</span>
+<span class="s2">        =</span>
+<span class="s2">        </span><span class="si">{</span><span class="nb">sum</span><span class="p">([</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="mi">2</span><span class="o">**</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">-</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">z</span><span class="p">))])</span><span class="si">}</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>        350
+        +
+        82
+        =
+        432
+    
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="lower-level-control-create-your-own-edge-patterns-custom-quantum-simulation">
+<h3>Lower level control (create your own edge patterns) + custom Quantum simulation<a class="headerlink" href="#lower-level-control-create-your-own-edge-patterns-custom-quantum-simulation" title="Permalink to this heading">¶</a></h3>
+<p>Below we are show two things at the same time, first how you can specify individual edges to the <code class="docutils literal notranslate"><span class="pre">Qmotif</span></code> primitive. Depending on the <code class="docutils literal notranslate"><span class="pre">arity</span></code>, <code class="docutils literal notranslate"><span class="pre">E</span></code> is a list of <code class="docutils literal notranslate"><span class="pre">arity</span></code>-tuples which you can generate. For example <code class="docutils literal notranslate"><span class="pre">E=[(0,2,4),(1,3,5)]</span></code> means your <code class="docutils literal notranslate"><span class="pre">Qunitary</span></code> function takes 3 inputs (<code class="docutils literal notranslate"><span class="pre">arity</span></code>=3) and will apply the function to <code class="docutils literal notranslate"><span class="pre">bits</span></code> 0,2,4 and 1,3,5 seperatly, in the order that’s provided. This will works for 3rd party quantum packages (so you can do this with Qiskit, Cirq, or Pennylane). We’re combining this with a custom circuit simulation where we perform tensor contraction to calculate the final state vector. This way it’s possible to simulate qutrits, qudits or even more general tensor networks.</p>
+<p>This is a quick demonstration, for details check out <code class="docutils literal notranslate"><span class="pre">Qhierarchy.__call__</span></code> method in <code class="docutils literal notranslate"><span class="pre">core.py</span></code> and <code class="docutils literal notranslate"><span class="pre">get_tensor_as_f</span></code> in <code class="docutils literal notranslate"><span class="pre">utils.py</span></code></p>
+<p>The code below creates a Toffoli gate, we apply two bitflips on the first two qubits to see if the third will be flipped.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">hierarqcal</span> <span class="kn">import</span> <span class="n">get_tensor_as_f</span>
+<span class="n">H_m</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+<span class="n">X_m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">CN_m</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">Matrix</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">symbols</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">CP_m</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">Matrix</span><span class="p">(</span>
+    <span class="p">[[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">I</span> <span class="o">*</span> <span class="n">x0</span><span class="p">)]]</span>
+<span class="p">)</span>
+<span class="n">H</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">H_m</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">X_m</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">CP</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CP_m</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">CN</span> <span class="o">=</span> <span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CN_m</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+<span class="n">tensors</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex256</span><span class="p">)]</span> <span class="o">*</span> <span class="mi">3</span>
+<span class="n">hierq</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">Qinit</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)],</span> <span class="n">tensors</span><span class="o">=</span><span class="n">tensors</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">X</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">1</span><span class="p">,)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">X</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">2</span><span class="p">,)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">H</span><span class="p">)</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CP_m</span><span class="p">),</span> <span class="n">symbols</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="n">arity</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CP_m</span><span class="p">),</span> <span class="n">symbols</span><span class="o">=</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="n">arity</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CN_m</span><span class="p">),</span> <span class="n">arity</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CP_m</span><span class="p">),</span> <span class="n">symbols</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">/</span><span class="mi">2</span><span class="p">],</span> <span class="n">arity</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">Qunitary</span><span class="p">(</span><span class="n">get_tensor_as_f</span><span class="p">(</span><span class="n">CN_m</span><span class="p">),</span> <span class="n">arity</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+    <span class="o">+</span> <span class="n">Qmotif</span><span class="p">(</span><span class="n">E</span><span class="o">=</span><span class="p">[(</span><span class="mi">2</span><span class="p">,)],</span> <span class="n">mapping</span><span class="o">=</span><span class="n">H</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">plot_circuit</span><span class="p">(</span><span class="n">hierq</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">hierq</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/0e3c2278e06d6c8497b566ebdb4c73c181db62ec0523f95764a9b871b17563ae.png" src="../_images/0e3c2278e06d6c8497b566ebdb4c73c181db62ec0523f95764a9b871b17563ae.png" />
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[0.+0.000000e+00j 0.+0.000000e+00j 0.+0.000000e+00j 0.+0.000000e+00j
+ 0.+0.000000e+00j 0.+0.000000e+00j 0.+6.123234e-17j 1.-6.123234e-17j]
+</pre></div>
 </div>
 </div>
 </div>
@@ -853,7 +1057,7 @@ Second motif	 &lt;class &#39;hierarqcal.core.Qcycle&#39;&gt;
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quickstart.html" class="btn btn-neutral float-left" title="HierarQcal Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="HierarQcal Quickstart" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../api.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

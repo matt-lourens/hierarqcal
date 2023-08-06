@@ -72,72 +72,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <span class="target" id="module-hierarqcal.cirq.cirq_circuits"></span><dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.cirq.cirq_circuits.U2">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.cirq.cirq_circuits.</span></span><span class="sig-name descname"><span class="pre">U2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.cirq.cirq_circuits.U2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default cycle circuit, a simple 2 qubit circuit with a single parameter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bits</strong> (<em>list</em>) – List of qubit indices/labels</p></li>
-<li><p><strong>symbols</strong> (<em>tuple(sympy.Symbol or float)</em>) – Tuple of symbols (rotation angles), can be symbolic (sympy) or numeric</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>cirq.Circuit object</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>circuit (cirq.Circuit)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.cirq.cirq_circuits.U3">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.cirq.cirq_circuits.</span></span><span class="sig-name descname"><span class="pre">U3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.cirq.cirq_circuits.U3" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default cycle circuit, 3 qubit gate: Toffoli with the control qubits in the X basis</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bits</strong> (<em>list</em>) – List of qubit indices/labels</p></li>
-<li><p><strong>symbols</strong> (<em>tuple(sympy.Symbol or float)</em>) – Tuple of symbols (rotation angles), can be symbolic (sympy) or numeric</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>cirq.Circuit object</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>circuit (cirq.Circuit)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.cirq.cirq_circuits.V2">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.cirq.cirq_circuits.</span></span><span class="sig-name descname"><span class="pre">V2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.cirq.cirq_circuits.V2" title="Permalink to this definition">¶</a></dt>
-<dd><p>Default mask circuit, a simple 2 qubit circuit with no parameters and a controlled controlled operation.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>bits</strong> (<em>list</em>) – List of qubit indices/labels</p></li>
-<li><p><strong>symbols</strong> (<em>tuple(sympy.Symbol or float)</em>) – Tuple of symbols (rotation angles), can be symbolic (sympy) or numeric</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>cirq.Circuit object</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>circuit (cirq.Circuit)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="hierarqcal.cirq.cirq_circuits.V4">
-<span class="sig-prename descclassname"><span class="pre">hierarqcal.cirq.cirq_circuits.</span></span><span class="sig-name descname"><span class="pre">V4</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#hierarqcal.cirq.cirq_circuits.V4" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-
+  
 
            </div>
           </div>
