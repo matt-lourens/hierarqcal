@@ -36,6 +36,7 @@ class Primitive_Types(Enum):
     PERMUTE = "permute"
     INIT = "init"
     PIVOT = "pivot"
+    BASE_MOTIF = "base_motif"
 
 
 class Qunitary:
@@ -209,6 +210,7 @@ class Default_Mappings(Enum):
     PIVOT = Qunitary(n_symbols=1, arity=2)
     MASK = None
     SPLIT = None
+    BASE_MOTIF = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
 
 
@@ -243,10 +245,12 @@ class Qmotif:
         is_default_mapping=True,
         is_operation=True,
         share_weights=True,
+        type=Primitive_Types.BASE_MOTIF,
     ) -> None:
         # Meta information
         self.is_operation = is_operation
         self.is_default_mapping = is_default_mapping
+        self.type = type
         # graph
         self.Q = Q
         self.Q_avail = Q_avail
@@ -314,6 +318,21 @@ class Qmotif:
             Qmotifs: A tuple of motifs: (self, self, ..., self), where each is a new object copied from the original.
         """
         return Qmotifs((deepcopy(self) for i in range(other)))
+
+    def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
+        self.set_Q(Q)
+        mapping = kwargs.get("mapping", None)
+        if mapping:
+            self.set_mapping(mapping)
+        if len(E) > 0:
+            self.set_E(E)
+        if remaining_q:
+            self.set_Qavail(remaining_q)
+        else:
+            self.set_Qavail(Q)
+        self.set_is_operation(is_operation)
+        start_idx = kwargs.get("start_idx", 0)
+        self.set_symbols(start_idx=start_idx)
 
     def append(self, other):
         """
@@ -635,7 +654,6 @@ class Qcycle(Qmotif):
             offset (int, optional): Offset of the cycle. Defaults to 0.
 
         """
-        self.type = Primitive_Types.CYCLE
         self.stride = stride
         self.step = step
         self.offset = offset
@@ -645,7 +663,9 @@ class Qcycle(Qmotif):
         is_default_mapping = True if mapping is None else False
         # motif_symbols = None # TODO maybe allow symbols to be intialised
         # Initialize graph
-        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+        super().__init__(
+            is_default_mapping=is_default_mapping, type=Primitive_Types.CYCLE, **kwargs
+        )
 
     def __call__(self, Qc_l, *args, **kwargs):
         """
@@ -678,16 +698,17 @@ class Qcycle(Qmotif):
             boundary=self.boundary,
             arity=self.arity,
         )
-        self.set_Q(Qc_l)
-        # All qubits are still available for the next operation
-        self.set_Qavail(Qc_l)
-        mapping = kwargs.get("mapping", None)
-        if mapping:
-            self.set_mapping(mapping)
-        # It is important that set_E gets called last, as sets of symbol creation for the motif
-        self.set_E(E)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_symbols(start_idx=start_idx)
+        super().__call__(Qc_l, E=E, **kwargs)
+        # self.set_Q(Qc_l)
+        # # All qubits are still available for the next operation
+        # self.set_Qavail(Qc_l)
+        # mapping = kwargs.get("mapping", None)
+        # if mapping:
+        #     self.set_mapping(mapping)
+        # # It is important that set_E gets called last, as sets of symbol creation for the motif
+        # self.set_E(E)
+        # start_idx = kwargs.get("start_idx", 0)
+        # self.set_symbols(start_idx=start_idx)
 
         return self
 
@@ -709,13 +730,16 @@ class Qpermute(Qmotif):
     """
 
     def __init__(self, combinations=True, **kwargs):
-        self.type = Primitive_Types.PERMUTE
         self.combinations = combinations
         # Specify sequence of gates:
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize graph
-        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+        super().__init__(
+            is_default_mapping=is_default_mapping,
+            type=Primitive_Types.PERMUTE,
+            **kwargs,
+        )
 
     def __call__(self, Qc_l, *args, **kwargs):
         """
@@ -740,15 +764,17 @@ class Qpermute(Qmotif):
             Ec_l = list(it.permutations(Qc_l, r=self.arity))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
-        self.set_Q(Qc_l)
-        self.set_Qavail(Qc_l)
-        mapping = kwargs.get("mapping", None)
-        if mapping:
-            self.set_mapping(mapping)
-        # It is important that set_E gets called last, as sets of symbol creation for the motif
-        self.set_E(Ec_l)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_symbols(start_idx=start_idx)
+
+        super().__call__(Qc_l, E=Ec_l, **kwargs)
+        # self.set_Q(Qc_l)
+        # self.set_Qavail(Qc_l)
+        # mapping = kwargs.get("mapping", None)
+        # if mapping:
+        #     self.set_mapping(mapping)
+        # # It is important that set_E gets called last, as sets of symbol creation for the motif
+        # self.set_E(Ec_l)
+        # start_idx = kwargs.get("start_idx", 0)
+        # self.set_symbols(start_idx=start_idx)
         return self
 
     def __eq__(self, other):
@@ -873,7 +899,7 @@ class Qsplit(Qmotif):
         if isinstance(offsets, int):
             offsets = [offsets] * 3
         # Set attributes
-        self.type = type
+
         self.global_pattern = global_pattern
         self.merge_within = merge_within
         self.merge_between = merge_between
@@ -885,18 +911,21 @@ class Qsplit(Qmotif):
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize Qmotif
-        super().__init__(is_default_mapping=is_default_mapping, **kwargs)
+        super().__init__(is_default_mapping=is_default_mapping, type=type, **kwargs)
 
-    def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
-        mapping = kwargs.get("mapping", None)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_Q(Q)
-        self.set_Qavail(remaining_q)
-        if mapping:
-            self.set_mapping(mapping)
-        self.set_is_operation(is_operation)
-        self.set_E(E)
-        self.set_symbols(start_idx=start_idx)
+    def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
+        super().__call__(
+            Q, E=E, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+        )
+        # mapping = kwargs.get("mapping", None)
+        # start_idx = kwargs.get("start_idx", 0)
+        # self.set_Q(Q)
+        # self.set_Qavail(remaining_q)
+        # if mapping:
+        #     self.set_mapping(mapping)
+        # self.set_is_operation(is_operation)
+        # self.set_E(E)
+        # self.set_symbols(start_idx=start_idx)
         return self
 
     def wildcard_populate(self, pattern, length):
@@ -1069,175 +1098,177 @@ class Qsplit(Qmotif):
         return pattern_fn
 
 
-class Qmask_Base(Qmotif):
-    def __init__(
-        self,
-        pattern="right",  # nearest_circle, nearest_tower, nearest_square, right, left, up, down, lambda function
-        **kwargs,
-    ):
-        """
-        TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
-        TODO Open, Periodic boundary
-        """
-        self.type = Primitive_Types.MASK
-        self.pattern = pattern
-        super().__init__(**kwargs)
+# class Qmask_Base(Qmotif):
+#     """TODO remove"""
 
-    def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
-        mapping = kwargs.get("mapping", None)
-        start_idx = kwargs.get("start_idx", 0)
-        self.set_Q(Q)
-        self.set_Qavail(remaining_q)
-        if mapping:
-            self.set_mapping(mapping)
-        self.set_is_operation(is_operation)
-        self.set_E(E)
-        self.set_symbols(start_idx=start_idx)
+#     def __init__(
+#         self,
+#         pattern="right",  # nearest_circle, nearest_tower, nearest_square, right, left, up, down, lambda function
+#         **kwargs,
+#     ):
+#         """
+#         TODO Provide topology for nearest neighbor pooling., options, circle, tower, square
+#         TODO Open, Periodic boundary
+#         """
+#         self.type = Primitive_Types.MASK
+#         self.pattern = pattern
+#         super().__init__(**kwargs)
 
-    def get_mask_pattern_fn(self, mask_pattern, Qp_l=[]):
-        """
-        Get the pattern function for the pooling operation.
+#     def __call__(self, Q, E, remaining_q, is_operation, **kwargs):
+#         mapping = kwargs.get("mapping", None)
+#         start_idx = kwargs.get("start_idx", 0)
+#         self.set_Q(Q)
+#         self.set_Qavail(remaining_q)
+#         if mapping:
+#             self.set_mapping(mapping)
+#         self.set_is_operation(is_operation)
+#         self.set_E(E)
+#         self.set_symbols(start_idx=start_idx)
 
-        Args:
-            mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
-                                            The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
-                                            There is also the option to the use wild cards: *,!. 1*1 masks the outer two qubits and 0!0 mask all inner qubits except the outer two, i.e. * fills zeros and ! fills ones.
-                                            If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
-                                            the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
-                                            meaning the same kind of pattern will be applied as the list grows or shrinks.
-            Qp_l (list): List of available qubits.
-        """
-        if isinstance(mask_pattern, str):
-            # Mapping words to the pattern type
-            if mask_pattern == "left":
-                # 0 1 2 3 4 5 6 7
-                # x x x x
-                mask_pattern_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
-            elif mask_pattern == "right":
-                # 0 1 2 3 4 5 6 7
-                #         x x x x
-                mask_pattern_fn = lambda arr: arr[len(arr) // 2 : len(arr) : 1]
-            elif mask_pattern == "even":
-                # 0 1 2 3 4 5 6 7
-                # x   x   x   x
-                mask_pattern_fn = lambda arr: arr[0::2]
-            elif mask_pattern == "odd":
-                # 0 1 2 3 4 5 6 7
-                #   x   x   x   x
-                mask_pattern_fn = lambda arr: arr[1::2]
-            elif mask_pattern == "inside":
-                # 0 1 2 3 4 5 6 7
-                #     x x x x
-                mask_pattern_fn = (
-                    lambda arr: arr[
-                        len(arr) // 2
-                        - len(arr) // 4 : len(arr) // 2
-                        + len(arr) // 4 : 1
-                    ]
-                    if len(arr) > 2
-                    else [arr[1]]
-                )  # inside
-            elif mask_pattern == "outside":
-                # 0 1 2 3 4 5 6 7
-                # x x         x x
-                mask_pattern_fn = (
-                    lambda arr: [
-                        item
-                        for item in arr
-                        if not (
-                            item
-                            in arr[
-                                len(arr) // 2
-                                - len(arr) // 4 : len(arr) // 2
-                                + len(arr) // 4 : 1
-                            ]
-                        )
-                    ]
-                    if len(arr) > 2
-                    else [arr[0]]
-                )  # outside
-            else:
-                # Assume pattern is in form contains a string specifying which indices to remove
-                # For example "01001" removes idx 1 and 4 or qubit 2 and 5
-                # The important thing here is for pool pattern to be the same length as the current number of qubits
+#     def get_mask_pattern_fn(self, mask_pattern, Qp_l=[]):
+#         """
+#         Get the pattern function for the pooling operation.
 
-                # First check for !,* wild cards
-                if any(("*" == c) or ("!" == c) for c in mask_pattern):
-                    # Wildcard pattern
-                    n_ones = mask_pattern.count("1")
-                    n_stars = mask_pattern.count("*")
-                    n_excl = mask_pattern.count("!")
-                    n_zeros = len(Qp_l) - n_ones
-                    # base = mask_pattern.replace("*", "0" * zero_per_star)
-                    # base = base.replace("!", "1" * zero_per_star)
-                    base = mask_pattern
-                    max_it = len(Qp_l)
-                    do_star = True if n_stars > 0 else False
-                    just_changed = False
-                    stars_found = 0
-                    excls_found = 0
-                    while len(base) < len(Qp_l) and max_it > 0:
-                        """
-                        TODO refactor this code so that it is more readable. The idea is this:
-                        There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
-                        1*1 -> 10000001
-                        0!0 -> 01111110
-                        *! -> 00001111
-                        *1* -> 00001000
-                        The algorithm alternates between finding a star and an excl and inserts a 0 or 1 next to it. The first iteration checks for a star (since we need to pick one), therefore it has a kind of precedence, but only effects the first insertion. From there it alternates between star and excl.
+#         Args:
+#             mask_pattern (str or lambda): The pattern type, can be "left", "right", "even", "odd", "inside" or "outside" which corresponds to a specific pattern (see comments in code below).
+#                                             The string can also be a bit string, i.e. "01000" which pools the 2nd qubit.
+#                                             There is also the option to the use wild cards: *,!. 1*1 masks the outer two qubits and 0!0 mask all inner qubits except the outer two, i.e. * fills zeros and ! fills ones.
+#                                             If a lambda function is passed, it is used as the pattern function, it should work as follow: mask_pattern_fn([0,1,2,3,4,5,6,7]) -> [0,1,2,3], i.e.
+#                                             the function returns a sublist of the input list based on some pattern. What's nice about passing a function is that it can be list length independent,
+#                                             meaning the same kind of pattern will be applied as the list grows or shrinks.
+#             Qp_l (list): List of available qubits.
+#         """
+#         if isinstance(mask_pattern, str):
+#             # Mapping words to the pattern type
+#             if mask_pattern == "left":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x x x x
+#                 mask_pattern_fn = lambda arr: arr[0 : len(arr) // 2 : 1]
+#             elif mask_pattern == "right":
+#                 # 0 1 2 3 4 5 6 7
+#                 #         x x x x
+#                 mask_pattern_fn = lambda arr: arr[len(arr) // 2 : len(arr) : 1]
+#             elif mask_pattern == "even":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x   x   x   x
+#                 mask_pattern_fn = lambda arr: arr[0::2]
+#             elif mask_pattern == "odd":
+#                 # 0 1 2 3 4 5 6 7
+#                 #   x   x   x   x
+#                 mask_pattern_fn = lambda arr: arr[1::2]
+#             elif mask_pattern == "inside":
+#                 # 0 1 2 3 4 5 6 7
+#                 #     x x x x
+#                 mask_pattern_fn = (
+#                     lambda arr: arr[
+#                         len(arr) // 2
+#                         - len(arr) // 4 : len(arr) // 2
+#                         + len(arr) // 4 : 1
+#                     ]
+#                     if len(arr) > 2
+#                     else [arr[1]]
+#                 )  # inside
+#             elif mask_pattern == "outside":
+#                 # 0 1 2 3 4 5 6 7
+#                 # x x         x x
+#                 mask_pattern_fn = (
+#                     lambda arr: [
+#                         item
+#                         for item in arr
+#                         if not (
+#                             item
+#                             in arr[
+#                                 len(arr) // 2
+#                                 - len(arr) // 4 : len(arr) // 2
+#                                 + len(arr) // 4 : 1
+#                             ]
+#                         )
+#                     ]
+#                     if len(arr) > 2
+#                     else [arr[0]]
+#                 )  # outside
+#             else:
+#                 # Assume pattern is in form contains a string specifying which indices to remove
+#                 # For example "01001" removes idx 1 and 4 or qubit 2 and 5
+#                 # The important thing here is for pool pattern to be the same length as the current number of qubits
 
-                        We have another alternation which is between using find and rfind, this is to handle the case when there's 2 stars or 2 exclamations. I don't think 3 wild cards make sense TODO think about this.
-                        """
-                        if do_star:
-                            if stars_found % 2 == 0:
-                                idx = base.find("*")
-                            else:
-                                idx = base.rfind("*")
-                            stars_found += 1
-                            # Insert 0 next to it
-                            base = base[:idx] + "0" + base[idx:]
-                            do_star = False if n_excl > 0 else True
-                            just_changed = True
-                        if (not do_star) and (not just_changed):
-                            if excls_found % 2 == 0:
-                                idx = base.find("!")
-                            else:
-                                idx = base.rfind("!")
-                            excls_found += 1
-                            # Insert 1 next to it
-                            base = base[:idx] + "1" + base[idx:]
-                            do_star = True if n_stars > 0 else False
-                        just_changed = False
-                        max_it -= 1
-                    base = base.replace("*", "0")
-                    base = base.replace("!", "1")
-                    # if n_zeros <= 0:
-                    #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
-                    #     base = "0" * len(Qp_l)
-                    # else:
-                    #     base = mask_pattern.replace("*", "0" * n_zeros)
-                    mask_pattern_fn = lambda arr: [
-                        item for item, indicator in zip(arr, base) if indicator == "1"
-                    ]
-                elif len(mask_pattern) == len(Qp_l):
-                    mask_pattern_fn = lambda arr: [
-                        item
-                        for item, indicator in zip(arr, mask_pattern)
-                        if indicator == "1"
-                    ]
+#                 # First check for !,* wild cards
+#                 if any(("*" == c) or ("!" == c) for c in mask_pattern):
+#                     # Wildcard pattern
+#                     n_ones = mask_pattern.count("1")
+#                     n_stars = mask_pattern.count("*")
+#                     n_excl = mask_pattern.count("!")
+#                     n_zeros = len(Qp_l) - n_ones
+#                     # base = mask_pattern.replace("*", "0" * zero_per_star)
+#                     # base = base.replace("!", "1" * zero_per_star)
+#                     base = mask_pattern
+#                     max_it = len(Qp_l)
+#                     do_star = True if n_stars > 0 else False
+#                     just_changed = False
+#                     stars_found = 0
+#                     excls_found = 0
+#                     while len(base) < len(Qp_l) and max_it > 0:
+#                         """
+#                         TODO refactor this code so that it is more readable. The idea is this:
+#                         There are two possible wild cards, excl: ! and star: *. ! fills with 1's and * fills with 0's. We want to distribute 0's and 1's as evenly as we can based on the provided pattern. Some examples, if we have 8 qubits:
+#                         1*1 -> 10000001
+#                         0!0 -> 01111110
+#                         *! -> 00001111
+#                         *1* -> 00001000
+#                         The algorithm alternates between finding a star and an excl and inserts a 0 or 1 next to it. The first iteration checks for a star (since we need to pick one), therefore it has a kind of precedence, but only effects the first insertion. From there it alternates between star and excl.
 
-                else:
-                    # If there are no wildcard characters, then we assume that the pattern is a base pattern
-                    # and we will repeat it until it is the same length as the current number of qubits
-                    base = mask_pattern * (len(Qp_l) // len(mask_pattern))
-                    base = base[: len(Qp_l)]
-                    mask_pattern_fn = lambda arr: [
-                        item for item, indicator in zip(arr, base) if indicator == "1"
-                    ]
+#                         We have another alternation which is between using find and rfind, this is to handle the case when there's 2 stars or 2 exclamations. I don't think 3 wild cards make sense TODO think about this.
+#                         """
+#                         if do_star:
+#                             if stars_found % 2 == 0:
+#                                 idx = base.find("*")
+#                             else:
+#                                 idx = base.rfind("*")
+#                             stars_found += 1
+#                             # Insert 0 next to it
+#                             base = base[:idx] + "0" + base[idx:]
+#                             do_star = False if n_excl > 0 else True
+#                             just_changed = True
+#                         if (not do_star) and (not just_changed):
+#                             if excls_found % 2 == 0:
+#                                 idx = base.find("!")
+#                             else:
+#                                 idx = base.rfind("!")
+#                             excls_found += 1
+#                             # Insert 1 next to it
+#                             base = base[:idx] + "1" + base[idx:]
+#                             do_star = True if n_stars > 0 else False
+#                         just_changed = False
+#                         max_it -= 1
+#                     base = base.replace("*", "0")
+#                     base = base.replace("!", "1")
+#                     # if n_zeros <= 0:
+#                     #     # We go as far as we can with a pattern and then fill everything with 0s if we can't fit the pattern
+#                     #     base = "0" * len(Qp_l)
+#                     # else:
+#                     #     base = mask_pattern.replace("*", "0" * n_zeros)
+#                     mask_pattern_fn = lambda arr: [
+#                         item for item, indicator in zip(arr, base) if indicator == "1"
+#                     ]
+#                 elif len(mask_pattern) == len(Qp_l):
+#                     mask_pattern_fn = lambda arr: [
+#                         item
+#                         for item, indicator in zip(arr, mask_pattern)
+#                         if indicator == "1"
+#                     ]
 
-        else:
-            mask_pattern_fn = mask_pattern
-        return mask_pattern_fn
+#                 else:
+#                     # If there are no wildcard characters, then we assume that the pattern is a base pattern
+#                     # and we will repeat it until it is the same length as the current number of qubits
+#                     base = mask_pattern * (len(Qp_l) // len(mask_pattern))
+#                     base = base[: len(Qp_l)]
+#                     mask_pattern_fn = lambda arr: [
+#                         item for item, indicator in zip(arr, base) if indicator == "1"
+#                     ]
+
+#         else:
+#             mask_pattern_fn = mask_pattern
+#         return mask_pattern_fn
 
 
 class Qmask(Qsplit):
@@ -1357,7 +1388,7 @@ class Qmask(Qsplit):
                 Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
         super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
+            Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
         return self
 
@@ -1384,8 +1415,7 @@ class Qunmask(Qsplit):
         """
         TODO possibility to give masking motif to undo
         """
-        self.type = Primitive_Types.MASK
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, type=Primitive_Types.MASK, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -1416,14 +1446,14 @@ class Qunmask(Qsplit):
         unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
         new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
         super().__call__(
-            Q=Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
+            Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
         return self
 
 
 class Qpivot(Qsplit):
     """
-    The pivot connects the set of avaible qubits sequentially to a fixed set or qubits. The global pattern determins the pivot points while the merge pattern determines how the qubits are passed to the mapping.
+    The pivot connects the set of available qubits sequentially to a fixed set of qubits. The global pattern determine the pivot points while the merge pattern determines how the qubits are passed to the mapping.
     """
 
     def __init__(
@@ -1556,7 +1586,7 @@ class Qpivot(Qsplit):
         else:
             Ep_l = E_p
 
-        super().__call__(Q=Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
+        super().__call__(Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
         return self
 
     def cycle_between_splits(
@@ -1720,7 +1750,7 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
-            state = self.tail.state
+            state = self.tail(self.tail.Q).state
             for layer in self:
                 for unitary in layer.edge_mapping:
                     state = unitary.function(
@@ -1884,15 +1914,21 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, state=None, **kwargs) -> None:
+    def __init__(self, Q, state=None, tensors=None, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i + 1 for i in range(Q)]
-        self.type = Primitive_Types.INIT
         self.state = state
+        self.tensors = tensors
         # Initialize graph
-        super().__init__(Q=Qinit, Q_avail=Qinit, is_operation=False, **kwargs)
+        super().__init__(
+            Q=Qinit,
+            Q_avail=Qinit,
+            is_operation=False,
+            type=Primitive_Types.INIT,
+            **kwargs,
+        )
 
     def __add__(self, other):
         """
@@ -1904,6 +1940,17 @@ class Qinit(Qmotif):
         """
         Calling TODO add explanation just returns the object. Kwargs and Args are ignored, it just ensures that Qinit can be called the same way operational motifs can.
         """
+        if self.tensors is not None:
+            """
+            If tensors are provided, the state is initialized as the tensor product of all the tensors.
+            """
+            dimensions = [len(self.tensors[0])]
+            state = self.tensors[0]
+            for tensor in self.tensors[1:]:
+                state = np.array(np.kron(state, tensor))
+                dimensions += [len(tensor)]
+            self.dimensions = dimensions
+            self.state = state.reshape(dimensions)
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self
