@@ -11,7 +11,7 @@ from .core import (
     Qmotif,
     Qunitary,
 )
-from .utils import plot_motif, plot_circuit
+from .utils import plot_motif, plot_circuit, get_tensor_as_f
 
 __all__ = [
     "Qhierarchy",
@@ -27,4 +27,5 @@ __all__ = [
     "Qmotifs",
     "plot_motif",
     "plot_circuit",
+    "get_tensor_as_f"
 ]
