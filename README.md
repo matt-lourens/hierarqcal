@@ -20,7 +20,7 @@ ___
 
 ```python
 from hierarqcal import Qinit, Qcycle, Qmask
-hierq = Qinit(8) + (Qcycle(mapping=u) + Qmask("right", mapping=v))*3
+hierq = Qinit(8) + (Qcycle(mapping=u) + Qmask("!*", mapping=v))*3
 ```
 
 <img src="https://github.com/matt-lourens/hierarqcal/blob/master/img/rbt_right.png?raw=true" style="border:solid 2px black;">
@@ -31,7 +31,7 @@ hierq = Qinit(8) + (Qcycle(mapping=u) + Qmask("right", mapping=v))*3
 from hierarqcal import Qinit, Qcycle, Qmask
 # motif: level 1
 m1_1 = Qcycle(stride=2)
-m1_2 = Qmask(pattern="left")
+m1_2 = Qmask(global_pattern="*!")
 # motif: level 2
 m2_1 = m1_1 + m1_2
 # motif: level 3
@@ -78,13 +78,20 @@ BSD 3-Clause "New" or "Revised" License, see [LICENSE](https://github.com/matt-l
 
 ## Citation
 ```latex
-@article{lourens2023hierarchical,
-      title={Hierarchical quantum circuit representations for neural architecture search},
-      url = {https://arxiv.org/abs/2210.15073},
-      author={Matt Lourens and Ilya Sinayskiy and Daniel K. Park and Carsten Blank and Francesco Petruccione},
-      year={2023},
-      eprint={2210.15073},
-      archivePrefix={arXiv},
-      primaryClass={quant-ph}
+@article{lourensHierarchicalQuantumCircuit2023,
+  title = {Hierarchical Quantum Circuit Representations for Neural Architecture Search},
+  author = {Lourens, Matt and Sinayskiy, Ilya and Park, Daniel K. and Blank, Carsten and Petruccione, Francesco},
+  date = {2023-08-05},
+  journaltitle = {npj Quantum Information},
+  shortjournal = {npj Quantum Inf},
+  volume = {9},
+  number = {1},
+  pages = {1--15},
+  publisher = {{Nature Publishing Group}},
+  issn = {2056-6387},
+  doi = {10.1038/s41534-023-00747-z},
+  url = {https://www.nature.com/articles/s41534-023-00747-z},
+  issue = {1},
+  langid = {english},
 }
 ```
