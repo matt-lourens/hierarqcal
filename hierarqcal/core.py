@@ -249,7 +249,8 @@ class Qmotif:
     ) -> None:
         # Meta information
         self.is_operation = is_operation
-        self.is_default_mapping = is_default_mapping
+        # self.is_default_mapping = is_default_mapping
+        self.is_default_mapping = True if mapping is None else False
         self.type = type
         # graph
         self.Q = Q
