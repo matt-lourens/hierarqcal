@@ -10,13 +10,16 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   sodipodi:docname="drawing_grover - Copy.svg"
+   sodipodi:docname="drawing_grover.svg"
    inkscape:version="1.0.2-2 (e86c870879, 2021-01-15)"
    id="svg8"
    version="1.1"
    viewBox="0 0 100.12801 97.224004"
    height="97.223991mm"
-   width="100.12801mm">
+   width="100.12801mm"
+   inkscape:export-filename="C:\Users\Amy\Desktop\Green_Git\hierarqcal\examples\g9.png"
+   inkscape:export-xdpi="487.05652"
+   inkscape:export-ydpi="487.05652">
   <defs
      id="defs2">
     <marker
@@ -2187,10 +2190,10 @@
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="0"
+     inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="2"
-     inkscape:cx="196.26745"
+     inkscape:cx="151.26745"
      inkscape:cy="194.92223"
      inkscape:document-units="mm"
      inkscape:current-layer="layer5"
@@ -2223,7 +2226,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -3441,7 +3444,7 @@
      inkscape:groupmode="layer"
      id="layer5"
      inkscape:label="Slide3"
-     style="display:inline"
+     style="display:none"
      transform="translate(-8.5339589,-5.2692663)">
     <path
        style="display:inline;fill:none;stroke:#0033ff;stroke-width:1.32292;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend-2)"
@@ -4479,7 +4482,7 @@
      inkscape:groupmode="layer"
      id="g21819"
      inkscape:label="Slide5"
-     style="display:none"
+     style="display:inline"
      transform="translate(-1.9704645,0.00916)">
     <path
        style="display:inline;fill:none;stroke:#ff0000;stroke-width:1.32292;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker2389)"
