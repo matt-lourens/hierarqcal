@@ -362,7 +362,7 @@ def contract(t0, t1, indices):
 
 
 def get_tensor_as_f(u):
-    def generic_f(bits, symbols=None, state=None, u=u):
+    def generic_f(bits, symbols=None, return_object=None, u=u):
         if len(u.shape) == 2:
             # if u is provided as a matrix, we turn it into the correct tensor
             # for quantum circuits all tensors have as many inputs as outputs
@@ -378,9 +378,9 @@ def get_tensor_as_f(u):
             u = u.reshape([idx_range for i in range(n_inputs * 2)])
         if len(bits)>2:
             print("oi")
-        new_tensor = contract(state, u, [bits, [i for i in range(len(bits))]])
+        new_tensor = contract(return_object, u, [bits, [i for i in range(len(bits))]])
         # new_tensor = np.tensordot(u, state, axes=[[i for i in range(len(bits))], bits])
-        state = new_tensor
-        return state
+        return_object = new_tensor
+        return return_object
 
     return generic_f

@@ -699,7 +699,8 @@ class Qcycle(Qmotif):
             boundary=self.boundary,
             arity=self.arity,
         )
-        super().__call__(Qc_l, E=E, **kwargs)
+        updated_self = super().__call__(Qc_l, E=E, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qcycle):
@@ -724,11 +725,12 @@ class Qpermute(Qmotif):
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize graph
-        super().__init__(
+        updated_self = super().__init__(
             is_default_mapping=is_default_mapping,
             type=Primitive_Types.PERMUTE,
             **kwargs,
         )
+        return updated_self
 
     def __call__(self, Qc_l, *args, **kwargs):
         """
@@ -804,9 +806,10 @@ class Qsplit(Qmotif):
         super().__init__(is_default_mapping=is_default_mapping, type=type, **kwargs)
 
     def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
-        super().__call__(
+        updated_self = super().__call__(
             Q, E=E, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
+        return updated_self
 
     def wildcard_populate(self, pattern, length):
         # Wildcard pattern
@@ -1094,9 +1097,10 @@ class Qmask(Qsplit):
                 # Merge the two splits based on merge pattern
                 Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qmask):
@@ -1151,9 +1155,10 @@ class Qunmask(Qsplit):
         Ep_l = []
         unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
         new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
+        return updated_self
 
 
 class Qpivot(Qsplit):
@@ -1291,7 +1296,10 @@ class Qpivot(Qsplit):
         else:
             Ep_l = E_p
 
-        super().__call__(Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
+        updated_self = super().__call__(
+            Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs
+        )
+        return updated_self
 
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
@@ -1454,13 +1462,13 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
-            state = self.tail(self.tail.Q).state
+            return_object = self.tail(self.tail.Q).return_object
             for layer in self:
                 for unitary in layer.edge_mapping:
-                    state = unitary.function(
-                        bits=unitary.edge, symbols=unitary.symbols, state=state
+                    return_object = unitary.function(
+                        bits=unitary.edge, symbols=unitary.symbols, return_object=return_object
                     )
-            return state
+            return return_object
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1492,6 +1500,8 @@ class Qhierarchy:
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
+                    if kwargs.get("return_object", None) is not None:
+                        kwargs["return_object"] = return_object
             return return_object
 
         return unitary_function
@@ -1618,12 +1628,12 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, state=None, tensors=None, **kwargs) -> None:
+    def __init__(self, Q, return_object=None, tensors=None, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i + 1 for i in range(Q)]
-        self.state = state
+        self.return_object = return_object
         self.tensors = tensors
         # Initialize graph
         super().__init__(
@@ -1646,15 +1656,15 @@ class Qinit(Qmotif):
         """
         if self.tensors is not None:
             """
-            If tensors are provided, the state is initialized as the tensor product of all the tensors.
+            If tensors are provided, the return_object is initialized as the tensor product of all the tensors.
             """
             dimensions = [len(self.tensors[0])]
-            state = self.tensors[0]
+            return_object = self.tensors[0]
             for tensor in self.tensors[1:]:
-                state = np.array(np.kron(state, tensor))
+                return_object = np.array(np.kron(return_object, tensor))
                 dimensions += [len(tensor)]
             self.dimensions = dimensions
-            self.state = state.reshape(dimensions)
+            self.return_object = return_object.reshape(dimensions)
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self
