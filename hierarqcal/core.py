@@ -333,6 +333,7 @@ class Qmotif:
         self.set_is_operation(is_operation)
         start_idx = kwargs.get("start_idx", 0)
         self.set_symbols(start_idx=start_idx)
+        return self
 
     def append(self, other):
         """
@@ -700,8 +701,6 @@ class Qcycle(Qmotif):
         )
         super().__call__(Qc_l, E=E, **kwargs)
 
-        return self
-
     def __eq__(self, other):
         if isinstance(other, Qcycle):
             self_attrs = vars(self)
@@ -756,7 +755,6 @@ class Qpermute(Qmotif):
             Ec_l = [Ec_l[0]]
 
         super().__call__(Qc_l, E=Ec_l, **kwargs)
-        return self
 
     def __eq__(self, other):
         if isinstance(other, Qpermute):
@@ -767,6 +765,7 @@ class Qpermute(Qmotif):
                     return False
             return True
         return False
+
 
 class Qsplit(Qmotif):
     def __init__(
@@ -808,7 +807,6 @@ class Qsplit(Qmotif):
         super().__call__(
             Q, E=E, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
 
     def wildcard_populate(self, pattern, length):
         # Wildcard pattern
@@ -979,6 +977,7 @@ class Qsplit(Qmotif):
             raise ValueError(f"{pattern} - Pattern not recognized")
         return pattern_fn
 
+
 class Qmask(Qsplit):
     """
     A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
@@ -1098,7 +1097,6 @@ class Qmask(Qsplit):
         super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
 
     def __eq__(self, other):
         if isinstance(other, Qmask):
@@ -1156,7 +1154,6 @@ class Qunmask(Qsplit):
         super().__call__(
             Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
-        return self
 
 
 class Qpivot(Qsplit):
@@ -1295,7 +1292,6 @@ class Qpivot(Qsplit):
             Ep_l = E_p
 
         super().__call__(Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
-        return self
 
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
