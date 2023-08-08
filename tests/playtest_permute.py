@@ -16,23 +16,28 @@ from functools import reduce
 import cirq
 from cirq.contrib.svg import SVGCircuit
 
+
 def U1(bits, symbols=None, circuit=None):
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit += cirq.rx(symbols[0]).on(q1).controlled_by(q0)
     return circuit
+
+
 def U2(bits, symbols=None, circuit=None):
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit += cirq.ry(symbols[0]).on(q1).controlled_by(q0)
     return circuit
+
+
 def U3(bits, symbols=None, circuit=None):
     q0, q1 = cirq.LineQubit(bits[0]), cirq.LineQubit(bits[1])
     circuit += cirq.rz(symbols[0]).on(q1).controlled_by(q0)
     return circuit
 
 
-u1 = Qunitary(U1, 1, 2)
-u2 = Qunitary(U2, 1, 2)
-u3 = Qunitary(U3, 1, 2)
+u1 = Qunitary(U1, n_symbols=1, arity=2)
+u2 = Qunitary(U2, n_symbols=1, arity=2)
+u3 = Qunitary(U3, n_symbols=1, arity=2)
 
 nq = 4
 qubit_indices = [i for i in range(nq)]
@@ -67,4 +72,3 @@ for subset, orderings in all_possibilites.items():
             hierq = Qinit(qubit_indices) + reduce(lambda a, b: a + b, circuit_motif)
             circuit = hierq(backend="cirq")
             print(circuit)
-
