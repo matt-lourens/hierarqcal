@@ -16,8 +16,9 @@ import sympy as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.patches import PathPatch, FancyArrowPatch
+from matplotlib import cm
 from matplotlib.path import Path
-from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot
+from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot, Qmotif
 
 
 def plot_motif(
@@ -253,7 +254,7 @@ def plot_circuit(
     layer = hierq.tail
     x = 1
     dx = 0.5
-    small_r = 0.1
+    small_r = 0.2
     ddx = 0
     while layer is not None:
         if isinstance(layer, Qcycle):
@@ -268,6 +269,8 @@ def plot_circuit(
             node_colour = cycle_color
         elif isinstance(layer, Qinit):
             node_colour = init_colour
+        elif isinstance(layer, Qmotif):
+            node_colour = cycle_color
         if isinstance(layer, Qinit):
             # plot ket tensors
             for label, i in enumerate(layer.Q):
@@ -295,21 +298,26 @@ def plot_circuit(
             # plot ket tensors
             for ind, e in enumerate(layer.E):
                 q_prev = e[0]
-
+                i_order = 0
+                color = get_color(i_order, len(e))
                 circle1 = plt.Circle(
-                    (x + ddx, -q_prev), small_r, fill=True, color=node_colour
+                    (x + ddx, -q_prev), small_r, fill=True, color=color
                 )
                 ax.add_artist(circle1)
+                i_order += 1
                 for q_next in e[1:]:
                     ax.plot(
                         [x + ddx, x + ddx], [-q_prev, -q_next], color="black", zorder=-1
                     )
                     # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
                     # ax.add_patch(arrow)
+                    color = get_color(i_order, len(e))
                     circle1 = plt.Circle(
-                        (x + ddx, -q_next), 0.1, fill=True, color=node_colour
+                        (x + ddx, -q_next), small_r, fill=True, color=color
                     )
+                    # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
                     ax.add_artist(circle1)
+                    i_order += 1
                     q_prev = q_next
                 ddx += 0.5
         x = x + ddx + dx
@@ -318,6 +326,10 @@ def plot_circuit(
     plt.axis("off")
     plt.show()
     return fig, ax
+
+
+def get_color(i, n):
+    return cm.cool(i / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
@@ -355,7 +367,7 @@ def contract(t0, t1=None, indices=None):
         t1 = np.zeros(t0_range**t0_range)
         t1 = t1.reshape([t0_range for i in range(t0_range)])
         for i in range(t0_range):
-            t1[(i,)*t0_range]=1
+            t1[(i,) * t0_range] = 1
         # indices should just be one list, so we create another identical one
         indices = [indices, indices]
     a, a_remaining_d, a_idx_ranges = tensor_to_matrix_rowmajor(t0, indices[0])
@@ -368,7 +380,6 @@ def contract(t0, t1=None, indices=None):
     new_ind_order = [current_order.index(i) for i in range(len(result.shape))]
     result = result.transpose(new_ind_order)
     return result
-
 
 
 def get_tensor_as_f(u):
