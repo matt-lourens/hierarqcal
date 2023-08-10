@@ -336,7 +336,7 @@ def tensor_to_matrix_rowmajor(t0, indices):
 
 def tensor_to_matrix_colmajor(t0, indices):
     # Get all indices that are going to form columns
-    t0_ind_cols = [ind for ind in range(len(t0.shape)) if ind not in indices[0]]
+    t0_ind_cols = [ind for ind in range(len(t0.shape)) if ind not in indices]
     # Get all indices that are going to form rows
     t0_ind_rows = list(indices)
     new_ind_order = t0_ind_cols + t0_ind_rows
@@ -348,9 +348,18 @@ def tensor_to_matrix_colmajor(t0, indices):
     return matrix, t0_ind_cols, remaining_idx_ranges
 
 
-def contract(t0, t1, indices):
+def contract(t0, t1=None, indices=None):
+    if t1 is None:
+        # assume t1 is delta and t0 is "hyper square" then trace
+        t0_range = len(t0.shape)
+        t1 = np.zeros(t0_range**t0_range)
+        t1 = t1.reshape([t0_range for i in range(t0_range)])
+        for i in range(t0_range):
+            t1[(i,)*t0_range]=1
+        # indices should just be one list, so we create another identical one
+        indices = [indices, indices]
     a, a_remaining_d, a_idx_ranges = tensor_to_matrix_rowmajor(t0, indices[0])
-    b, b_remaining_d, b_idx_ranges = tensor_to_matrix_rowmajor(t1, indices[1])
+    b, b_remaining_d, b_idx_ranges = tensor_to_matrix_colmajor(t1, indices[1])
     result = a @ b
     result = result.reshape(a_idx_ranges + b_idx_ranges)
     # The matrix is currently in this order
@@ -359,6 +368,7 @@ def contract(t0, t1, indices):
     new_ind_order = [current_order.index(i) for i in range(len(result.shape))]
     result = result.transpose(new_ind_order)
     return result
+
 
 
 def get_tensor_as_f(u):
@@ -376,8 +386,6 @@ def get_tensor_as_f(u):
                 f = sp.lambdify(list(u.free_symbols), u, "numpy")
                 u = f(*symbols)
             u = u.reshape([idx_range for i in range(n_inputs * 2)])
-        if len(bits)>2:
-            print("oi")
         new_tensor = contract(return_object, u, [bits, [i for i in range(len(bits))]])
         # new_tensor = np.tensordot(u, state, axes=[[i for i in range(len(bits))], bits])
         return_object = new_tensor
