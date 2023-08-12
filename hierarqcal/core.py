@@ -320,13 +320,21 @@ class Qmotif:
         """
         return Qmotifs((deepcopy(self) for i in range(other)))
 
-    def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
+    def __call__(self, Q, E=None, remaining_q=None, is_operation=True, **kwargs):
         self.set_Q(Q)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
-        if len(E) > 0:
-            self.set_E(E)
+        if E is None:
+            # If no new edge were provided
+            q_old = kwargs.get("q_old", None)
+            if q_old is not None:
+                # If no new edges were provided and old qubits are present meaning qubit names changed
+                E = [tuple(Q[q_old.index(i)] for i in e) for e in self.E]
+            else:
+                # No new edges and qubits didn't changed, so the motif edges stays the same
+                E = self.E
+        self.set_E(E)
         if remaining_q:
             self.set_Qavail(remaining_q)
         else:
@@ -1467,7 +1475,9 @@ class Qhierarchy:
             for layer in self:
                 for unitary in layer.edge_mapping:
                     return_object = unitary.function(
-                        bits=unitary.edge, symbols=unitary.symbols, return_object=return_object
+                        bits=unitary.edge,
+                        symbols=unitary.symbols,
+                        return_object=return_object,
                     )
             return return_object
 
@@ -1608,10 +1618,11 @@ class Qhierarchy:
         Args:
             Q (list(int or string)): The list of available qubits.
         """
+        q_old = self.tail.Q
         motif = self.tail(Q)
         while motif.next is not None:
             motif = motif.next(
-                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q
+                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q, q_old=q_old
             )
             start_idx += motif.n_symbols
 
