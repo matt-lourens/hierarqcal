@@ -742,12 +742,11 @@ class Qpermute(Qmotif):
         mapping = kwargs.get("mapping", None)
         is_default_mapping = True if mapping is None else False
         # Initialize graph
-        updated_self = super().__init__(
+        super().__init__(
             is_default_mapping=is_default_mapping,
             type=Primitive_Types.PERMUTE,
             **kwargs,
         )
-        return updated_self
 
     def __call__(self, Qc_l, *args, **kwargs):
         """
@@ -772,8 +771,8 @@ class Qpermute(Qmotif):
             Ec_l = list(it.permutations(Qc_l, r=self.arity))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
-
-        super().__call__(Qc_l, E=Ec_l, **kwargs)
+        updated_self = super().__call__(Qc_l, E=Ec_l, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qpermute):
@@ -1652,7 +1651,7 @@ class Qinit(Qmotif):
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
-            Qinit = [i + 1 for i in range(Q)]
+            Qinit = [i for i in range(Q)]
         self.return_object = return_object
         self.tensors = tensors
         # Initialize graph
