@@ -333,7 +333,15 @@ class Qmotif:
                 E = [tuple(Q[q_old.index(i)] for i in e) for e in self.E]
             else:
                 # No new edges and qubits didn't changed, so the motif edges stays the same
-                E = self.E
+                if any([q not in self.Q for e in self.E for q in e]):
+                    raise ValueError(
+                        "Edge contains values not in qubit labels, Qmotif requires qubit labels (value not order) to be specified\nedge: {}\nqubit labels: {}".format(
+                            self.E, self.Q
+                        )
+                    )
+
+                else:
+                    E = self.E
         self.set_E(E)
         if remaining_q:
             self.set_Qavail(remaining_q)
