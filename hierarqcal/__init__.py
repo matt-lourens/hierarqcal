@@ -11,7 +11,14 @@ from .core import (
     Qmotif,
     Qunitary,
 )
-from .utils import plot_motif, plot_circuit, get_tensor_as_f
+from .utils import (
+    plot_motif,
+    plot_circuit,
+    get_tensor_as_f,
+    contract,
+    tensor_to_matrix_rowmajor,
+    tensor_to_matrix_colmajor,
+)
 
 __all__ = [
     "Qhierarchy",
@@ -27,5 +34,8 @@ __all__ = [
     "Qmotifs",
     "plot_motif",
     "plot_circuit",
-    "get_tensor_as_f"
+    "get_tensor_as_f",
+    "contract",
+    "tensor_to_matrix_rowmajor",
+    "tensor_to_matrix_colmajor",
 ]
