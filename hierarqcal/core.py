@@ -249,7 +249,8 @@ class Qmotif:
     ) -> None:
         # Meta information
         self.is_operation = is_operation
-        self.is_default_mapping = is_default_mapping
+        # self.is_default_mapping = is_default_mapping
+        self.is_default_mapping = True if mapping is None else False
         self.type = type
         # graph
         self.Q = Q
@@ -319,13 +320,29 @@ class Qmotif:
         """
         return Qmotifs((deepcopy(self) for i in range(other)))
 
-    def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
+    def __call__(self, Q, E=None, remaining_q=None, is_operation=True, **kwargs):
         self.set_Q(Q)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
-        if len(E) > 0:
-            self.set_E(E)
+        if E is None:
+            # If no new edge were provided
+            q_old = kwargs.get("q_old", None)
+            if q_old is not None:
+                # If no new edges were provided and old qubits are present meaning qubit names changed
+                E = [tuple(Q[q_old.index(i)] for i in e) for e in self.E]
+            else:
+                # No new edges and qubits didn't changed, so the motif edges stays the same
+                if any([q not in self.Q for e in self.E for q in e]):
+                    raise ValueError(
+                        "Edge contains values not in qubit labels, Qmotif requires qubit labels (value not order) to be specified\nedge: {}\nqubit labels: {}".format(
+                            self.E, self.Q
+                        )
+                    )
+
+                else:
+                    E = self.E
+        self.set_E(E)
         if remaining_q:
             self.set_Qavail(remaining_q)
         else:
@@ -333,6 +350,7 @@ class Qmotif:
         self.set_is_operation(is_operation)
         start_idx = kwargs.get("start_idx", 0)
         self.set_symbols(start_idx=start_idx)
+        return self
 
     def append(self, other):
         """
@@ -698,9 +716,8 @@ class Qcycle(Qmotif):
             boundary=self.boundary,
             arity=self.arity,
         )
-        super().__call__(Qc_l, E=E, **kwargs)
-
-        return self
+        updated_self = super().__call__(Qc_l, E=E, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qcycle):
@@ -754,9 +771,8 @@ class Qpermute(Qmotif):
             Ec_l = list(it.permutations(Qc_l, r=self.arity))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
-
-        super().__call__(Qc_l, E=Ec_l, **kwargs)
-        return self
+        updated_self = super().__call__(Qc_l, E=Ec_l, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qpermute):
@@ -767,6 +783,7 @@ class Qpermute(Qmotif):
                     return False
             return True
         return False
+
 
 class Qsplit(Qmotif):
     def __init__(
@@ -805,10 +822,10 @@ class Qsplit(Qmotif):
         super().__init__(is_default_mapping=is_default_mapping, type=type, **kwargs)
 
     def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
-        super().__call__(
+        updated_self = super().__call__(
             Q, E=E, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
     def wildcard_populate(self, pattern, length):
         # Wildcard pattern
@@ -979,6 +996,7 @@ class Qsplit(Qmotif):
             raise ValueError(f"{pattern} - Pattern not recognized")
         return pattern_fn
 
+
 class Qmask(Qsplit):
     """
     A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
@@ -1095,10 +1113,10 @@ class Qmask(Qsplit):
                 # Merge the two splits based on merge pattern
                 Ep_l = self.merge_within_splits(E_b, merge_within_pop)
 
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qmask):
@@ -1153,10 +1171,10 @@ class Qunmask(Qsplit):
         Ep_l = []
         unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
         new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
 
 class Qpivot(Qsplit):
@@ -1294,8 +1312,10 @@ class Qpivot(Qsplit):
         else:
             Ep_l = E_p
 
-        super().__call__(Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
-        return self
+        updated_self = super().__call__(
+            Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs
+        )
+        return updated_self
 
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
@@ -1458,13 +1478,15 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
-            state = self.tail(self.tail.Q).state
+            return_object = self.tail(self.tail.Q).return_object
             for layer in self:
                 for unitary in layer.edge_mapping:
-                    state = unitary.function(
-                        bits=unitary.edge, symbols=unitary.symbols, state=state
+                    return_object = unitary.function(
+                        bits=unitary.edge,
+                        symbols=unitary.symbols,
+                        return_object=return_object,
                     )
-            return state
+            return return_object
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1496,6 +1518,8 @@ class Qhierarchy:
                     return_object = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
+                    if kwargs.get("return_object", None) is not None:
+                        kwargs["return_object"] = return_object
             return return_object
 
         return unitary_function
@@ -1601,10 +1625,11 @@ class Qhierarchy:
         Args:
             Q (list(int or string)): The list of available qubits.
         """
+        q_old = self.tail.Q
         motif = self.tail(Q)
         while motif.next is not None:
             motif = motif.next(
-                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q
+                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q, q_old=q_old
             )
             start_idx += motif.n_symbols
 
@@ -1622,12 +1647,12 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, state=None, tensors=None, **kwargs) -> None:
+    def __init__(self, Q, return_object=None, tensors=None, **kwargs) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
-            Qinit = [i + 1 for i in range(Q)]
-        self.state = state
+            Qinit = [i for i in range(Q)]
+        self.return_object = return_object
         self.tensors = tensors
         # Initialize graph
         super().__init__(
@@ -1650,15 +1675,15 @@ class Qinit(Qmotif):
         """
         if self.tensors is not None:
             """
-            If tensors are provided, the state is initialized as the tensor product of all the tensors.
+            If tensors are provided, the return_object is initialized as the tensor product of all the tensors.
             """
             dimensions = [len(self.tensors[0])]
-            state = self.tensors[0]
+            return_object = self.tensors[0]
             for tensor in self.tensors[1:]:
-                state = np.array(np.kron(state, tensor))
+                return_object = np.array(np.kron(return_object, tensor))
                 dimensions += [len(tensor)]
             self.dimensions = dimensions
-            self.state = state.reshape(dimensions)
+            self.return_object = return_object.reshape(dimensions)
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self
