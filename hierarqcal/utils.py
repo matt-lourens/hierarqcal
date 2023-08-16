@@ -18,7 +18,7 @@ import matplotlib.patches as patches
 from matplotlib.patches import PathPatch, FancyArrowPatch
 from matplotlib import cm
 from matplotlib.path import Path
-from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot, Qmotif
+from hierarqcal import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot, Qmotif
 
 
 def plot_motif(
@@ -241,14 +241,14 @@ def plot_motif(
 
 def plot_circuit(
     hierq,
-    depth=20,
+    plot_width=20,
     cycle_color="#0096ff",
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xlim(0, depth)
+    ax.set_xlim(0, plot_width)
     ax.set_ylim(-len(hierq.tail.Q) - 1, 1)
     ax.set_aspect("equal")
     layer = hierq.tail
@@ -280,7 +280,7 @@ def plot_circuit(
                 )
                 ax.add_artist(circle)
                 ax.text(x, -i, label, ha="center", va="center")
-                ax.hlines(-i, x, depth, color="gray", zorder=-2)
+                ax.hlines(-i, x, plot_width, color="gray", zorder=-2)
             ddx += 0.5
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
             for label, i in enumerate(
@@ -329,7 +329,9 @@ def plot_circuit(
 
 
 def get_color(i, n):
-    return cm.cool(i / n)
+    # Shift the start value away from 0 to get a darker starting color
+    shift = 0.3
+    return cm.Blues((n-i) / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
