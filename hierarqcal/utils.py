@@ -291,7 +291,7 @@ def plot_circuit(
                 )
                 ax.add_artist(circle1)
         elif isinstance(layer, Qunmask):
-            for label, i in enumerate([q for q in hierq.tail.Q if q not in layer.Q]):
+            for label, i in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
                 circle1 = plt.Circle((x + ddx, -i), small_r, fill=True, color="green")
                 ax.add_artist(circle1)
         else:
@@ -331,7 +331,7 @@ def plot_circuit(
 def get_color(i, n):
     # Shift the start value away from 0 to get a darker starting color
     shift = 0.3
-    return cm.Blues((n-i) / n)
+    return cm.Blues((n - i) / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
