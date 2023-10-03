@@ -46,7 +46,7 @@ CP_m = sp.Matrix(
 
 H = Qunitary(get_tensor_as_f(H_m), 0, 1)
 X = Qunitary(get_tensor_as_f(X_m), 0, 1)
-CP = lambda x: Qunitary(get_tensor_as_f(CP_m), arity=2, symbols=[x])
+CP = Qunitary(get_tensor_as_f(CP_m), arity=2, symbols=[x0])
 CN = Qunitary(get_tensor_as_f(CN_m), 0, 2)
 
 
@@ -57,6 +57,7 @@ cnot_phase_cnot = (
     + Qmotif(E=[(1, 2)], mapping=CP(np.pi / 2))
     + Qmotif(E=[(0, 1)], mapping=CN)
 )
+
 
 toffoli = (
     Qinit([i for i in range(3)]) + h_bottom + phase_pivot + cnot_phase_cnot + h_bottom
@@ -97,4 +98,26 @@ groverCircuit = (
 )
 
 psi = groverCircuit()
+# =======
+n_controls = 5
+n_work = 4
+
+# Number of controls + number of work + 1 target qubit
+nq = n_controls + n_work + 1
+
+single_toffoli = Qmotif(E=[(0, 1, n_controls)], mapping=Qunitary(None, arity=3))
+cycle_toffolis = (
+    Qmask("11*1")
+    + Qpivot(
+        "*!1",
+        merge_within="011",
+        mapping=Qunitary(None, arity=3),
+        boundaries=("open", "open", "open"),
+    )
+    + Qunmask("previous")
+)
+single_control_u = Qmotif(E=[(nq - 2, nq - 1)], mapping=Qunitary(None, arity=2))
+
+u = Qinit(nq) + single_toffoli + cycle_toffolis + single_control_u
+plot_circuit(u)
 print("hi")
