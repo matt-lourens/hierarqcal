@@ -273,7 +273,7 @@ def plot_circuit(
             node_colour = cycle_color
         if isinstance(layer, Qinit):
             # plot ket tensors
-            for label, i in enumerate(layer.Q):
+            for i, label in enumerate(layer.Q):
                 # Give border
                 circle = plt.Circle(
                     (x, -i), 0.4, facecolor=node_colour, edgecolor="black", linewidth=1
@@ -283,42 +283,49 @@ def plot_circuit(
                 ax.hlines(-i, x, plot_width, color="gray", zorder=-2)
             ddx += 0.5
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
-            for label, i in enumerate(
+            for i, label in enumerate(
                 [q for q in hierq.tail.Q if q not in layer.Q_avail]
             ):
+                ind = layer.Q.index(label)
                 circle1 = plt.Circle(
-                    (x + ddx, -i), small_r, fill=True, color=node_colour
+                    (x + ddx, -ind), small_r, fill=True, color=node_colour
                 )
                 ax.add_artist(circle1)
         elif isinstance(layer, Qunmask):
-            for label, i in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
-                circle1 = plt.Circle((x + ddx, -i), small_r, fill=True, color="green")
+            for i, label in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
+                ind = layer.Q_avail.index(label)
+                circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, color="green")
                 ax.add_artist(circle1)
         else:
             # plot ket tensors
-            for ind, e in enumerate(layer.E):
+            for e in layer.E:
                 q_prev = e[0]
+                q_prev_ind = layer.Q.index(q_prev)
                 i_order = 0
                 color = get_color(i_order, len(e))
                 circle1 = plt.Circle(
-                    (x + ddx, -q_prev), small_r, fill=True, color=color
+                    (x + ddx, -q_prev_ind), small_r, fill=True, color=color
                 )
                 ax.add_artist(circle1)
                 i_order += 1
                 for q_next in e[1:]:
+                    q_next_ind = layer.Q.index(q_next)
                     ax.plot(
-                        [x + ddx, x + ddx], [-q_prev, -q_next], color="black", zorder=-1
+                        [x + ddx, x + ddx],
+                        [-q_prev_ind, -q_next_ind],
+                        color="black",
+                        zorder=-1,
                     )
                     # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
                     # ax.add_patch(arrow)
                     color = get_color(i_order, len(e))
                     circle1 = plt.Circle(
-                        (x + ddx, -q_next), small_r, fill=True, color=color
+                        (x + ddx, -q_next_ind), small_r, fill=True, color=color
                     )
                     # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
                     ax.add_artist(circle1)
                     i_order += 1
-                    q_prev = q_next
+                    q_prev_ind = q_next_ind
                 ddx += 0.5
         x = x + ddx + dx
         ddx = 0
