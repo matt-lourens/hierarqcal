@@ -284,23 +284,23 @@ def plot_circuit(
             ddx += 0.5
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
             for i, label in enumerate(
-                [q for q in hierq.tail.Q if q not in layer.Q_avail]
+                [q for q in layer.Q if q not in layer.Q_avail]
             ):
-                ind = layer.Q.index(label)
+                ind = hierq.tail.Q.index(label)
                 circle1 = plt.Circle(
                     (x + ddx, -ind), small_r, fill=True, color=node_colour
                 )
                 ax.add_artist(circle1)
         elif isinstance(layer, Qunmask):
             for i, label in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
-                ind = layer.Q_avail.index(label)
+                ind = hierq.tail.Q.index(label)
                 circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, color="green")
                 ax.add_artist(circle1)
         else:
             # plot ket tensors
             for e in layer.E:
                 q_prev = e[0]
-                q_prev_ind = layer.Q.index(q_prev)
+                q_prev_ind = hierq.tail.Q.index(q_prev)
                 i_order = 0
                 color = get_color(i_order, len(e))
                 circle1 = plt.Circle(
@@ -309,7 +309,7 @@ def plot_circuit(
                 ax.add_artist(circle1)
                 i_order += 1
                 for q_next in e[1:]:
-                    q_next_ind = layer.Q.index(q_next)
+                    q_next_ind = hierq.tail.Q.index(q_next)
                     ax.plot(
                         [x + ddx, x + ddx],
                         [-q_prev_ind, -q_next_ind],
