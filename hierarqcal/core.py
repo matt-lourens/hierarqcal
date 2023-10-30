@@ -601,7 +601,8 @@ class Qmotif:
             and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
         ):
             # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-            E = [E[0]]
+            if arity > 0:
+                E = [E[0]]
         return E
 
 
@@ -1272,8 +1273,8 @@ class Qpivot(Qsplit):
                 arity=arity_r,
             )
 
-            # If E_r empty then there were not enough qubits to satisfiy the arity
-            if len(E_r) > 0:
+            # If E_r empty then there were not enough qubits to satisfy the arity
+            if len(E_r) > 0 and len(E_p) > 0:
                 # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
                 max_it = 0  # prevent infinite loop
                 E_tmp = E_p.copy()
@@ -1283,7 +1284,7 @@ class Qpivot(Qsplit):
                     max_it += 1
                 E_p = E_tmp.copy()
 
-                # Reorder E_p so that like pivots are grouped together, i.e. remaining avaliable qubits are assigned first to the first pivot point, then the second and so on.
+                # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
                 E_tmp = []
                 for i in range(N):
                     E_tmp += E_p[
@@ -1426,7 +1427,9 @@ class Qhierarchy:
                 new_qcnn = self
         return new_qcnn
 
-    def __iter__(self):
+    def __iter__(
+        self,
+    ):
         """
         Generator to go from head to tail and only return operations (motifs that correspond to operations).
         """
@@ -1436,6 +1439,17 @@ class Qhierarchy:
             if current.is_operation:
                 yield current
             current = current.next
+
+    def __len__(self):
+        """
+        Returns the number of motifs in the hierarchy.
+        """
+        k = 0
+        current = self.tail
+        while current is not None:
+            k += 1
+            current = current.next
+        return k
 
     def __repr__(self) -> str:
         description = ""
@@ -1630,6 +1644,16 @@ class Qhierarchy:
             old = old.prev
         current.head.set_next(None)
 
+        return current
+
+    def replace(self, motif, selected_index):
+        top_level_indices = range(1, len(self), 1)
+        current = deepcopy(self[0])
+        for index in top_level_indices:
+            if index == selected_index:
+                current = current + motif
+            else:
+                current = current + self[index]
         return current
 
     def update_Q(self, Q, start_idx=0):
