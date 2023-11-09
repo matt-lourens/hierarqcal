@@ -46,7 +46,7 @@ class Qunitary:
     # TODO add share_weights parameter
     """
 
-    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None):
+    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None, name=None):
         """
         Args:
             function (function, optional): Function to apply. If None, then the default from :py:class:`Default_Mappings` is used.
@@ -70,6 +70,7 @@ class Qunitary:
             self.arity = arity
         self.symbols = symbols
         self.edge = None
+        self.name = name
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
@@ -285,12 +286,12 @@ class Qmotif:
                 else:
                     # If they are numeric
                     new_symbols = list(self.mapping.get_symbols())
-
                 new_mapping = Qunitary(
                     function=None,
                     n_symbols=self.mapping.n_symbols,
                     arity=len(self.mapping.tail.Q),
                     symbols=new_symbols,
+                    name=self.mapping.tail.name, # Qinit contains name
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
@@ -1102,17 +1103,21 @@ class Qmask(Qsplit):
                     # If there is a merge_between pattern
                     pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
                     E_r = pattern_fn(E_r)
-
-                E_b = self.cycle_between_splits(
-                    E_a=E_m,
-                    E_b=E_r,
-                    stride=self.strides[2],
-                    step=self.steps[2],
-                    offset=self.offsets[2],
-                    boundary=self.boundaries[2],
-                )
-                # Merge the two splits based on merge pattern
-                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                if len(E_m) > 0 and len(E_r) > 0:
+                    E_b = self.cycle_between_splits(
+                        E_a=E_m,
+                        E_b=E_r,
+                        stride=self.strides[2],
+                        step=self.steps[2],
+                        offset=self.offsets[2],
+                        boundary=self.boundaries[2],
+                    )
+                    # Merge the two splits based on merge pattern
+                    Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                else:
+                    # Do nothing if Em or Er was empty
+                    remaining_q = Qp_l
+                    Ep_l = []
 
         updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
@@ -1233,7 +1238,7 @@ class Qpivot(Qsplit):
         """
 
         # Pivot must have a mapping
-        # TODO add a defualt mapping?
+        # TODO add a default mapping?
         if self.mapping is None:
             raise Exception("Pivot must have a mapping")
 
@@ -1494,15 +1499,15 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             # Default backend
             # TODO set default mapping
-            return_object = self.tail(self.tail.Q).return_object
+            state = self.tail(self.tail.Q).state
             for layer in self:
                 for unitary in layer.edge_mapping:
-                    return_object = unitary.function(
+                    state = unitary.function(
                         bits=unitary.edge,
                         symbols=unitary.symbols,
-                        return_object=return_object,
+                        state=state,
                     )
-            return return_object
+            return state
 
     def get_symbols(self):
         return (symbol for layer in self for symbol in layer.get_symbols())
@@ -1523,7 +1528,7 @@ class Qhierarchy:
             self.update_Q(bits)
             if not (symbols is None):
                 self.set_symbols(symbols)
-            return_object = None
+            state = None
             for layer in self:
                 for unitary in layer.edge_mapping:
                     if isinstance(unitary.function, str):
@@ -1531,12 +1536,12 @@ class Qhierarchy:
                             "get_circuit_from_string", None
                         )
                         unitary = get_circuit_from_string(unitary)
-                    return_object = unitary.function(
+                    state = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
-                    if kwargs.get("return_object", None) is not None:
-                        kwargs["return_object"] = return_object
-            return return_object
+                    if kwargs.get("state", None) is not None:
+                        kwargs["state"] = state
+            return state
 
         return unitary_function
 
@@ -1685,13 +1690,16 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, return_object=None, tensors=None, **kwargs) -> None:
+    def __init__(
+        self, Q, state=None, tensors=None, name=None, **kwargs
+    ) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
             Qinit = [i for i in range(Q)]
-        self.return_object = return_object
+        self.state = state
         self.tensors = tensors
+        self.name = name
         # Initialize graph
         super().__init__(
             Q=Qinit,
@@ -1713,15 +1721,15 @@ class Qinit(Qmotif):
         """
         if self.tensors is not None:
             """
-            If tensors are provided, the return_object is initialized as the tensor product of all the tensors.
+            If tensors are provided, the state is initialized as the tensor product of all the tensors.
             """
             dimensions = [len(self.tensors[0])]
-            return_object = self.tensors[0]
+            state = self.tensors[0]
             for tensor in self.tensors[1:]:
-                return_object = np.array(np.kron(return_object, tensor))
+                state = np.array(np.kron(state, tensor))
                 dimensions += [len(tensor)]
             self.dimensions = dimensions
-            self.return_object = return_object.reshape(dimensions)
+            self.state = state.reshape(dimensions)
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self

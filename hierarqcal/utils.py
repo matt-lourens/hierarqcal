@@ -246,6 +246,9 @@ def plot_circuit(
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
+    dx = 0.5,
+    big_r = 0.5,
+    **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.set_xlim(0, plot_width)
@@ -253,7 +256,7 @@ def plot_circuit(
     ax.set_aspect("equal")
     layer = hierq.tail
     x = 1
-    dx = 0.5
+    # dx = 0.5
     small_r = 0.2
     ddx = 0
     while layer is not None:
@@ -276,16 +279,14 @@ def plot_circuit(
             for i, label in enumerate(layer.Q):
                 # Give border
                 circle = plt.Circle(
-                    (x, -i), 0.4, facecolor=node_colour, edgecolor="black", linewidth=1
+                    (x, -i), big_r, facecolor=node_colour, edgecolor="black", linewidth=1
                 )
                 ax.add_artist(circle)
                 ax.text(x, -i, label, ha="center", va="center")
                 ax.hlines(-i, x, plot_width, color="gray", zorder=-2)
-            ddx += 0.5
+            ddx += dx
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
-            for i, label in enumerate(
-                [q for q in layer.Q if q not in layer.Q_avail]
-            ):
+            for i, label in enumerate([q for q in layer.Q if q not in layer.Q_avail]):
                 ind = hierq.tail.Q.index(label)
                 circle1 = plt.Circle(
                     (x + ddx, -ind), small_r, fill=True, color=node_colour
@@ -298,7 +299,7 @@ def plot_circuit(
                 ax.add_artist(circle1)
         else:
             # plot ket tensors
-            for e in layer.E:
+            for e_ind, e in enumerate(layer.E):
                 q_prev = e[0]
                 q_prev_ind = hierq.tail.Q.index(q_prev)
                 i_order = 0
@@ -307,6 +308,18 @@ def plot_circuit(
                     (x + ddx, -q_prev_ind), small_r, fill=True, color=color
                 )
                 ax.add_artist(circle1)
+                if layer.edge_mapping[e_ind].name is not None:
+                    # get rotation from kwargs
+                    rotation = kwargs.get("rotation", 30)
+                    ax.text(
+                        x + ddx,
+                        -q_prev_ind+.15,
+                        layer.edge_mapping[e_ind].name,
+                        ha="center",
+                        va="bottom",
+                        rotation=rotation,
+                        # bbox=dict(facecolor='white', edgecolor='none', pad=0),
+                    )
                 i_order += 1
                 for q_next in e[1:]:
                     q_next_ind = hierq.tail.Q.index(q_next)
@@ -326,7 +339,7 @@ def plot_circuit(
                     ax.add_artist(circle1)
                     i_order += 1
                     q_prev_ind = q_next_ind
-                ddx += 0.5
+                ddx += dx
         x = x + ddx + dx
         ddx = 0
         layer = layer.next
@@ -336,8 +349,6 @@ def plot_circuit(
 
 
 def get_color(i, n):
-    # Shift the start value away from 0 to get a darker starting color
-    shift = 0.3
     return cm.Blues((n - i) / n)
 
 
@@ -392,7 +403,7 @@ def contract(t0, t1=None, indices=None):
 
 
 def get_tensor_as_f(u):
-    def generic_f(bits, symbols=None, return_object=None, u=u):
+    def generic_f(bits, symbols=None, state=None, u=u):
         if len(u.shape) == 2:
             # if u is provided as a matrix, we turn it into the correct tensor
             # for quantum circuits all tensors have as many inputs as outputs
@@ -406,9 +417,9 @@ def get_tensor_as_f(u):
                 f = sp.lambdify(list(u.free_symbols), u, "numpy")
                 u = f(*symbols)
             u = u.reshape([idx_range for i in range(n_inputs * 2)])
-        new_tensor = contract(return_object, u, [bits, [i for i in range(len(bits))]])
+        new_tensor = contract(state, u, [bits, [i for i in range(len(bits))]])
         # new_tensor = np.tensordot(u, state, axes=[[i for i in range(len(bits))], bits])
-        return_object = new_tensor
-        return return_object
+        state = new_tensor
+        return state
 
     return generic_f
