@@ -46,7 +46,7 @@ class Qunitary:
     # TODO add share_weights parameter
     """
 
-    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None):
+    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None, name=None):
         """
         Args:
             function (function, optional): Function to apply. If None, then the default from :py:class:`Default_Mappings` is used.
@@ -70,6 +70,7 @@ class Qunitary:
             self.arity = arity
         self.symbols = symbols
         self.edge = None
+        self.name = name
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
@@ -249,7 +250,8 @@ class Qmotif:
     ) -> None:
         # Meta information
         self.is_operation = is_operation
-        self.is_default_mapping = is_default_mapping
+        # self.is_default_mapping = is_default_mapping
+        self.is_default_mapping = True if mapping is None else False
         self.type = type
         # graph
         self.Q = Q
@@ -284,12 +286,12 @@ class Qmotif:
                 else:
                     # If they are numeric
                     new_symbols = list(self.mapping.get_symbols())
-
                 new_mapping = Qunitary(
                     function=None,
                     n_symbols=self.mapping.n_symbols,
                     arity=len(self.mapping.tail.Q),
                     symbols=new_symbols,
+                    name=self.mapping.tail.name, # Qinit contains name
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
@@ -319,13 +321,29 @@ class Qmotif:
         """
         return Qmotifs((deepcopy(self) for i in range(other)))
 
-    def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
+    def __call__(self, Q, E=None, remaining_q=None, is_operation=True, **kwargs):
         self.set_Q(Q)
         mapping = kwargs.get("mapping", None)
         if mapping:
             self.set_mapping(mapping)
-        if len(E) > 0:
-            self.set_E(E)
+        if E is None:
+            # If no new edge were provided
+            q_old = kwargs.get("q_old", None)
+            if q_old is not None:
+                # If no new edges were provided and old qubits are present meaning qubit names changed
+                E = [tuple(Q[q_old.index(i)] for i in e) for e in self.E]
+            else:
+                # No new edges and qubits didn't changed, so the motif edges stays the same
+                if any([q not in self.Q for e in self.E for q in e]):
+                    raise ValueError(
+                        "Edge contains values not in qubit labels, Qmotif requires qubit labels (value not order) to be specified\nedge: {}\nqubit labels: {}".format(
+                            self.E, self.Q
+                        )
+                    )
+
+                else:
+                    E = self.E
+        self.set_E(E)
         if remaining_q:
             self.set_Qavail(remaining_q)
         else:
@@ -333,6 +351,7 @@ class Qmotif:
         self.set_is_operation(is_operation)
         start_idx = kwargs.get("start_idx", 0)
         self.set_symbols(start_idx=start_idx)
+        return self
 
     def append(self, other):
         """
@@ -583,7 +602,8 @@ class Qmotif:
             and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
         ):
             # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-            E = [E[0]]
+            if arity > 0:
+                E = [E[0]]
         return E
 
 
@@ -698,9 +718,8 @@ class Qcycle(Qmotif):
             boundary=self.boundary,
             arity=self.arity,
         )
-        super().__call__(Qc_l, E=E, **kwargs)
-
-        return self
+        updated_self = super().__call__(Qc_l, E=E, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qcycle):
@@ -754,9 +773,8 @@ class Qpermute(Qmotif):
             Ec_l = list(it.permutations(Qc_l, r=self.arity))
         if len(Ec_l) == 2 and Ec_l[0][0:] == Ec_l[1][1::-1]:
             Ec_l = [Ec_l[0]]
-
-        super().__call__(Qc_l, E=Ec_l, **kwargs)
-        return self
+        updated_self = super().__call__(Qc_l, E=Ec_l, **kwargs)
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qpermute):
@@ -767,6 +785,7 @@ class Qpermute(Qmotif):
                     return False
             return True
         return False
+
 
 class Qsplit(Qmotif):
     def __init__(
@@ -805,10 +824,10 @@ class Qsplit(Qmotif):
         super().__init__(is_default_mapping=is_default_mapping, type=type, **kwargs)
 
     def __call__(self, Q, E=[], remaining_q=None, is_operation=True, **kwargs):
-        super().__call__(
+        updated_self = super().__call__(
             Q, E=E, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
     def wildcard_populate(self, pattern, length):
         # Wildcard pattern
@@ -979,6 +998,7 @@ class Qsplit(Qmotif):
             raise ValueError(f"{pattern} - Pattern not recognized")
         return pattern_fn
 
+
 class Qmask(Qsplit):
     """
     A masking motif, it masks qubits based on some pattern TODO some controlled operation where the control is not used for the rest of the circuit).
@@ -1083,22 +1103,26 @@ class Qmask(Qsplit):
                     # If there is a merge_between pattern
                     pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
                     E_r = pattern_fn(E_r)
+                if len(E_m) > 0 and len(E_r) > 0:
+                    E_b = self.cycle_between_splits(
+                        E_a=E_m,
+                        E_b=E_r,
+                        stride=self.strides[2],
+                        step=self.steps[2],
+                        offset=self.offsets[2],
+                        boundary=self.boundaries[2],
+                    )
+                    # Merge the two splits based on merge pattern
+                    Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                else:
+                    # Do nothing if Em or Er was empty
+                    remaining_q = Qp_l
+                    Ep_l = []
 
-                E_b = self.cycle_between_splits(
-                    E_a=E_m,
-                    E_b=E_r,
-                    stride=self.strides[2],
-                    step=self.steps[2],
-                    offset=self.offsets[2],
-                    boundary=self.boundaries[2],
-                )
-                # Merge the two splits based on merge pattern
-                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
-
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
     def __eq__(self, other):
         if isinstance(other, Qmask):
@@ -1153,10 +1177,10 @@ class Qunmask(Qsplit):
         Ep_l = []
         unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
         new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
-        super().__call__(
+        updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
         )
-        return self
+        return updated_self
 
 
 class Qpivot(Qsplit):
@@ -1185,7 +1209,7 @@ class Qpivot(Qsplit):
         if isinstance(offsets, int):
             offsets = [offsets] * 3
         if isinstance(boundaries, str):
-            offsets = [offsets] * 3
+            offsets = [boundaries] * 3
 
         super().__init__(
             global_pattern=global_pattern,
@@ -1214,7 +1238,7 @@ class Qpivot(Qsplit):
         """
 
         # Pivot must have a mapping
-        # TODO add a defualt mapping?
+        # TODO add a default mapping?
         if self.mapping is None:
             raise Exception("Pivot must have a mapping")
 
@@ -1254,8 +1278,8 @@ class Qpivot(Qsplit):
                 arity=arity_r,
             )
 
-            # If E_r empty then there were not enough qubits to satisfiy the arity
-            if len(E_r) > 0:
+            # If E_r empty then there were not enough qubits to satisfy the arity
+            if len(E_r) > 0 and len(E_p) > 0:
                 # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
                 max_it = 0  # prevent infinite loop
                 E_tmp = E_p.copy()
@@ -1265,10 +1289,12 @@ class Qpivot(Qsplit):
                     max_it += 1
                 E_p = E_tmp.copy()
 
-                # Reorder E_p so that like pivots are grouped together, i.e. remaining avaliable qubits are assigned first to the first pivot point, then the second and so on.
+                # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
                 E_tmp = []
                 for i in range(N):
-                    E_tmp += E_p[i::N]
+                    E_tmp += E_p[
+                        i :: N + 1
+                    ]  # TODO check if this change works as intended it used to be just N
                 E_p = E_tmp.copy()
 
                 # TODO what could merge_between be used for?
@@ -1294,8 +1320,10 @@ class Qpivot(Qsplit):
         else:
             Ep_l = E_p
 
-        super().__call__(Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs)
-        return self
+        updated_self = super().__call__(
+            Qp_l, E=Ep_l, remaining_q=Qp_l, is_operation=True, **kwargs
+        )
+        return updated_self
 
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
@@ -1404,7 +1432,9 @@ class Qhierarchy:
                 new_qcnn = self
         return new_qcnn
 
-    def __iter__(self):
+    def __iter__(
+        self,
+    ):
         """
         Generator to go from head to tail and only return operations (motifs that correspond to operations).
         """
@@ -1414,6 +1444,17 @@ class Qhierarchy:
             if current.is_operation:
                 yield current
             current = current.next
+
+    def __len__(self):
+        """
+        Returns the number of motifs in the hierarchy.
+        """
+        k = 0
+        current = self.tail
+        while current is not None:
+            k += 1
+            current = current.next
+        return k
 
     def __repr__(self) -> str:
         description = ""
@@ -1462,7 +1503,9 @@ class Qhierarchy:
             for layer in self:
                 for unitary in layer.edge_mapping:
                     state = unitary.function(
-                        bits=unitary.edge, symbols=unitary.symbols, state=state
+                        bits=unitary.edge,
+                        symbols=unitary.symbols,
+                        state=state,
                     )
             return state
 
@@ -1485,7 +1528,7 @@ class Qhierarchy:
             self.update_Q(bits)
             if not (symbols is None):
                 self.set_symbols(symbols)
-            return_object = None
+            state = None
             for layer in self:
                 for unitary in layer.edge_mapping:
                     if isinstance(unitary.function, str):
@@ -1493,10 +1536,12 @@ class Qhierarchy:
                             "get_circuit_from_string", None
                         )
                         unitary = get_circuit_from_string(unitary)
-                    return_object = unitary.function(
+                    state = unitary.function(
                         unitary.edge, unitary.symbols, **kwargs
                     )
-            return return_object
+                    if kwargs.get("state", None) is not None:
+                        kwargs["state"] = state
+            return state
 
         return unitary_function
 
@@ -1569,7 +1614,6 @@ class Qhierarchy:
         Returns:
             Qhierarchy: A new Qhierarchy object with the two merged.
         """
-        # ensure immutability
         other_hierarchy = deepcopy(hierarchy)
         new_hierarchy = deepcopy(self)
         other_hierarchy.update_Q(
@@ -1594,6 +1638,29 @@ class Qhierarchy:
             new_qcnn = new_qcnn.merge(hierarchy)
         return new_qcnn
 
+    def reverse(self):
+        """
+        Reverse the stack of motifs on the highest level, i.e. only the direct children nothing deeper.
+        """
+        old = self.head
+        current = deepcopy(self.tail)
+        while not (isinstance(old, Qinit)):
+            current = current + old
+            old = old.prev
+        current.head.set_next(None)
+
+        return current
+
+    def replace(self, motif, selected_index):
+        top_level_indices = range(1, len(self), 1)
+        current = deepcopy(self[0])
+        for index in top_level_indices:
+            if index == selected_index:
+                current = current + motif
+            else:
+                current = current + self[index]
+        return current
+
     def update_Q(self, Q, start_idx=0):
         """
         Update the number of available qubits for the hierarchy and update the rest of the stack accordingly.
@@ -1601,10 +1668,11 @@ class Qhierarchy:
         Args:
             Q (list(int or string)): The list of available qubits.
         """
+        q_old = self.tail.Q
         motif = self.tail(Q)
         while motif.next is not None:
             motif = motif.next(
-                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q
+                motif.Q_avail, start_idx=start_idx, q_initial=self.tail.Q, q_old=q_old
             )
             start_idx += motif.n_symbols
 
@@ -1622,13 +1690,16 @@ class Qinit(Qmotif):
     It is a special motif that has no edges and is not an operation.
     """
 
-    def __init__(self, Q, state=None, tensors=None, **kwargs) -> None:
+    def __init__(
+        self, Q, state=None, tensors=None, name=None, **kwargs
+    ) -> None:
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
-            Qinit = [i + 1 for i in range(Q)]
+            Qinit = [i for i in range(Q)]
         self.state = state
         self.tensors = tensors
+        self.name = name
         # Initialize graph
         super().__init__(
             Q=Qinit,

@@ -16,8 +16,9 @@ import sympy as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.patches import PathPatch, FancyArrowPatch
+from matplotlib import cm
 from matplotlib.path import Path
-from .core import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot
+from hierarqcal import Qcycle, Qpermute, Qinit, Qmask, Qunmask, Qpivot, Qmotif
 
 
 def plot_motif(
@@ -240,20 +241,23 @@ def plot_motif(
 
 def plot_circuit(
     hierq,
-    depth=20,
+    plot_width=20,
     cycle_color="#0096ff",
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
+    dx = 0.5,
+    big_r = 0.5,
+    **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.set_xlim(0, depth)
+    ax.set_xlim(0, plot_width)
     ax.set_ylim(-len(hierq.tail.Q) - 1, 1)
     ax.set_aspect("equal")
     layer = hierq.tail
     x = 1
-    dx = 0.5
-    small_r = 0.1
+    # dx = 0.5
+    small_r = 0.2
     ddx = 0
     while layer is not None:
         if isinstance(layer, Qcycle):
@@ -268,56 +272,84 @@ def plot_circuit(
             node_colour = cycle_color
         elif isinstance(layer, Qinit):
             node_colour = init_colour
+        elif isinstance(layer, Qmotif):
+            node_colour = cycle_color
         if isinstance(layer, Qinit):
             # plot ket tensors
-            for label, i in enumerate(layer.Q):
+            for i, label in enumerate(layer.Q):
                 # Give border
                 circle = plt.Circle(
-                    (x, -i), 0.4, facecolor=node_colour, edgecolor="black", linewidth=1
+                    (x, -i), big_r, facecolor=node_colour, edgecolor="black", linewidth=1
                 )
                 ax.add_artist(circle)
                 ax.text(x, -i, label, ha="center", va="center")
-                ax.hlines(-i, x, depth, color="gray", zorder=-2)
-            ddx += 0.5
+                ax.hlines(-i, x, plot_width, color="gray", zorder=-2)
+            ddx += dx
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
-            for label, i in enumerate(
-                [q for q in hierq.tail.Q if q not in layer.Q_avail]
-            ):
+            for i, label in enumerate([q for q in layer.Q if q not in layer.Q_avail]):
+                ind = hierq.tail.Q.index(label)
                 circle1 = plt.Circle(
-                    (x + ddx, -i), small_r, fill=True, color=node_colour
+                    (x + ddx, -ind), small_r, fill=True, color=node_colour
                 )
                 ax.add_artist(circle1)
         elif isinstance(layer, Qunmask):
-            for label, i in enumerate([q for q in hierq.tail.Q if q not in layer.Q]):
-                circle1 = plt.Circle((x + ddx, -i), small_r, fill=True, color="green")
+            for i, label in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
+                ind = hierq.tail.Q.index(label)
+                circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, color="green")
                 ax.add_artist(circle1)
         else:
             # plot ket tensors
-            for ind, e in enumerate(layer.E):
+            for e_ind, e in enumerate(layer.E):
                 q_prev = e[0]
-
+                q_prev_ind = hierq.tail.Q.index(q_prev)
+                i_order = 0
+                color = get_color(i_order, len(e))
                 circle1 = plt.Circle(
-                    (x + ddx, -q_prev), small_r, fill=True, color=node_colour
+                    (x + ddx, -q_prev_ind), small_r, fill=True, color=color
                 )
                 ax.add_artist(circle1)
+                if layer.edge_mapping[e_ind].name is not None:
+                    # get rotation from kwargs
+                    rotation = kwargs.get("rotation", 30)
+                    ax.text(
+                        x + ddx,
+                        -q_prev_ind+.15,
+                        layer.edge_mapping[e_ind].name,
+                        ha="center",
+                        va="bottom",
+                        rotation=rotation,
+                        # bbox=dict(facecolor='white', edgecolor='none', pad=0),
+                    )
+                i_order += 1
                 for q_next in e[1:]:
+                    q_next_ind = hierq.tail.Q.index(q_next)
                     ax.plot(
-                        [x + ddx, x + ddx], [-q_prev, -q_next], color="black", zorder=-1
+                        [x + ddx, x + ddx],
+                        [-q_prev_ind, -q_next_ind],
+                        color="black",
+                        zorder=-1,
                     )
                     # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
                     # ax.add_patch(arrow)
+                    color = get_color(i_order, len(e))
                     circle1 = plt.Circle(
-                        (x + ddx, -q_next), 0.1, fill=True, color=node_colour
+                        (x + ddx, -q_next_ind), small_r, fill=True, color=color
                     )
+                    # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
                     ax.add_artist(circle1)
-                    q_prev = q_next
-                ddx += 0.5
+                    i_order += 1
+                    q_prev_ind = q_next_ind
+                ddx += dx
         x = x + ddx + dx
         ddx = 0
         layer = layer.next
     plt.axis("off")
     plt.show()
     return fig, ax
+
+
+def get_color(i, n):
+    return cm.Blues((n - i) / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
@@ -336,7 +368,7 @@ def tensor_to_matrix_rowmajor(t0, indices):
 
 def tensor_to_matrix_colmajor(t0, indices):
     # Get all indices that are going to form columns
-    t0_ind_cols = [ind for ind in range(len(t0.shape)) if ind not in indices[0]]
+    t0_ind_cols = [ind for ind in range(len(t0.shape)) if ind not in indices]
     # Get all indices that are going to form rows
     t0_ind_rows = list(indices)
     new_ind_order = t0_ind_cols + t0_ind_rows
@@ -348,9 +380,18 @@ def tensor_to_matrix_colmajor(t0, indices):
     return matrix, t0_ind_cols, remaining_idx_ranges
 
 
-def contract(t0, t1, indices):
+def contract(t0, t1=None, indices=None):
+    if t1 is None:
+        # assume t1 is delta and t0 is "hyper square" then trace
+        t0_range = len(t0.shape)
+        t1 = np.zeros(t0_range**t0_range)
+        t1 = t1.reshape([t0_range for i in range(t0_range)])
+        for i in range(t0_range):
+            t1[(i,) * t0_range] = 1
+        # indices should just be one list, so we create another identical one
+        indices = [indices, indices]
     a, a_remaining_d, a_idx_ranges = tensor_to_matrix_rowmajor(t0, indices[0])
-    b, b_remaining_d, b_idx_ranges = tensor_to_matrix_rowmajor(t1, indices[1])
+    b, b_remaining_d, b_idx_ranges = tensor_to_matrix_colmajor(t1, indices[1])
     result = a @ b
     result = result.reshape(a_idx_ranges + b_idx_ranges)
     # The matrix is currently in this order
@@ -376,8 +417,6 @@ def get_tensor_as_f(u):
                 f = sp.lambdify(list(u.free_symbols), u, "numpy")
                 u = f(*symbols)
             u = u.reshape([idx_range for i in range(n_inputs * 2)])
-        if len(bits)>2:
-            print("oi")
         new_tensor = contract(state, u, [bits, [i for i in range(len(bits))]])
         # new_tensor = np.tensordot(u, state, axes=[[i for i in range(len(bits))], bits])
         state = new_tensor
