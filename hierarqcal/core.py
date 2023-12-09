@@ -375,7 +375,7 @@ class Qmotif:
         Args:
             Q (list(int or string)): List of qubit labels.
         """
-        self.Q = Q
+        self.Q = list(Q)
 
     def set_E(self, E):
         """
@@ -423,7 +423,7 @@ class Qmotif:
         Args:
             Q_avail (list): List of available qubits.
         """
-        self.Q_avail = Q_avail
+        self.Q_avail = list(Q_avail)
 
     def set_mapping(self, mapping):
         """
@@ -1777,5 +1777,6 @@ class Qinit(Qmotif):
 
 # TODO find a home for this function
 def store_bits(bits, symbols=None, state=None):
-    state += [bits]
+    if bits is not None and state is not None:
+        state += [bits]
     return state
