@@ -968,18 +968,16 @@ class Qsplit(Qmotif):
         elif pattern == "inside":
             # 0 1 2 3 4 5 6 7
             #     x x x x
-            pattern_fn = (
-                lambda arr: arr[
-                    len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1
-                ]
+            pattern_fn = lambda arr: (
+                arr[len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1]
                 if len(arr) > 2
                 else [arr[1]]
             )  # inside
         elif pattern == "outside":
             # 0 1 2 3 4 5 6 7
             # x x         x x
-            pattern_fn = (
-                lambda arr: [
+            pattern_fn = lambda arr: (
+                [
                     item
                     for item in arr
                     if not (
@@ -1499,7 +1497,7 @@ class Qhierarchy:
                 state = []
                 for layer in self:
                     for unitary in layer.edge_mapping:
-                        if unitary.function.__module__ == "hierarqcal.core":
+                        if getattr(unitary.function, "__module__", None) == "hierarchical.core":
                             state = unitary.function(
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
@@ -1736,7 +1734,7 @@ class Qinit(Qmotif):
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
-            Qinit = [i for i in range(Q)]
+            Qinit = [i for i in range(Q)] #TODO catch Q as None
         self.state = state
         self.tensors = tensors
         self.name = name
