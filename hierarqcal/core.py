@@ -1497,18 +1497,23 @@ class Qhierarchy:
                 state = []
                 for layer in self:
                     for unitary in layer.edge_mapping:
-                        if getattr(unitary.function, "__module__", None) == "hierarchical.core":
+                        if (
+                            getattr(unitary.function, "__module__", None)
+                            == "hierarchical.core"
+                        ):
                             state = unitary.function(
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
                                 state=state,
                                 get_bits=True,
+                                **kwargs,
                             )
                         else:
                             state = store_bits(
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
                                 state=state,
+                                **kwargs,
                             )
             else:
                 if not (symbols is None):
@@ -1522,6 +1527,7 @@ class Qhierarchy:
                             bits=unitary.edge,
                             symbols=unitary.symbols,
                             state=state,
+                            **kwargs,
                         )
             return state
 
@@ -1734,7 +1740,7 @@ class Qinit(Qmotif):
         if isinstance(Q, Sequence):
             Qinit = Q
         elif type(Q) == int:
-            Qinit = [i for i in range(Q)] #TODO catch Q as None
+            Qinit = [i for i in range(Q)]  # TODO catch Q as None
         self.state = state
         self.tensors = tensors
         self.name = name
