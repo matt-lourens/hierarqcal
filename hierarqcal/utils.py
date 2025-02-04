@@ -402,7 +402,7 @@ def contract(t0, t1=None, indices=None):
     return result
 
 
-def get_tensor_as_f(u):
+def get_tensor_as_f_old(u):
     def generic_f(bits, symbols=None, state=None, u=u):
         if len(u.shape) == 2:
             # if u is provided as a matrix, we turn it into the correct tensor
@@ -422,4 +422,24 @@ def get_tensor_as_f(u):
         state = new_tensor
         return state
 
+    return generic_f
+
+def get_tensor_as_f(u):
+    def generic_f(bits, symbols=None, state=None, u=u):
+        # bits not acted upon
+        orig_shape = state.shape
+        nbits = tuple([k for k in range(len(orig_shape)) if k not in bits])
+        nbits_size = np.product([orig_shape[k] for k in nbits])
+        bits_size = np.product([orig_shape[k] for k in bits])
+        # put bits not acted on last
+        perm = bits + nbits
+        perminv = [perm.index(k) for k in range(len(perm))]
+        state = state.transpose(perm)
+        # turn into matrix
+        state = state.reshape(bits_size, nbits_size)
+        um = u(*symbols).reshape(bits_size, bits_size)
+        state = um @ state
+        state = state.reshape(orig_shape)
+        state = state.transpose(perminv)
+        return state
     return generic_f

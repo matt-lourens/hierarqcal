@@ -1691,12 +1691,17 @@ class Qinit(Qmotif):
     """
 
     def __init__(
-        self, Q, state=None, tensors=None, name=None, **kwargs
+        self, Q=None, tensors=None, state=None, name=None, **kwargs
     ) -> None:
-        if isinstance(Q, Sequence):
-            Qinit = Q
-        elif type(Q) == int:
-            Qinit = [i for i in range(Q)]
+        if Q is None and tensors is None:
+            raise ValueError("Q or tensors must be provided")
+        elif Q is None:
+            Qinit = [i for i in range(len(tensors))]
+        else:
+            if isinstance(Q, Sequence):
+                Qinit = Q
+            elif type(Q) == int:
+                Qinit = [i for i in range(Q)]
         self.state = state
         self.tensors = tensors
         self.name = name
