@@ -43,7 +43,7 @@ def V2(bits, symbols=None, circuit=None, **kwargs):
     """
     # Assume bits are strings and in the correct QASM format
     q0, q1 = QuantumRegister(1, bits[0]), QuantumRegister(1, bits[1])
-    circuit.cnot(q0, q1)
+    circuit.cx(q0, q1)
     return circuit
 
 
@@ -54,6 +54,6 @@ def V4(bits, symbols=None, circuit=None, **kwargs):
         QuantumRegister(1, bits[2]),
         QuantumRegister(1, bits[3]),
     )
-    circuit.cnot(q0, q1)
-    circuit.cnot(q3, q2)
+    circuit.cx(q0, q1)
+    circuit.cx(q3, q2)
     return circuit
