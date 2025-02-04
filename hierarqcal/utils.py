@@ -11,6 +11,7 @@ Usage:
     # Plot all motif
     figs = plot_motifs(hierq, all_motifs=True, figsize=(4,4))
 """
+
 import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
@@ -246,8 +247,8 @@ def plot_circuit(
     mask_color="#ff7e79",
     permute_colour="#a9449d",
     init_colour="#92a9bd",
-    dx = 0.5,
-    big_r = 0.5,
+    dx=0.5,
+    big_r=0.5,
     **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -279,7 +280,11 @@ def plot_circuit(
             for i, label in enumerate(layer.Q):
                 # Give border
                 circle = plt.Circle(
-                    (x, -i), big_r, facecolor=node_colour, edgecolor="black", linewidth=1
+                    (x, -i),
+                    big_r,
+                    facecolor=node_colour,
+                    edgecolor="black",
+                    linewidth=1,
                 )
                 ax.add_artist(circle)
                 ax.text(x, -i, label, ha="center", va="center")
@@ -313,7 +318,7 @@ def plot_circuit(
                     rotation = kwargs.get("rotation", 30)
                     ax.text(
                         x + ddx,
-                        -q_prev_ind+.15,
+                        -q_prev_ind + 0.15,
                         layer.edge_mapping[e_ind].name,
                         ha="center",
                         va="bottom",
@@ -424,22 +429,27 @@ def get_tensor_as_f_old(u):
 
     return generic_f
 
+
 def get_tensor_as_f(u):
-    def generic_f(bits, symbols=None, state=None, u=u):
+    def generic_f(bits, symbols=[], state=None, u=u):
         # bits not acted upon
         orig_shape = state.shape
         nbits = tuple([k for k in range(len(orig_shape)) if k not in bits])
-        nbits_size = np.product([orig_shape[k] for k in nbits])
-        bits_size = np.product([orig_shape[k] for k in bits])
+        nbits_size = np.prod([orig_shape[k] for k in nbits])
+        bits_size = np.prod([orig_shape[k] for k in bits])
         # put bits not acted on last
         perm = bits + nbits
         perminv = [perm.index(k) for k in range(len(perm))]
         state = state.transpose(perm)
         # turn into matrix
         state = state.reshape(bits_size, nbits_size)
-        um = u(*symbols).reshape(bits_size, bits_size)
+        if len(symbols) > 0:
+            um = u(*symbols).reshape(bits_size, bits_size)
+        else:
+            um = u.reshape(bits_size, bits_size)
         state = um @ state
         state = state.reshape(orig_shape)
         state = state.transpose(perminv)
         return state
+
     return generic_f
