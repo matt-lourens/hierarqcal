@@ -291,7 +291,7 @@ class Qmotif:
                     n_symbols=self.mapping.n_symbols,
                     arity=len(self.mapping.tail.Q),
                     symbols=new_symbols,
-                    name=self.mapping.tail.name, # Qinit contains name
+                    name=self.mapping.tail.name,  # Qinit contains name
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
@@ -375,7 +375,7 @@ class Qmotif:
         Args:
             Q (list(int or string)): List of qubit labels.
         """
-        self.Q = Q
+        self.Q = list(Q)
 
     def set_E(self, E):
         """
@@ -423,7 +423,7 @@ class Qmotif:
         Args:
             Q_avail (list): List of available qubits.
         """
-        self.Q_avail = Q_avail
+        self.Q_avail = list(Q_avail)
 
     def set_mapping(self, mapping):
         """
@@ -968,18 +968,16 @@ class Qsplit(Qmotif):
         elif pattern == "inside":
             # 0 1 2 3 4 5 6 7
             #     x x x x
-            pattern_fn = (
-                lambda arr: arr[
-                    len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1
-                ]
+            pattern_fn = lambda arr: (
+                arr[len(arr) // 2 - len(arr) // 4 : len(arr) // 2 + len(arr) // 4 : 1]
                 if len(arr) > 2
                 else [arr[1]]
             )  # inside
         elif pattern == "outside":
             # 0 1 2 3 4 5 6 7
             # x x         x x
-            pattern_fn = (
-                lambda arr: [
+            pattern_fn = lambda arr: (
+                [
                     item
                     for item in arr
                     if not (
@@ -1481,7 +1479,7 @@ class Qhierarchy:
             current = current.next
         return None
 
-    def __call__(self, symbols=None, backend=None, **kwargs):
+    def __call__(self, symbols=None, backend=None, get_bits=False, **kwargs):
         if backend == "pennylane":
             from hierarqcal.pennylane import execute_circuit_pennylane
 
@@ -1495,18 +1493,42 @@ class Qhierarchy:
 
             return get_circuit_cirq(self, symbols, **kwargs)
         else:
-            if not (symbols is None):
-                self.set_symbols(symbols)
-            # Default backend
-            # TODO set default mapping
-            state = self.tail(self.tail.Q).state
-            for layer in self:
-                for unitary in layer.edge_mapping:
-                    state = unitary.function(
-                        bits=unitary.edge,
-                        symbols=unitary.symbols,
-                        state=state,
-                    )
+            if get_bits:
+                state = []
+                for layer in self:
+                    for unitary in layer.edge_mapping:
+                        if (
+                            getattr(unitary.function, "__module__", None)
+                            == "hierarchical.core"
+                        ):
+                            state = unitary.function(
+                                bits=unitary.edge,
+                                symbols=unitary.symbols,
+                                state=state,
+                                get_bits=True,
+                                **kwargs,
+                            )
+                        else:
+                            state = store_bits(
+                                bits=unitary.edge,
+                                symbols=unitary.symbols,
+                                state=state,
+                                **kwargs,
+                            )
+            else:
+                if not (symbols is None):
+                    self.set_symbols(symbols)
+                # Default backend
+                # TODO set default mapping
+                state = self.tail(self.tail.Q).state
+                for layer in self:
+                    for unitary in layer.edge_mapping:
+                        state = unitary.function(
+                            bits=unitary.edge,
+                            symbols=unitary.symbols,
+                            state=state,
+                            **kwargs,
+                        )
             return state
 
     def get_symbols(self):
@@ -1524,23 +1546,47 @@ class Qhierarchy:
         Convert the Qhierarchy into a function that can be called.
         """
 
-        def unitary_function(bits, symbols=None, **kwargs):
+        def unitary_function(bits, symbols=None, get_bits=False, **kwargs):
             self.update_Q(bits)
             if not (symbols is None):
                 self.set_symbols(symbols)
-            state = None
-            for layer in self:
-                for unitary in layer.edge_mapping:
-                    if isinstance(unitary.function, str):
-                        get_circuit_from_string = kwargs.get(
-                            "get_circuit_from_string", None
+            if get_bits:
+                # TODO, this function is becoming long, there might be a better way to handle this, especially for information like number of bits to act on
+                state = None
+                for layer in self:
+                    for unitary in layer.edge_mapping:
+                        if (
+                            getattr(unitary.function, "module", None)
+                            == "hierarqcal.core"
+                        ):
+                            state = unitary.function(
+                                bits=unitary.edge,
+                                symbols=unitary.symbols,
+                                get_bits=True,
+                                **kwargs,
+                            )
+                        else:
+                            state = store_bits(
+                                bits=unitary.edge,
+                                symbols=unitary.symbols,
+                                **kwargs,
+                            )
+                        if kwargs.get("state", None) is not None:
+                            kwargs["state"] = state
+            else:
+                state = None
+                for layer in self:
+                    for unitary in layer.edge_mapping:
+                        if isinstance(unitary.function, str):
+                            get_circuit_from_string = kwargs.get(
+                                "get_circuit_from_string", None
+                            )
+                            unitary = get_circuit_from_string(unitary)
+                        state = unitary.function(
+                            unitary.edge, unitary.symbols, **kwargs
                         )
-                        unitary = get_circuit_from_string(unitary)
-                    state = unitary.function(
-                        unitary.edge, unitary.symbols, **kwargs
-                    )
-                    if kwargs.get("state", None) is not None:
-                        kwargs["state"] = state
+                        if kwargs.get("state", None) is not None:
+                            kwargs["state"] = state
             return state
 
         return unitary_function
@@ -1738,3 +1784,10 @@ class Qinit(Qmotif):
         self.set_Q(Q)
         self.set_Qavail(Q)
         return self
+
+
+# TODO find a home for this function
+def store_bits(bits, symbols=None, state=None):
+    if bits is not None and state is not None:
+        state += [bits]
+    return state
