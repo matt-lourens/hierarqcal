@@ -46,13 +46,15 @@ class Qunitary:
     # TODO add share_weights parameter
     """
 
-    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None, name=None):
+    def __init__(self, function=None, n_symbols=0, arity=2, symbols=None, name=None, hierq=None):
         """
         Args:
             function (function, optional): Function to apply. If None, then the default from :py:class:`Default_Mappings` is used.
             n_symbols (int, optional): Number of symbols that function uses. Defaults to 0.
             arity (int, optional): Number of qubits that function acts upon. Two means 2-qubit unitaries, three means 3-qubits unitaries and so on. Defaults to 2.
             symbols (list, optional): List of symbol values (rotation angles). Elements can be either sympy symbols, complex numbers, or qiskit parameters. Defaults to None.
+            name (str, optional): Name of the function. Defaults to None.
+            hierq (Qhierarchy, optional): Qhierarchy object, a result of mapping of mapping. Defaults to None.
         """
         self.function = function
         if isinstance(self.function, str):
@@ -71,6 +73,7 @@ class Qunitary:
         self.symbols = symbols
         self.edge = None
         self.name = name
+        self.hierq = hierq
 
     def __call__(self, *args, **kwargs):
         return self.function(*args, **kwargs)
@@ -292,6 +295,7 @@ class Qmotif:
                     arity=len(self.mapping.tail.Q),
                     symbols=new_symbols,
                     name=self.mapping.tail.name,  # Qinit contains name
+                    hierq=self.mapping
                 )
                 new_mapping.function = self.mapping.get_unitary_function()
                 self.mapping = new_mapping
@@ -1574,7 +1578,7 @@ class Qhierarchy:
                         if kwargs.get("state", None) is not None:
                             kwargs["state"] = state
             else:
-                state = None
+                state = kwargs.get("state", None)
                 for layer in self:
                     for unitary in layer.edge_mapping:
                         if isinstance(unitary.function, str):

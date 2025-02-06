@@ -260,7 +260,32 @@ def plot_circuit(
     # dx = 0.5
     small_r = 0.2
     ddx = 0
-    while layer is not None:
+    parent_layer = None
+    parent_edge = 0
+    while not ((layer is None) and (parent_layer is None)):
+        """
+        Trying to plot mapping of mapping
+        """
+        # TODO this assumes parent has atleast one edge
+        # TODO only goes down to one level
+        # if layer is None:
+        #     parent_edge+=1
+        #     if parent_edge>len(parent_layer.E)-1:
+        #         layer=parent_layer.next
+        #         parent_edge=0
+        #         parent_layer=None
+        #     else:
+        #         parent_layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
+        #         layer=parent_layer.mapping.hierq[1]
+        #     if layer is None and parent_layer is None:
+        #         break
+        # if layer.mapping is not None:
+        #     if layer.mapping.hierq is not None:
+        #         parent_layer=layer
+        #         parent_edge=0
+        #         layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
+        #         layer = layer.mapping.hierq[1]
+
         if isinstance(layer, Qcycle):
             node_colour = cycle_color
         elif isinstance(layer, Qmask):
@@ -303,8 +328,9 @@ def plot_circuit(
                 circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, color="green")
                 ax.add_artist(circle1)
         else:
-            # plot ket tensors
-            for e_ind, e in enumerate(layer.E):
+            edges = layer.E
+            edge_mapping = layer.edge_mapping
+            for e_ind, e in enumerate(edges):
                 q_prev = e[0]
                 q_prev_ind = hierq.tail.Q.index(q_prev)
                 i_order = 0
@@ -313,13 +339,13 @@ def plot_circuit(
                     (x + ddx, -q_prev_ind), small_r, fill=True, color=color
                 )
                 ax.add_artist(circle1)
-                if layer.edge_mapping[e_ind].name is not None:
+                if edge_mapping[e_ind].name is not None:
                     # get rotation from kwargs
                     rotation = kwargs.get("rotation", 30)
                     ax.text(
                         x + ddx,
                         -q_prev_ind + 0.15,
-                        layer.edge_mapping[e_ind].name,
+                        edge_mapping[e_ind].name,
                         ha="center",
                         va="bottom",
                         rotation=rotation,
@@ -435,21 +461,36 @@ def get_tensor_as_f(u):
         # bits not acted upon
         orig_shape = state.shape
         nbits = tuple([k for k in range(len(orig_shape)) if k not in bits])
-        nbits_size = np.prod([orig_shape[k] for k in nbits])
-        bits_size = np.prod([orig_shape[k] for k in bits])
+        nbits_size = int(np.prod([orig_shape[k] for k in nbits]))
+        bits_size = int(np.prod([orig_shape[k] for k in bits]))
         # put bits not acted on last
         perm = bits + nbits
         perminv = [perm.index(k) for k in range(len(perm))]
-        state = state.transpose(perm)
+        state1 = state.transpose(perm)
         # turn into matrix
-        state = state.reshape(bits_size, nbits_size)
+        state1 = state1.reshape(bits_size, nbits_size)
         if len(symbols) > 0:
             um = u(*symbols).reshape(bits_size, bits_size)
         else:
             um = u.reshape(bits_size, bits_size)
-        state = um @ state
-        state = state.reshape(orig_shape)
-        state = state.transpose(perminv)
-        return state
+        state1 = um @ state1
+        state1 = state1.reshape(orig_shape)
+        state1 = state1.transpose(perminv)
+        if state1 is None:
+            return state
+        else:
+            return state1
 
     return generic_f
+
+
+# from hierarqcal import Qunitary
+
+# f0 = Qunitary(None, 0, 2, name="f0")
+# f1 = Qunitary(None, 0, 1, name="f1")
+# subsub = Qinit(3, name="hey") + Qcycle(mapping=f0) + Qmotif(E=[(2,)], mapping=f1)
+# sub = Qinit(6) + Qcycle(step=2, mapping=subsub)
+# hierq = Qinit(12, name="hey1") + Qmotif(E=[(5, 6, 7, 8, 9, 10)], mapping=sub)
+
+# plot_circuit(hierq)
+# print("hey")
