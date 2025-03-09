@@ -1200,17 +1200,32 @@ class Qunmask(Qsplit):
                     unmask_counts += 1
                 if isinstance(current, Qmask):
                     unmask_counts -= 1
+
+            unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
+            new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
+
+        elif self.global_pattern == "invert":
+            q_old = kwargs.get("q_initial", [])
+            new_avail_q = [q for q in q_old if q not in Qp_l]
+        elif self.global_pattern == "all":
+            new_avail_q = kwargs.get("q_initial", [])
         else:
             q_old = kwargs.get("q_initial", [])
             self.mask_pattern_fn = self.get_pattern_fn(self.global_pattern, len(q_old))
             unmasked_q = self.mask_pattern_fn(q_old)
+            unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
+            new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
+
         is_operation = False
         Ep_l = []
-        unique_unmasked = [q for q in unmasked_q if q not in Qp_l]
-        new_avail_q = [q for q in q_old if q in Qp_l + unique_unmasked]
         updated_self = super().__call__(
-            Qp_l, E=Ep_l, remaining_q=new_avail_q, is_operation=is_operation, **kwargs
+            Qp_l,
+            E=Ep_l,
+            remaining_q=new_avail_q,
+            is_operation=is_operation,
+            **kwargs,
         )
+
         return updated_self
 
 
@@ -1297,7 +1312,13 @@ class Qpivot(Qsplit):
 
         # if the number of 1's in the global_pattern is less than the arity replace "1" with "1"*arity_p
         if self.global_pattern.count("1") < arity_p:
-            self.global_pattern = self.global_pattern.replace("1", "1" * arity_p)
+            if "!" in self.global_pattern:
+                # number fo 1s in self.global_pattern
+                self.global_pattern = self.global_pattern.replace(
+                    "!", "1" * (arity_p - self.global_pattern.count("1"))
+                )
+            else:
+                self.global_pattern = self.global_pattern.replace("1", "1" * arity_p)
 
         # Get global pattern function based on the pattern attribute
         self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
