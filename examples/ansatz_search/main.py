@@ -32,18 +32,42 @@ Instructions to reproduce the ansatz search:
    git checkout feature/evolve
 
 2. Create venv, activate it, install hierarqcal in editable mode, install extra requirements for this script:
-   python3 -m venv venv && source venv/bin/activate
+   python3 -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
    pip install -e .
    cd examples/ansatz_search && pip install -r requirements.txt
 
 3. Run the search. Note the Experiment ID (EXP_ID) from output/logs:
    python main.py
 
-4. Monitor logs. Once 'Best energy mean so far' approaches ~ -0.312, the target ansatz is likely found (can take 3-30+ mins).
+4. Monitor logs. Once 'Best energy mean so far' approaches ~ -0.311, the target ansatz is likely found (can take 15-60+ mins).
+   It might also be that you found a very similar ansatz.
 
 5. Analyze the result:
    - Edit analyze_evolution.py, set EXP_ID variable to your run's ID.
-   - run the first cell analyze_evolution.py # This plots the best ansatz found.
+   - Run the analysis script cells. The first cell typically plots the best overall ansatz found.
+
+6. Interpreting the Plot / Memory Tables:
+   - **Nested Motifs:** If plot_circuit() shows a layer with no gate names, it represents a nested motif. To inspect its structure, assuming 'best_motif' is loaded in analyze_evolution.py, use plot_circuit(best_motif[layer_index].mapping.hierq), replacing 'layer_index' with the index of the layer showing no gate names.
+   - **Memory Tables:** The search uses 10 memory tables (indexed 0-9) which are continuously updated. The 'Best energy mean' in logs might refer to a different table than the default one viewed by analyze_evolution.py. To view results from a specific table, change the 'generation' variable in analyze_evolution.py (values 0-9).
+
+The ansatz comes in two equivalent forms usually:
+motif = (
+    Qcycle(stride=1, offset=0, step=1, mapping=qry, boundary="periodic")
+    +Qcycle(mapping=qYZe)    
+   
+)
+plot_circuit(Qinit(6) + motif, plot_width=30)
+
+or
+
+motif = (
+    Qcycle(stride=1, offset=0, step=1, mapping=qry, boundary="periodic")
+    +Qcycle(mapping=qcry)    
+   
+)
+plot_circuit(Qinit(6) + motif, plot_width=30)
+
+Sometimes the only thing that takes time is removing redundant motifs via dropout, this can always be done in post processing, but it does happen on it's own with some time.
 
 Note: Search time varies due to stochasticity. If the target energy/ansatz isn't found reasonably quickly, you might need to restart main.py.
 """
@@ -58,7 +82,8 @@ OFFSET_MAX = 4
 BATCH_SIZE = 7
 SAVE_INTERVAL = 10
 INIT_POP = 100
-P_EXPLORE = 0.3
+P_EXPLORE = .3
+GEN_PERIOD = 40
 PRESSURE = 0.05
 VERBOSE = False
 TASK_TIMEOUT = 60 * 10
@@ -111,6 +136,7 @@ logging.info(
     f"SAVE_INTERVAL: {SAVE_INTERVAL}\n"
     f"INIT_POP: {INIT_POP}\n"
     f"P_EXPLORE: {P_EXPLORE}\n"
+    f"GEN_PERIOD: {GEN_PERIOD}\n"
     f"PRESSURE: {PRESSURE}\n"
     f"VERBOSE: {VERBOSE}\n"
     f"TASK_TIMEOUT: {TASK_TIMEOUT}\n"
@@ -494,6 +520,7 @@ if __name__ == "__main__":
     unfinished_tasks.extend(
         [evaluate_task.remote(task, l1=L1, l2=L2, sizes=SIZES) for task in extra_tasks]
     )
+    generation=0
     while True:
         finished_tasks, unfinished_tasks = ray.wait(
             unfinished_tasks, timeout=TASK_TIMEOUT, num_returns=BATCH_SIZE
@@ -507,7 +534,7 @@ if __name__ == "__main__":
         for tournament in range(tournaments):
             task1, task2 = tournament_selection(
                 memory_table, pressure=PRESSURE, p_explore=P_EXPLORE
-            )
+            ) #(np.cos(2*np.pi/GEN_PERIOD*generation)+1)/2 *np.exp(-1/GEN_PERIOD*generation)
             new_tasks = generate_offspring(task1, task2)
             unfinished_tasks.extend(
                 [
@@ -516,15 +543,18 @@ if __name__ == "__main__":
                 ]
             )
         last_tournament_count = current_count
+        generation+= 1
         best_item = min(memory_table, key=lambda x: x.fitness)
         best_fitness = best_item.fitness
         energies = best_item.energy
         logging.info(f"=== New Tournament Selection Event ===")
+        logging.info(f"Generation: {generation}")
         logging.info(f"Best fitness so far: {best_fitness}")
         logging.info(f"Best energy mean so far: {np.mean(energies)}")
         logging.info(f"Memory table size: {current_count}")
         logging.info(f"Unfinished: {len(unfinished_tasks)}")
         logging.info(f"Time elapsed: {time.time() - t0}")
+        logging.info(f"P_explore: {P_EXPLORE}")
         if current_count - last_save_count >= SAVE_INTERVAL:
             with open(
                 f"{exp_dir}/memory_table_{n_memory_tables_stored}.pkl",

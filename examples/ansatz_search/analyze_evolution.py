@@ -29,7 +29,7 @@ EXP_ID = 0 if False == True else max([int(x) for x in os.listdir(f"{PATH}/experi
 regex = r"memory_table_(\d+).pkl"
 files = os.listdir(os.path.join(PATH, "experiments", f"{EXP_ID}"))
 generation = max([int(re.search(regex, file_name).group(1)) for file_name in files if re.search(regex, file_name)])
-generation = 6
+generation = 0
 with open(f"{PATH}/experiments/{EXP_ID}/memory_table_{generation}.pkl", "rb") as file:
     memory_table = dill.load(file)
 # sort by fitness
@@ -40,3 +40,20 @@ best_motif = Qinit(memory_table[ind].nq[-1]) + memory_table[ind].motif
 plot_circuit(best_motif)
 print(memory_table[ind].fitness)
 print(memory_table[ind].energy)
+# %%
+"""
+The ansatz is basically equivalent to the following two networks:
+"""
+motif = (
+    Qcycle(stride=1, offset=0, step=1, mapping=qry, boundary="periodic")
+    +Qcycle(mapping=qYZe)    
+   
+)
+plot_circuit(Qinit(6) + motif, plot_width=30)
+
+motif = (
+    Qcycle(stride=1, offset=0, step=1, mapping=qry, boundary="periodic")
+    +Qcycle(mapping=qcry)    
+   
+)
+plot_circuit(Qinit(6) + motif, plot_width=30)
