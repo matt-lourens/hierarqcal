@@ -79,19 +79,18 @@ BSD 3-Clause "New" or "Revised" License, see [LICENSE](https://github.com/matt-l
 ## Citation
 ```latex
 @article{lourensHierarchicalQuantumCircuit2023,
-  title = {Hierarchical Quantum Circuit Representations for Neural Architecture Search},
-  author = {Lourens, Matt and Sinayskiy, Ilya and Park, Daniel K. and Blank, Carsten and Petruccione, Francesco},
-  date = {2023-08-05},
-  journaltitle = {npj Quantum Information},
-  shortjournal = {npj Quantum Inf},
-  volume = {9},
-  number = {1},
-  pages = {1--15},
-  publisher = {{Nature Publishing Group}},
-  issn = {2056-6387},
-  doi = {10.1038/s41534-023-00747-z},
-  url = {https://www.nature.com/articles/s41534-023-00747-z},
-  issue = {1},
-  langid = {english},
+  author    = {Lourens, Matt and Sinayskiy, Ilya and Park, Daniel K. and Blank, Carsten and Petruccione, Francesco},
+  title     = {Hierarchical quantum circuit representations for neural architecture search},
+  journal   = {npj Quantum Information},
+  year      = {2023},
+  volume    = {9},
+  number    = {1},
+  pages     = {79},
+  month     = aug,  
+  day       = {5}, 
+  doi       = {10.1038/s41534-023-00747-z},
+  url       = {https://doi.org/10.1038/s41534-023-00747-z},
+  issn      = {2056-6387},
+  abstract  = {Quantum circuit algorithms often require architectural design choices analogous to those made in constructing neural and tensor networks. These tend to be hierarchical, modular and exhibit repeating patterns. Neural Architecture Search (NAS) attempts to automate neural network design through learning network architecture and achieves state-of-the-art performance. We propose a framework for representing quantum circuit architectures using techniques from NAS, which enables search space design and architecture search. We use this framework to justify the importance of circuit architecture in quantum machine learning by generating a family of Quantum Convolutional Neural Networks (QCNNs) and evaluating them on a music genre classification dataset, GTZAN. Furthermore, we employ a genetic algorithm to perform Quantum Phase Recognition (QPR) as an example of architecture search with our representation. Finally, we implement the framework as an open-source Python package to enable dynamic circuit creation and facilitate circuit search space design for NAS.}
 }
 ```
