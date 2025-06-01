@@ -3,7 +3,7 @@ import numpy as np
 from numpy import exp as e, cos as c, sin as s, array as arr,outer, sqrt, kron, diag
 from functools import reduce, partial
 import sympy as sp
-from hierarqcal import Qunitary, get_tensor_as_f
+from hierarqcal import Qunitary, get_tensor_as_f, get_quimb_as_f
 import scipy.linalg as la
 from typing import List, Union, Tuple, Optional
 
@@ -42,7 +42,7 @@ YXe = lambda θ: la.expm(1j * θ * YX)
 YZe = lambda θ: la.expm(1j * θ * YZ)
 ZXe = lambda θ: la.expm(1j * θ * ZX)
 ZYe = lambda θ: la.expm(1j * θ * ZY)
-Ye = lambda θ: la.expm(-1j * θ * Y)
+Ye = lambda θ: la.expm(1j * θ * Y)
 
 # Parameterized partial-SWAP gate
 def p_swap(theta):

@@ -483,7 +483,16 @@ def get_tensor_as_f(u):
 
     return generic_f
 
-
+import quimb.tensor as qtn
+def get_quimb_as_f(u):
+    def generic_f(bits, symbols=[], state=None, u=u):
+        if len(symbols) > 0:
+            um = qtn.array_ops.PArray(u, symbols)
+        else:
+            um=u
+        state.apply_gate_raw(um, bits, tags=symbols[0].name)
+        return state
+    return generic_f
 # from hierarqcal import Qunitary
 
 # f0 = Qunitary(None, 0, 2, name="f0")

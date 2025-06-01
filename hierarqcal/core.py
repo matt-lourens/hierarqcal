@@ -1616,6 +1616,21 @@ class Qhierarchy:
             from hierarqcal.cirq import get_circuit_cirq
 
             return get_circuit_cirq(self, symbols, **kwargs)
+        elif backend == "quimb":
+            import quimb as qu
+            import quimb.tensor as qtn
+            # TODO state is all z+ for now
+            self.tail(self.tail.Q, backend=backend)
+            state = qtn.Circuit(len(self.tail.Q))
+            for layer in self:
+                    for unitary in layer.edge_mapping:
+                        state = unitary.function(
+                            bits=unitary.edge,
+                            symbols=unitary.symbols,
+                            state=state,
+                            **kwargs,
+                        )
+            return state
         else:
             if get_bits:
                 state = []
