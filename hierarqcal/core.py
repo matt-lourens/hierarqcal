@@ -1621,7 +1621,7 @@ class Qhierarchy:
             import quimb.tensor as qtn
             # TODO state is all z+ for now
             self.tail(self.tail.Q, backend=backend)
-            state = qtn.Circuit(len(self.tail.Q))
+            state = self.tail.state
             for layer in self:
                     for unitary in layer.edge_mapping:
                         state = unitary.function(
