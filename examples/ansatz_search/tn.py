@@ -333,3 +333,89 @@ qc.set_params({1: np.array([.8])})
 
 # at any point you can evaluate amplitudes, expectations, gradients, etc.
 print("|ψ〉 size:", qc.to_dense().shape)
+
+
+
+class AbstractMPS:
+    """
+    Abstract connected tensor, basically a gate which has an arity for physical indices, in, out but a virutal bond aswell
+    These are the units that gets repeated in a motif, also depends on parameters
+    indices of tensors provided should be auxilary, physical out, physical in, such that the gate is obtained by contracting over the aux index
+    information flows from bottom to top if thinking about a circuit and from left to right (altough I might want to change this)
+    We assume at the moment that there's only on physical in physical out direction
+    Arity must be greater than 1, in the list of tensors their shapes can either be of length 3 i.e. 3 for ones on edges and 4 in between or all 4 if "periodic"
+    This is basically just an MPS
+
+    """
+
+    def __init__(self, tensors, n_symbols, symbols=None, name=None, hierq=None):
+        self.arity = len(tensors)
+        self.tensors = tensors
+        if callable(self.tensors[0]):
+            self.as_function = True
+        else:
+            self.as_function = False
+        self.n_symbols = n_symbols
+        self.symbols = symbols
+        self.value = self()
+        self.edge=None
+        self.name = name
+        self.hierq = hierq
+
+    def __call__(self, symbols=None, store=False):
+        if symbols is None:
+            if self.symbols is None:
+                return None
+            else:
+                symbols = self.symbols
+        N = self.arity
+        if self.as_function is True:
+            tensor_values = [tensor(symbols) for tensor in self.tensors]
+        else:
+            tensor_values = self.tensors
+        if len(tensor_values[0].shape) == 3:
+            tmp = Qinit(range(1, N)) + Qcycle(boundary="open")
+            auxcons = tmp[1].E
+            connections = (
+                [(1, -1, -1 - N)]
+                + [
+                    con + (-k, -(k + N))
+                    for con, k in zip(auxcons, range(2, len(auxcons) + 2))
+                ]
+                + [(N - 1, -(N), -2 * N)]
+            )
+        else:
+            tmp = Qinit(range(1, N + 1)) + Qcycle(boundary="periodic")
+            auxcons = tmp[1].E
+            connections = [
+                con + (-k, -(k + N - 1))
+                for con, k in zip(auxcons, range(1, len(auxcons) + 1))
+            ]
+        value = ncon(tensor_values, connections)
+        if store is True:
+            self.value = value
+        return value
+    def get_symbols(self):
+        """
+        Get symbols for this unitary.
+
+        Returns: List of symbols
+        """
+        return self.symbols
+
+    def set_symbols(self, symbols=None):
+        """
+        Set symbols for this unitary.
+
+        Args:
+            symbols (list): List of symbols
+        """
+
+        if len(symbols) != self.n_symbols:
+            raise ValueError(
+                f"Number of symbols must be {self.n_symbols} for this function"
+            )
+        self.symbols = symbols
+
+    def set_edge(self, edge):
+        self.edge = edge
