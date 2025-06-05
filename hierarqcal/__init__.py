@@ -19,8 +19,6 @@ from .utils import (
     contract,
     tensor_to_matrix_rowmajor,
     tensor_to_matrix_colmajor,
-    motifs_to_dict,
-    dict_to_motifs,
 )
 
 __all__ = [
@@ -42,6 +40,4 @@ __all__ = [
     "contract",
     "tensor_to_matrix_rowmajor",
     "tensor_to_matrix_colmajor",
-    "dict_to_motifs",
-    "motifs_to_dict",
 ]
