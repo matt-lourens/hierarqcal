@@ -19,12 +19,29 @@ from collections import deque, namedtuple
 import numpy as np
 import itertools as it
 import sympy as sp
+import json, hashlib
 
 CircuitInstruction = namedtuple(
     "CircuitInstruction", ["gate_name", "symbol_info", "sub_bits"]
 )
 
 PRIMITIVE_CLASS_MAP = {}
+SUFFICIENT_KWARGS = {
+    "stride",
+    "strides",
+    "step",
+    "steps",
+    "offset",
+    "offsets",
+    "boundary",
+    "boundaries",
+    "global_pattern",
+    "merge_within",
+    "share_weights",
+    "mapping",
+    "type",
+    "Q",
+}
 class Primitive_Types(Enum):
     """
     Enum for primitive types.
@@ -613,7 +630,47 @@ class Qmotif:
             if arity > 0:
                 E = [E[0]]
         return E
-
+    def to_dict(self):
+        motif = deepcopy(self)
+        motif_dict = vars(motif)
+        motif_dict["type"] = motif_dict["type"].value
+        if motif_dict["mapping"] is not None:
+            mapping_dict = vars(motif_dict["mapping"])
+            if mapping_dict["hierq"] is None:
+                if mapping_dict.get("function", None):
+                    del mapping_dict["function"]
+                motif_dict["mapping"] = mapping_dict
+            else:
+                hierq = mapping_dict["hierq"]
+                motif_dict["mapping"] = {}
+                ind = 0
+                current = hierq.tail
+                # motif_dict["mapping"][ind] = vars(current)
+                while current is not None:
+                    motif_dict["mapping"][ind] = current.to_dict()
+                    current = current.next
+                    ind += 1
+        new_motif_dict = {
+            kwarg: motif_dict[kwarg] for kwarg in motif_dict.keys() & set(SUFFICIENT_KWARGS)
+        }
+        return new_motif_dict
+    @classmethod
+    def from_dict(cls, motif_dict, external_mappings):
+        sub_cls = PRIMITIVE_CLASS_MAP[motif_dict["type"]]
+        del motif_dict["type"]
+        mapping_dict = motif_dict["mapping"]
+        if mapping_dict is None:
+            pass
+        elif mapping_dict.get(0, None) is None:
+            mapping = external_mappings[mapping_dict["name"]]
+            motif_dict["mapping"] = mapping
+        else:
+            motif_dict["mapping"] = Qmotifs.from_dict(mapping_dict, external_mappings)
+        if sub_cls == Qinit:
+            motif = Qinit(**motif_dict)
+        else:
+            motif = sub_cls(**motif_dict)
+        return motif
 
 class Qmotifs(tuple):
     """
@@ -655,6 +712,33 @@ class Qmotifs(tuple):
             return Qmotifs((deepcopy(item) for i in range(other) for item in self))
         else:
             raise ValueError("Only integers are allowed for multiplication")
+
+    def to_dict(self):
+        motif_dict = {}
+        for ind, m in enumerate(self):
+            motif_dict[ind] = m.to_dict()
+        return motif_dict
+    @classmethod
+    def from_dict(cls, motifs_dict, external_mappings):
+        motifs_dict_cp = deepcopy(motifs_dict)
+        new_motif = cls()
+        for ind in range(len(motifs_dict_cp.keys())):
+            m = motifs_dict_cp[ind]
+            motif = Qmotif.from_dict(m, external_mappings)
+            if isinstance(motif,Qinit):
+                new_motif=motif
+            else:
+                new_motif = new_motif + motif
+        return new_motif
+    def get_hash(self):
+        """
+        Return a stable hex digest for a nested dict/list structure.
+        """
+        # 1.  Canonicalise → JSON with sorted keys and no whitespace
+        as_json = json.dumps(self.to_dict(), sort_keys=True, separators=(",", ":"))
+        # 2.  Feed it into a cryptographic hash (SHA-256 in this case)
+        digest = hashlib.sha256(as_json.encode()).hexdigest()
+        return digest
 
 
 class Qcycle(Qmotif):
@@ -1891,12 +1975,12 @@ def store_bits(bits, symbols=None, state=None):
         state += [bits]
     return state
 
-PRIMITIVE_CLASS_MAP[Primitive_Types.SPLIT] = Qsplit
-PRIMITIVE_CLASS_MAP[Primitive_Types.MASK] = Qmask
-PRIMITIVE_CLASS_MAP[Primitive_Types.UNMASK] = Qunmask
-PRIMITIVE_CLASS_MAP[Primitive_Types.PIVOT] = Qpivot
-PRIMITIVE_CLASS_MAP[Primitive_Types.INIT] = Qinit
-PRIMITIVE_CLASS_MAP[Primitive_Types.CYCLE] = Qcycle
-PRIMITIVE_CLASS_MAP[Primitive_Types.BASE_MOTIF] = Qmotif
-PRIMITIVE_CLASS_MAP[Primitive_Types.PERMUTE] = Qpermute
+PRIMITIVE_CLASS_MAP[Primitive_Types.SPLIT.value] = Qsplit
+PRIMITIVE_CLASS_MAP[Primitive_Types.MASK.value] = Qmask
+PRIMITIVE_CLASS_MAP[Primitive_Types.UNMASK.value] = Qunmask
+PRIMITIVE_CLASS_MAP[Primitive_Types.PIVOT.value] = Qpivot
+PRIMITIVE_CLASS_MAP[Primitive_Types.INIT.value] = Qinit
+PRIMITIVE_CLASS_MAP[Primitive_Types.CYCLE.value] = Qcycle
+PRIMITIVE_CLASS_MAP[Primitive_Types.BASE_MOTIF.value] = Qmotif
+PRIMITIVE_CLASS_MAP[Primitive_Types.PERMUTE.value] = Qpermute
 

@@ -10,7 +10,6 @@ from .core import (
     Qmotifs,
     Qmotif,
     Qunitary,
-    PRIMITIVE_CLASS_MAP,
 )
 from .utils import (
     plot_motif,
@@ -43,7 +42,6 @@ __all__ = [
     "contract",
     "tensor_to_matrix_rowmajor",
     "tensor_to_matrix_colmajor",
-    "PRIMITIVE_CLASS_MAP",
     "dict_to_motifs",
     "motifs_to_dict",
 ]

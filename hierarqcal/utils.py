@@ -28,10 +28,10 @@ from hierarqcal import (
     Qpivot,
     Qmotif,
     Qmotifs,
-    PRIMITIVE_CLASS_MAP,
     Qsplit,
 )
 from copy import copy, deepcopy
+
 
 
 def plot_motif(
@@ -503,10 +503,11 @@ def get_quimb_as_f(u):
     def generic_f(bits, symbols=[], state=None, u=u):
         if len(symbols) > 0:
             # state.apply_gate(u, symbols[0]["val"], *bits, parametrize=True, tags=symbols[0]["name"])
-            um = qtn.array_ops.PArray(u, symbols[0]["val"])
+            # jnp.array([val], dtype=jnp.float64)
+            um = qtn.array_ops.PArray(u, [symbol["val"] for symbol in symbols])
         else:
             um = u
-        state.apply_gate_raw(um, bits, tags=symbols[0]["name"])
+        state.apply_gate_raw(um, bits, tags=[symbol["name"] for symbol in symbols])
         # state.apply_gate(u,*symbols,*bits, parametrize=True, tags=symbols[0].name)
         # state.apply_gate(u, *symbols, *bits, parametrize=True, tags=symbols[0].name)
 
@@ -533,80 +534,6 @@ def get_quimb_as_f(u):
 
 #     return generic_f
 
-
-def motif_to_dict(motif):
-    motif = deepcopy(motif)
-    motif_dict = vars(motif)
-    if motif_dict.get("next",None) is not None:
-        del motif_dict["next"]
-    if motif_dict.get("prev",None) is not None:
-        del motif_dict["prev"]
-    if motif_dict.get("edge_mapping",None) is not None:
-        del motif_dict["edge_mapping"]
-    if motif_dict["mapping"] is None:
-        return motif_dict
-    else:
-        mapping_dict = vars(motif_dict["mapping"])
-    if mapping_dict["hierq"] is None:
-        if mapping_dict.get("function", None):
-            del mapping_dict["function"]
-        motif_dict["mapping"] = mapping_dict
-        return motif_dict
-    else:
-        hierq = mapping_dict["hierq"]
-        motif_dict["mapping"] = {}
-        ind = 0
-        current = hierq.tail
-        # motif_dict["mapping"][ind] = vars(current)
-        while current is not None:
-            motif_dict["mapping"][ind] = motif_to_dict(current)
-            current = current.next
-            ind += 1
-
-        return motif_dict
-
-
-def motifs_to_dict(motif):
-    if not (isinstance(motif, Qmotifs)):
-        motif = Qmotifs((motif,))
-
-    motif_dict = {}
-    for ind, m in enumerate(motif):
-        motif_dict[ind] = motif_to_dict(m)
-    return motif_dict
-
-
-def dict_to_motifs(motif_dict, external_mappings):
-    motif_dict_cp = deepcopy(motif_dict)
-    new_motif = Qmotifs()
-    for ind, m in motif_dict_cp.items():
-        cls = PRIMITIVE_CLASS_MAP[m["type"]]
-        del m["type"]
-        mapping_dict = m["mapping"]
-        if mapping_dict is None:
-            pass
-        elif mapping_dict.get(0, None) is None:
-            mapping = external_mappings[mapping_dict["name"]]
-            m["mapping"] = mapping
-        else:
-            m["mapping"] = dict_to_motifs(mapping_dict, external_mappings)
-        if cls == Qinit:
-            del m["is_operation"]
-            del m["Q_avail"]
-            new_motif = Qinit(**m)
-        else:
-            if cls == Qsplit or cls == Qmask or cls == Qunmask or cls == Qpivot:
-                del m["mask"]
-                del m["is_default_mapping"]
-                if m.get("pivot_pattern_fn", None) is not None:
-                    del m["pivot_pattern_fn"]
-                if m.get("mask_pattern_fn", None) is not None:
-                    del m["mask_pattern_fn"]
-            if cls == Qcycle or cls == Qpermute:
-                del m["is_default_mapping"]
-            motif = cls(**m)
-            new_motif = new_motif + motif
-    return new_motif
 
 
 # from hierarqcal import Qunitary
