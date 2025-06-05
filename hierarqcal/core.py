@@ -24,14 +24,14 @@ CircuitInstruction = namedtuple(
     "CircuitInstruction", ["gate_name", "symbol_info", "sub_bits"]
 )
 
-
+PRIMITIVE_CLASS_MAP = {}
 class Primitive_Types(Enum):
     """
     Enum for primitive types.
     """
-
     CYCLE = "cycle"
     MASK = "mask"
+    UNMASK = "unmask"
     SPLIT = "split"
     PERMUTE = "permute"
     INIT = "init"
@@ -204,89 +204,6 @@ class Qunitary:
 
         return circuit_instructions, unique_bits, unique_params
 
-class AbstractMPS:
-    """
-    Abstract connected tensor, basically a gate which has an arity for physical indices, in, out but a virutal bond aswell
-    These are the units that gets repeated in a motif, also depends on parameters
-    indices of tensors provided should be auxilary, physical out, physical in, such that the gate is obtained by contracting over the aux index
-    information flows from bottom to top if thinking about a circuit and from left to right (altough I might want to change this)
-    We assume at the moment that there's only on physical in physical out direction
-    Arity must be greater than 1, in the list of tensors their shapes can either be of length 3 i.e. 3 for ones on edges and 4 in between or all 4 if "periodic"
-    This is basically just an MPS
-
-    """
-
-    def __init__(self, tensors, n_symbols, symbols=None, name=None, hierq=None):
-        self.arity = len(tensors)
-        self.tensors = tensors
-        if callable(self.tensors[0]):
-            self.as_function = True
-        else:
-            self.as_function = False
-        self.n_symbols = n_symbols
-        self.symbols = symbols
-        self.value = self()
-        self.edge=None
-        self.name = name
-        self.hierq = hierq
-
-    def __call__(self, symbols=None, store=False):
-        if symbols is None:
-            if self.symbols is None:
-                return None
-            else:
-                symbols = self.symbols
-        N = self.arity
-        if self.as_function is True:
-            tensor_values = [tensor(symbols) for tensor in self.tensors]
-        else:
-            tensor_values = self.tensors
-        if len(tensor_values[0].shape) == 3:
-            tmp = Qinit(range(1, N)) + Qcycle(boundary="open")
-            auxcons = tmp[1].E
-            connections = (
-                [(1, -1, -1 - N)]
-                + [
-                    con + (-k, -(k + N))
-                    for con, k in zip(auxcons, range(2, len(auxcons) + 2))
-                ]
-                + [(N - 1, -(N), -2 * N)]
-            )
-        else:
-            tmp = Qinit(range(1, N + 1)) + Qcycle(boundary="periodic")
-            auxcons = tmp[1].E
-            connections = [
-                con + (-k, -(k + N - 1))
-                for con, k in zip(auxcons, range(1, len(auxcons) + 1))
-            ]
-        value = ncon(tensor_values, connections)
-        if store is True:
-            self.value = value
-        return value
-    def get_symbols(self):
-        """
-        Get symbols for this unitary.
-
-        Returns: List of symbols
-        """
-        return self.symbols
-
-    def set_symbols(self, symbols=None):
-        """
-        Set symbols for this unitary.
-
-        Args:
-            symbols (list): List of symbols
-        """
-
-        if len(symbols) != self.n_symbols:
-            raise ValueError(
-                f"Number of symbols must be {self.n_symbols} for this function"
-            )
-        self.symbols = symbols
-
-    def set_edge(self, edge):
-        self.edge = edge
 class Default_Mappings(Enum):
     """
     Enum for default mappings
@@ -295,6 +212,7 @@ class Default_Mappings(Enum):
     CYCLE = Qunitary(n_symbols=1, arity=2)
     PIVOT = Qunitary(n_symbols=1, arity=2)
     MASK = None
+    UNMASK = None
     SPLIT = None
     BASE_MOTIF = None
     PERMUTE = Qunitary(n_symbols=1, arity=2)
@@ -331,6 +249,10 @@ class Qmotif:
         is_operation=True,
         share_weights=True,
         type=Primitive_Types.BASE_MOTIF,
+        is_default_mapping=False,
+        edge_mapping = [],
+        n_symbols=0,
+        arity= None,
     ) -> None:
         # Meta information
         self.is_operation = is_operation
@@ -1109,6 +1031,7 @@ class Qmask(Qsplit):
             steps = [steps] * 3
         if isinstance(offsets, int):
             offsets = [offsets] * 3
+        
         super().__init__(
             global_pattern=global_pattern,
             merge_within=merge_within,
@@ -1246,7 +1169,7 @@ class Qunmask(Qsplit):
         """
         TODO possibility to give masking motif to undo
         """
-        super().__init__(*args, type=Primitive_Types.MASK, **kwargs)
+        super().__init__(*args, type=Primitive_Types.UNMASK, **kwargs)
 
     def __call__(self, Qp_l, *args, **kwargs):
         """
@@ -1917,19 +1840,20 @@ class Qinit(Qmotif):
         if Q is None and tensors is None:
             raise ValueError("Q or tensors must be provided")
         elif Q is None:
-            Qinit = [i for i in range(len(tensors))]
+            Qinitv = [i for i in range(len(tensors))]
         else:
             if isinstance(Q, Sequence):
-                Qinit = Q
+                Qinitv = Q
             elif type(Q) == int:
-                Qinit = [i for i in range(Q)]
+                Qinitv = [i for i in range(Q)]
         self.state = state
         self.tensors = tensors
         self.name = name
+        
         # Initialize graph
         super().__init__(
-            Q=Qinit,
-            Q_avail=Qinit,
+            Q=Qinitv,
+            Q_avail=Qinitv,
             is_operation=False,
             type=Primitive_Types.INIT,
             **kwargs,
@@ -1966,3 +1890,13 @@ def store_bits(bits, symbols=None, state=None):
     if bits is not None and state is not None:
         state += [bits]
     return state
+
+PRIMITIVE_CLASS_MAP[Primitive_Types.SPLIT] = Qsplit
+PRIMITIVE_CLASS_MAP[Primitive_Types.MASK] = Qmask
+PRIMITIVE_CLASS_MAP[Primitive_Types.UNMASK] = Qunmask
+PRIMITIVE_CLASS_MAP[Primitive_Types.PIVOT] = Qpivot
+PRIMITIVE_CLASS_MAP[Primitive_Types.INIT] = Qinit
+PRIMITIVE_CLASS_MAP[Primitive_Types.CYCLE] = Qcycle
+PRIMITIVE_CLASS_MAP[Primitive_Types.BASE_MOTIF] = Qmotif
+PRIMITIVE_CLASS_MAP[Primitive_Types.PERMUTE] = Qpermute
+
