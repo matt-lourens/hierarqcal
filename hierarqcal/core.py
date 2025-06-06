@@ -634,11 +634,16 @@ class Qmotif:
         motif = deepcopy(self)
         motif_dict = vars(motif)
         motif_dict["type"] = motif_dict["type"].value
+        suff_kwargs = SUFFICIENT_KWARGS.copy()
         if motif_dict["mapping"] is not None:
             mapping_dict = vars(motif_dict["mapping"])
             if mapping_dict["hierq"] is None:
                 if mapping_dict.get("function", None):
                     del mapping_dict["function"]
+                if mapping_dict.get("arity",0) == 1:
+                    suff_kwargs.discard("stride")
+                    suff_kwargs.discard("strides")
+                    suff_kwargs.discard("boundary")
                 motif_dict["mapping"] = mapping_dict
             else:
                 hierq = mapping_dict["hierq"]
@@ -651,7 +656,7 @@ class Qmotif:
                     current = current.next
                     ind += 1
         new_motif_dict = {
-            kwarg: motif_dict[kwarg] for kwarg in motif_dict.keys() & set(SUFFICIENT_KWARGS)
+            kwarg: motif_dict[kwarg] for kwarg in motif_dict.keys() & set(suff_kwargs)
         }
         return new_motif_dict
     @classmethod
