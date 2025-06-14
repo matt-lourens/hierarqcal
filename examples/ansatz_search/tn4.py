@@ -143,13 +143,14 @@ hierq = (
     + Qcycle(mapping=quYe, boundary="open")
 )
 # param_vals = np.random.rand(hierq.n_symbols).astype(np.float64)
-param_vals = [0.3, 0.5, 0.7, 0.9, 1.1, 1.3]
-params_tf = [
-    {"name": f"x{i}", "val": jnp.array([val], dtype=jnp.float32)}
+param_vals = [.3,.5,.7,.9,1.1,1.3]
+params = [
+    {"name": f"x{i}", "val": jnp.array(val, dtype=jnp.float64)}
     for i, val in enumerate(param_vals)
 ]
+hierq.set_symbols(params)
 # TODO make more than 32 if needed double precision
-hierq.set_symbols(params_tf)
+# hierq.set_symbols(params_tf)
 circ = hierq(backend="quimb")
 # %%
 psi = circ.psi

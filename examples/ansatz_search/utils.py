@@ -39,10 +39,10 @@ ZZe = lambda θ: la.expm(1j * θ * ZZ)
 XYe = lambda θ: la.expm(1j * θ * XY)
 XZe = lambda θ: la.expm(1j * θ * XZ)
 YXe = lambda θ: la.expm(1j * θ * YX)
-YZe = lambda θ: la.expm(1j * θ * YZ)
+YZe = lambda θ: la.expm(-1j * θ/4 * YZ)
 ZXe = lambda θ: la.expm(1j * θ * ZX)
 ZYe = lambda θ: la.expm(1j * θ * ZY)
-Ye = lambda θ: la.expm(1j * θ * Y)
+Ye = lambda θ: la.expm(-1j * θ/2 * Y)
 
 # Parameterized partial-SWAP gate
 def p_swap(theta):

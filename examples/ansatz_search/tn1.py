@@ -165,7 +165,8 @@ circ = hierq(backend="quimb")
 # %%
 
 # %%
-import tensorflow as tf
+import jax
+import jax.numpy as jnp
 
 """
 circuit mps
@@ -181,13 +182,14 @@ hierq = (
     + Qcycle(mapping=quYe, boundary="open")
 )
 # param_vals = np.random.rand(hierq.n_symbols).astype(np.float64)
-param_vals = [0.3, 0.5, 0.7, 0.9, 1.1, 1.3]
-params_tf = [
-    tf.Variable([val], dtype=tf.float64, name=f"param_{i}")
+param_vals = [.3*2,.5,.7,-.9*4,-1.1*4,1.3*2]
+params = [
+    {"name": f"x{i}", "val": jnp.array(val, dtype=jnp.float64)}
     for i, val in enumerate(param_vals)
 ]
-hierq.set_symbols(params_tf)
+hierq.set_symbols(params)
 circ = hierq(backend="quimb")
+psi =circ.psi
 # %%
 # %%
 # for n in range(2**N):
