@@ -1615,7 +1615,7 @@ class Qhierarchy:
             current = current.next
         return None
 
-    def __call__(self, symbols=None, backend=None, get_bits=False, **kwargs):
+    def __call__(self, symbols=None, backend=None, get_bits=False,store_name=False, **kwargs):
         if backend == "pennylane":
             from hierarqcal.pennylane import execute_circuit_pennylane
 
@@ -1650,13 +1650,14 @@ class Qhierarchy:
                     for unitary in layer.edge_mapping:
                         if (
                             getattr(unitary.function, "__module__", None)
-                            == "hierarchical.core"
+                            == "hierarqcal.core"
                         ):
                             state = unitary.function(
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
                                 state=state,
                                 get_bits=True,
+                                store_name=store_name,
                                 **kwargs,
                             )
                         else:
@@ -1664,6 +1665,7 @@ class Qhierarchy:
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
                                 state=state,
+                                name=unitary.name if store_name else None,
                                 **kwargs,
                             )
             else:
@@ -1681,6 +1683,7 @@ class Qhierarchy:
                             **kwargs,
                         )
             return state
+        
         # else:
         #     if not (symbols is None):
         #         self.set_symbols(symbols)
@@ -1753,9 +1756,11 @@ class Qhierarchy:
                                 **kwargs,
                             )
                         else:
+                            store_name = kwargs.get("store_name", False)
                             state = store_bits(
                                 bits=unitary.edge,
                                 symbols=unitary.symbols,
+                                name = unitary.name if store_name else None,
                                 **kwargs,
                             )
                         if kwargs.get("state", None) is not None:
@@ -1975,9 +1980,13 @@ class Qinit(Qmotif):
 
 
 # TODO find a home for this function
-def store_bits(bits, symbols=None, state=None):
-    if bits is not None and state is not None:
-        state += [bits]
+def store_bits(bits, symbols=None, state=None, name=None, **kwargs):
+    if name is None:
+        if bits is not None and state is not None:
+            state += [bits]
+    else:
+        if bits is not None and state is not None:
+            state += [(name,bits)]
     return state
 
 PRIMITIVE_CLASS_MAP[Primitive_Types.SPLIT.value] = Qsplit
