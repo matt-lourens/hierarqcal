@@ -1742,11 +1742,11 @@ class Qhierarchy:
                 self.set_symbols(symbols)
             if get_bits:
                 # TODO, this function is becoming long, there might be a better way to handle this, especially for information like number of bits to act on
-                state = None
+                state = kwargs.get("state",[]) # TODO why was this here?
                 for layer in self:
                     for unitary in layer.edge_mapping:
                         if (
-                            getattr(unitary.function, "module", None)
+                            getattr(unitary.function, "__module__", None)
                             == "hierarqcal.core"
                         ):
                             state = unitary.function(
