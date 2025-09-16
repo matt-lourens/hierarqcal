@@ -270,7 +270,14 @@ class Qmotif:
         edge_mapping = [],
         n_symbols=0,
         arity= None,
+        new_cycle=False,
+        new_mask=False,
+        new_pivot = False
     ) -> None:
+        # TODO remove
+        self.new_cycle = new_cycle
+        self.new_mask = new_mask
+        self.new_pivot = new_pivot
         # Meta information
         self.is_operation = is_operation
         # self.is_default_mapping = is_default_mapping
@@ -598,37 +605,56 @@ class Qmotif:
         The cycle pattern
         """
         nq_available = len(Q)
-        if boundary == "open":
-            mod_nq = lambda x: x % nq_available
-            E = [
-                tuple(
-                    (
-                        Q[i + j * stride]
-                        for j in range(arity)
-                        if i + j * stride < nq_available
-                    )
-                )
-                for i in range(offset, nq_available, step)
-            ]
-            # Remove all that is not "complete"
-            E = [edge for edge in E if len(edge) == arity]
-
+        if self.new_cycle==True:
+            import math
+            def tmp_cycle(Q,h0,h1,h2,R,k):
+                # E_rj = lambda r,j: (h0+h1*r+h2*j + (1 if h1*r>=R and (R % 2 ==0) else 0))%len(Q)
+                E_rj = lambda r,j: (h0+h1*r+h2*j)%len(Q)
+                E = [tuple([Q[E_rj(r,j)] for j in range(k)]) for r in range(R)]
+                return E
+            h0,h1,h2=offset,step,stride
+            tmp_boundary = 0 if boundary=="periodic" else 1
+            k=arity
+            # R = math.ceil((nq_available-h0-(h2)*(k-1)*boundary)/(h1)) works
+            # R = (nq_available-h0)//(h1)+1 -(h2)*(k-1)*boundary//(h1)
+            # R = math.ceil((nq_available-(k-1)*(h2)*boundary)/h1)
+            # R = (nq_available)//h1+1- (((k-1)*(h2))*boundary)//h1
+            R =(nq_available-1-h0-(k-1)*(h2)*tmp_boundary)//h1+1
+            # E = tmp_cycle(Q,h0,h1,h2,R,k)
+            # R = nq_available
+            E = tmp_cycle(Q,h0,h1,h2,R,k)
         else:
-            mod_nq = lambda x: x % nq_available
-            E = [
-                tuple((Q[mod_nq(i + j * stride)] for j in range(arity)))
-                for i in range(offset, nq_available, step)
-            ]
-            # Remove all that is not "complete", i.e. contain duplicates
-            E = [edge for edge in E if len(set(edge)) == arity]
-        # TODO Maybe we should allow duplicates? need to test if this breaks anything as I understand it only allows (1,2),(2,1) which techinically isn't even a duplicate
-        if (
-            len(E) == arity
-            and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
-        ):
-            # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
-            if arity > 0:
-                E = [E[0]]
+            if boundary == "open":
+                mod_nq = lambda x: x % nq_available
+                E = [
+                    tuple(
+                        (
+                            Q[i + j * stride]
+                            for j in range(arity)
+                            if i + j * stride < nq_available
+                        )
+                    )
+                    for i in range(offset, nq_available, step)
+                ]
+                # Remove all that is not "complete"
+                E = [edge for edge in E if len(edge) == arity]
+
+            else:
+                mod_nq = lambda x: x % nq_available
+                E = [
+                    tuple((Q[mod_nq(i + j * stride)] for j in range(arity)))
+                    for i in range(offset, nq_available, step)
+                ]
+                # Remove all that is not "complete", i.e. contain duplicates
+                E = [edge for edge in E if len(set(edge)) == arity]
+            # TODO Maybe we should allow duplicates? need to test if this breaks anything as I understand it only allows (1,2),(2,1) which techinically isn't even a duplicate
+            if (
+                len(E) == arity
+                and sum([len(set(E[0]) - set(E[k])) == 0 for k in range(arity)]) == arity
+            ):
+                # If there are only as many edges as qubits, and they are the same, then we can keep only one of them
+                if arity > 0:
+                    E = [E[0]]
         return E
     def to_dict(self):
         motif = deepcopy(self)
@@ -1005,6 +1031,7 @@ class Qsplit(Qmotif):
     def cycle_between_splits(
         self, E_a, E_b, stride=0, step=1, offset=0, boundary="open"
     ):
+        # TODO this should always be periodic I think
         if boundary == "open":
             E = [
                 (
@@ -1215,16 +1242,38 @@ class Qmask(Qsplit):
                     pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
                     E_r = pattern_fn(E_r)
                 if len(E_m) > 0 and len(E_r) > 0:
-                    E_b = self.cycle_between_splits(
-                        E_a=E_m,
-                        E_b=E_r,
-                        stride=self.strides[2],
-                        step=self.steps[2],
-                        offset=self.offsets[2],
-                        boundary=self.boundaries[2],
-                    )
-                    # Merge the two splits based on merge pattern
-                    Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                    if self.new_mask:
+                        k = self.arity
+                        ka = arity_r
+                        kb = arity_m
+                        n_b = len(measured_q)
+                        n_a = len(remaining_q)
+                        h0b = self.offsets[0] # TODO test changes
+                        h1b = self.steps[0]
+                        h2b = self.strides[0]
+                        h0a = self.offsets[1] # TODO test changes
+                        h1a = self.steps[1]
+                        h2a = self.strides[1]
+                        tmp_boundary = 0 if self.boundaries[0]=="periodic" else 1
+                        Ra = (n_a-1-h0a-(ka-1)*(h2a)*tmp_boundary)//h1a+1
+                        Rb =(n_b-1-h0b-(kb-1)*(h2b)*tmp_boundary)//h1b+1
+                        n1j = lambda j: sum([int(merge_within_pop[i]) for i in range(j)])
+                        n0j = lambda j: j-n1j(j)
+                        # lambda j:merge_within_pop[:j:].count("1")
+                        # n0j = lambda j:merge_within_pop[:j:].count("0")
+                        Ep_l = [tuple([E_m[r][n1j(j)] if merge_within_pop[j]=="1" else E_r[r%Ra][n0j(j)] for j in range(k)]) for r in range(Rb)]
+                    else:
+                        E_b = self.cycle_between_splits(
+                            E_a=E_m,
+                            E_b=E_r,
+                            stride=self.strides[2],
+                            step=self.steps[2],
+                            offset=self.offsets[2],
+                            boundary=self.boundaries[2],
+                        )
+                    
+                        # Merge the two splits based on merge pattern
+                        Ep_l = self.merge_within_splits(E_b, merge_within_pop)
                 else:
                     # Do nothing if Em or Er was empty
                     remaining_q = Qp_l
@@ -1415,40 +1464,56 @@ class Qpivot(Qsplit):
 
             # If E_r empty then there were not enough qubits to satisfy the arity
             if len(E_r) > 0 and len(E_p) > 0:
-                # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
-                max_it = 0  # prevent infinite loop
-                E_tmp = E_p.copy()
-                N = len(E_r)
-                while len(E_tmp + E_p) <= N and max_it < N:
-                    E_tmp += E_p
-                    max_it += 1
-                E_p = E_tmp.copy()
+                if self.new_pivot:
+                    k = self.arity
+                    ka = arity_r
+                    n_b = len(pivot_q)
+                    n_a = len(remaining_q)
+                    h0 = self.offsets[1]
+                    h1 = self.strides[1]
+                    h2 = self.steps[1]
+                    tmp_boundary = 0 if self.boundaries[1]=="periodic" else 1
+                    R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
+                    n1j = lambda j: sum([int(merge_within_pop[i]) for i in range(j)])
+                    n0j = lambda j: j-n1j(j)
+                    # lambda j:merge_within_pop[:j:].count("1")
+                    # n0j = lambda j:merge_within_pop[:j:].count("0")
+                    Ep_l = [tuple([pivot_q[n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(R)]
+                else:
+                    # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
+                    max_it = 0  # prevent infinite loop
+                    E_tmp = E_p.copy()
+                    N = len(E_r)
+                    while len(E_tmp + E_p) <= N and max_it < N:
+                        E_tmp += E_p
+                        max_it += 1
+                    E_p = E_tmp.copy()
 
-                # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
-                E_tmp = []
-                for i in range(N):
-                    E_tmp += E_p[
-                        i :: N + 1
-                    ]  # TODO check if this change works as intended it used to be just N
-                E_p = E_tmp.copy()
+                    # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
+                    E_tmp = []
+                    for i in range(N):
+                        E_tmp += E_p[
+                            i :: N + 1
+                        ]  # TODO check if this change works as intended it used to be just N
+                    E_p = E_tmp.copy()
 
-                # TODO what could merge_between be used for?
-                if not (self.merge_between == None):
-                    pass
+                    # TODO what could merge_between be used for?
+                    if not (self.merge_between == None):
+                        pass
 
-                E_b = self.cycle_between_splits(
-                    E_a=E_r,
-                    E_b=E_p,
-                    stride=self.strides[2],
-                    step=self.steps[2],
-                    offset=self.offsets[2],
-                    boundary=self.boundaries[2],
-                )
+                    E_b = self.cycle_between_splits(
+                        E_a=E_r,
+                        E_b=E_p,
+                        stride=self.strides[2],
+                        step=self.steps[2],
+                        offset=self.offsets[2],
+                        boundary=self.boundaries[2],
+                    )
 
-                E_b = [(e[1], e[0]) for e in E_b]
+                    E_b = [(e[1], e[0]) for e in E_b]
 
-                # Merge the two splits based on merge pattern
-                Ep_l = self.merge_within_splits(E_b, merge_within_pop)
+                    # Merge the two splits based on merge pattern
+                    Ep_l = self.merge_within_splits(E_b, merge_within_pop)
             else:
                 Ep_l = []
         else:
