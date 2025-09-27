@@ -275,9 +275,14 @@ class Qmotif:
         new_pivot = False
     ) -> None:
         # TODO remove
-        self.new_cycle = new_cycle
-        self.new_mask = new_mask
-        self.new_pivot = new_pivot
+        if any([new_cycle,new_mask,new_pivot]):
+            self.new_cycle=True
+            self.new_mask =True
+            self.new_pivot=True
+        else:
+            self.new_cycle=False
+            self.new_mask =False
+            self.new_pivot=False
         # Meta information
         self.is_operation = is_operation
         # self.is_default_mapping = is_default_mapping
@@ -609,17 +614,17 @@ class Qmotif:
             import math
             def tmp_cycle(Q,h0,h1,h2,R,k):
                 # E_rj = lambda r,j: (h0+h1*r+h2*j + (1 if h1*r>=R and (R % 2 ==0) else 0))%len(Q)
-                E_rj = lambda r,j: (h0+h1*r+h2*j)%len(Q)
+                E_rj = lambda r,j: (h0+h1*j+h2*r)%len(Q)
                 E = [tuple([Q[E_rj(r,j)] for j in range(k)]) for r in range(R)]
                 return E
-            h0,h1,h2=offset,step,stride
+            h0,h1,h2=offset,stride,step
             tmp_boundary = 0 if boundary=="periodic" else 1
             k=arity
             # R = math.ceil((nq_available-h0-(h2)*(k-1)*boundary)/(h1)) works
             # R = (nq_available-h0)//(h1)+1 -(h2)*(k-1)*boundary//(h1)
             # R = math.ceil((nq_available-(k-1)*(h2)*boundary)/h1)
             # R = (nq_available)//h1+1- (((k-1)*(h2))*boundary)//h1
-            R =(nq_available-1-h0-(k-1)*(h2)*tmp_boundary)//h1+1
+            R =(nq_available-1-h0-(k-1)*(h1)*tmp_boundary)//h2+1 if k>0 else 0
             # E = tmp_cycle(Q,h0,h1,h2,R,k)
             # R = nq_available
             E = tmp_cycle(Q,h0,h1,h2,R,k)
@@ -1009,7 +1014,7 @@ class Qsplit(Qmotif):
                 pattern = self.wildcard_populate(pattern, length)
             if len(pattern) < length:
                 # If there are no wildcard characters, then we assume that the pattern is a base pattern and we will repeat it until it is the same length as the current number of qubits
-                base = pattern * (length // len(pattern))
+                base = pattern * int(np.ceil(length / len(pattern)))
                 pattern = base[:length]
             # Pattern is now a string of 1's and 0's and have length >= lengthor some predefined string
             if all(c in ["0", "1"] for c in pattern):
@@ -1236,33 +1241,34 @@ class Qmask(Qsplit):
                     boundary=self.boundaries[1],
                     arity=arity_r,
                 )
-                # Generate edges for measured to remaining
-                if not (self.merge_between == None):
-                    # If there is a merge_between pattern
-                    pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
-                    E_r = pattern_fn(E_r)
-                if len(E_m) > 0 and len(E_r) > 0:
-                    if self.new_mask:
-                        k = self.arity
-                        ka = arity_r
-                        kb = arity_m
-                        n_b = len(measured_q)
-                        n_a = len(remaining_q)
-                        h0b = self.offsets[0] # TODO test changes
-                        h1b = self.steps[0]
-                        h2b = self.strides[0]
-                        h0a = self.offsets[1] # TODO test changes
-                        h1a = self.steps[1]
-                        h2a = self.strides[1]
-                        tmp_boundary = 0 if self.boundaries[0]=="periodic" else 1
-                        Ra = (n_a-1-h0a-(ka-1)*(h2a)*tmp_boundary)//h1a+1
-                        Rb =(n_b-1-h0b-(kb-1)*(h2b)*tmp_boundary)//h1b+1
-                        n1j = lambda j: sum([int(merge_within_pop[i]) for i in range(j)])
-                        n0j = lambda j: j-n1j(j)
-                        # lambda j:merge_within_pop[:j:].count("1")
-                        # n0j = lambda j:merge_within_pop[:j:].count("0")
-                        Ep_l = [tuple([E_m[r][n1j(j)] if merge_within_pop[j]=="1" else E_r[r%Ra][n0j(j)] for j in range(k)]) for r in range(Rb)]
-                    else:
+                if self.new_mask:
+                    ka = arity_r
+                    kb = arity_m
+                    k = ka+kb
+                    n_b = len(measured_q)
+                    n_a = len(remaining_q)
+                    h0b = self.offsets[0] # TODO test changes
+                    h1b = self.steps[0]
+                    h2b = self.strides[0]
+                    h0a = self.offsets[1] # TODO test changes
+                    h1a = self.steps[1]
+                    h2a = self.strides[1]
+                    boundarya = 0 if self.boundaries[1]=="periodic" else 1
+                    boundaryb = 0 if self.boundaries[0]=="periodic" else 1
+                    # R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
+                    n1j = lambda j: sum([int(merge_within_pop[i]) for i in range(j)])
+                    n0j = lambda j: j-n1j(j)
+                    Ra = (n_a-1-h0a-(ka-1)*(h2a)*boundarya)//h1a+1 if ka>0 else 0
+                    Rb =(n_b-1-h0b-(kb-1)*(h2b)*boundaryb)//h1b+1 if kb>0 else 0
+                    Ep_l = [tuple([E_m[r][n1j(j)] if merge_within_pop[j]=="1" else E_r[r%Ra][n0j(j)] for j in range(k)]) for r in range(Rb)]
+                else:
+                    # Generate edges for measured to remaining
+                    if not (self.merge_between == None):
+                        # If there is a merge_between pattern
+                        pattern_fn = self.get_pattern_fn(self.merge_between, len(E_r))
+                        E_r = pattern_fn(E_r)
+        
+                    if len(E_m) > 0 and len(E_r) > 0:
                         E_b = self.cycle_between_splits(
                             E_a=E_m,
                             E_b=E_r,
@@ -1274,10 +1280,10 @@ class Qmask(Qsplit):
                     
                         # Merge the two splits based on merge pattern
                         Ep_l = self.merge_within_splits(E_b, merge_within_pop)
-                else:
-                    # Do nothing if Em or Er was empty
-                    remaining_q = Qp_l
-                    Ep_l = []
+                    else:
+                        # Do nothing if Em or Er was empty
+                        remaining_q = Qp_l
+                        Ep_l = []
 
         updated_self = super().__call__(
             Qp_l, E=Ep_l, remaining_q=remaining_q, is_operation=is_operation, **kwargs
@@ -1423,14 +1429,17 @@ class Qpivot(Qsplit):
         arity_r = arity - arity_p
 
         # if the number of 1's in the global_pattern is less than the arity replace "1" with "1"*arity_p
-        if self.global_pattern.count("1") < arity_p:
-            if "!" in self.global_pattern:
-                # number fo 1s in self.global_pattern
-                self.global_pattern = self.global_pattern.replace(
-                    "!", "1" * (arity_p - self.global_pattern.count("1"))
-                )
-            else:
-                self.global_pattern = self.global_pattern.replace("1", "1" * arity_p)
+        """
+        TODO I removed the bottom code, I think its purpose is to ensure that the pivot works for when a global pattern produces a bitstring with less ones than the arity of the pivot. I don't know what the full solution is, but the current block disconnects the global pattern from the partition/split idea. Maybe it should be disconnected, we will have to test the cases which relied on this and see how to manage around it. 
+        """
+        # if self.global_pattern.count("1") < arity_p:
+        #     if "!" in self.global_pattern:
+        #         # number fo 1s in self.global_pattern
+        #         self.global_pattern = self.global_pattern.replace(
+        #             "!", "1" * (arity_p - self.global_pattern.count("1"))
+        #         )
+        #     else:
+        #         self.global_pattern = self.global_pattern.replace("1", "1" * arity_p)
 
         # Get global pattern function based on the pattern attribute
         self.pivot_pattern_fn = self.get_pattern_fn(self.global_pattern, len(Qp_l))
@@ -1467,23 +1476,32 @@ class Qpivot(Qsplit):
                 if self.new_pivot:
                     k = self.arity
                     ka = arity_r
+                    kb = arity_p
                     n_b = len(pivot_q)
                     n_a = len(remaining_q)
-                    h0 = self.offsets[1]
-                    h1 = self.strides[1]
-                    h2 = self.steps[1]
-                    tmp_boundary = 0 if self.boundaries[1]=="periodic" else 1
-                    R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
+                    h0b = self.offsets[0] # TODO test changes
+                    h1b = self.steps[0]
+                    h2b = self.strides[0]
+                    h0a = self.offsets[1] # TODO test changes
+                    h1a = self.steps[1]
+                    h2a = self.strides[1]
+                    boundarya = 0 if self.boundaries[1]=="periodic" else 1
+                    boundaryb = 0 if self.boundaries[0]=="periodic" else 1
+                    # R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
                     n1j = lambda j: sum([int(merge_within_pop[i]) for i in range(j)])
                     n0j = lambda j: j-n1j(j)
-                    # lambda j:merge_within_pop[:j:].count("1")
-                    # n0j = lambda j:merge_within_pop[:j:].count("0")
-                    Ep_l = [tuple([pivot_q[n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(R)]
+                    Ra = (n_a-1-h0a-(ka-1)*(h2a)*boundarya)//h1a+1 if ka>0 else 0
+                    Rb =(n_b-1-h0b-(kb-1)*(h2b)*boundaryb)//h1b+1 if kb>0 else 0
+                    # Ep_l = [tuple([pivot_q[n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(R)]
+                    Ep_l = [tuple([E_p[(r//(Ra//Rb) if Ra>Rb else 1) % Rb][n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(Ra)]
                 else:
                     # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
                     max_it = 0  # prevent infinite loop
                     E_tmp = E_p.copy()
                     N = len(E_r)
+                    #TODO test
+                    Np = len(E_p)
+                    #TODO
                     while len(E_tmp + E_p) <= N and max_it < N:
                         E_tmp += E_p
                         max_it += 1
@@ -1493,7 +1511,7 @@ class Qpivot(Qsplit):
                     E_tmp = []
                     for i in range(N):
                         E_tmp += E_p[
-                            i :: N + 1
+                            i :: Np
                         ]  # TODO check if this change works as intended it used to be just N
                     E_p = E_tmp.copy()
 
