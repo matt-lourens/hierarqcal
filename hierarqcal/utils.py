@@ -33,7 +33,6 @@ from hierarqcal import (
 from copy import copy, deepcopy
 
 
-
 def plot_motif(
     primitive,
     cycle_color="#0096ff",
@@ -331,13 +330,13 @@ def plot_circuit(
             for i, label in enumerate([q for q in layer.Q if q not in layer.Q_avail]):
                 ind = hierq.tail.Q.index(label)
                 circle1 = plt.Circle(
-                    (x + ddx, -ind), small_r, fill=True, color=node_colour
+                    (x + ddx, -ind), small_r, fill=True, facecolor=node_colour,edgecolor="black",   linewidth=1
                 )
                 ax.add_artist(circle1)
         elif isinstance(layer, Qunmask):
             for i, label in enumerate([q for q in layer.Q_avail if q not in layer.Q]):
                 ind = hierq.tail.Q.index(label)
-                circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, color="green")
+                circle1 = plt.Circle((x + ddx, -ind), small_r, fill=True, facecolor="green",edgecolor="black",   linewidth=1)
                 ax.add_artist(circle1)
         else:
             edges = layer.E
@@ -346,9 +345,9 @@ def plot_circuit(
                 q_prev = e[0]
                 q_prev_ind = hierq.tail.Q.index(q_prev)
                 i_order = 0
-                color = get_color(i_order, len(e))
+                color = get_color(i_order, len(e), layer)
                 circle1 = plt.Circle(
-                    (x + ddx, -q_prev_ind), small_r, fill=True, color=color
+                    (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
                 )
                 ax.add_artist(circle1)
                 if edge_mapping[e_ind].name is not None:
@@ -374,9 +373,9 @@ def plot_circuit(
                     )
                     # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
                     # ax.add_patch(arrow)
-                    color = get_color(i_order, len(e))
+                    color = get_color(i_order, len(e), layer)
                     circle1 = plt.Circle(
-                        (x + ddx, -q_next_ind), small_r, fill=True, color=color
+                        (x + ddx, -q_next_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
                     )
                     # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
                     ax.add_artist(circle1)
@@ -391,8 +390,13 @@ def plot_circuit(
     return fig, ax
 
 
-def get_color(i, n):
-    return cm.Blues((n - i) / n)
+def get_color(i, n, layer):
+    if isinstance(layer, Qmask):
+        return cm.Reds((n - i) / n)
+    elif isinstance(layer, Qpivot):
+        return cm.Greys((n - i) / n)
+    else:
+        return cm.Blues((n - i) / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
@@ -533,7 +537,6 @@ def get_quimb_as_f(u):
 #         return state
 
 #     return generic_f
-
 
 
 # from hierarqcal import Qunitary
