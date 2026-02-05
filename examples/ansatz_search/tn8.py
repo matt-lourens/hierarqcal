@@ -246,6 +246,9 @@ def make_mpo(ind):  # ind is 0-D int32 JAX array
     raw = {k: stacked[k][ind] for k in keys}  # numeric pytree
     return qtn.unpack(raw, mpo_skeleton)
 
+def norm_fn(psi):
+    n = (psi.H @ psi) ** 0.5      # ‖ψ‖
+    return psi.multiply(1/n, spread_over='all')
 
 def energy(psi, ind):
     mpo = make_mpo(ind)  # ← ordinary MPO object

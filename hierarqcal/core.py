@@ -1253,6 +1253,7 @@ class Qmask(Qsplit):
                     h0a = self.offsets[1] # TODO test changes
                     h1a = self.steps[1]
                     h2a = self.strides[1]
+                    h1c = self.strides[2]
                     boundarya = 0 if self.boundaries[1]=="periodic" else 1
                     boundaryb = 0 if self.boundaries[0]=="periodic" else 1
                     # R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
@@ -1260,7 +1261,7 @@ class Qmask(Qsplit):
                     n0j = lambda j: j-n1j(j)
                     Ra = (n_a-1-h0a-(ka-1)*(h2a)*boundarya)//h1a+1 if ka>0 else 0
                     Rb =(n_b-1-h0b-(kb-1)*(h2b)*boundaryb)//h1b+1 if kb>0 else 0
-                    Ep_l = [tuple([E_m[r][n1j(j)] if merge_within_pop[j]=="1" else E_r[r%Ra][n0j(j)] for j in range(k)]) for r in range(Rb)]
+                    Ep_l = [tuple([E_m[r][n1j(j)] if merge_within_pop[j]=="1" else E_r[(r+h1c)%Ra][n0j(j)] for j in range(k)]) for r in range(Rb)]
                 else:
                     # Generate edges for measured to remaining
                     if not (self.merge_between == None):
@@ -1485,6 +1486,7 @@ class Qpivot(Qsplit):
                     h0a = self.offsets[1] # TODO test changes
                     h1a = self.steps[1]
                     h2a = self.strides[1]
+                    h1c = self.strides[2]
                     boundarya = 0 if self.boundaries[1]=="periodic" else 1
                     boundaryb = 0 if self.boundaries[0]=="periodic" else 1
                     # R =(n_a-1-h0-(ka-1)*(h1)*tmp_boundary)//h2+1
@@ -1493,28 +1495,52 @@ class Qpivot(Qsplit):
                     Ra = (n_a-1-h0a-(ka-1)*(h2a)*boundarya)//h1a+1 if ka>0 else 0
                     Rb =(n_b-1-h0b-(kb-1)*(h2b)*boundaryb)//h1b+1 if kb>0 else 0
                     # Ep_l = [tuple([pivot_q[n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(R)]
-                    Ep_l = [tuple([E_p[(r//(Ra//Rb) if Ra>Rb else 1) % Rb][n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(Ra)]
+                    # Ep_l = [tuple([E_p[(r//(Ra//Rb)) % Rb if Ra>Rb else r ][n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(Ra)]
+                    c = Ra//Rb
+                    d = Ra%Rb
+                    rp = lambda r: ((r//(c+1) if r<(c+1)*d else (r-d)//c) + h1c)% Rb
+                    # we don't have to handle the dive by c=0 case since it only happens when Ra<Rb and r will always be less than d since it ranges up to Ra
+                    # Ep_l = [tuple([E_p[rp(r) if Ra>Rb else r ][n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(Ra)]
+                    Ep_l = [tuple([E_p[rp(r)][n1j(j)] if merge_within_pop[j]=="1" else E_r[r][n0j(j)] for j in range(k)]) for r in range(Ra)]
+
+                    
+
                 else:
                     # Duplicate items in E_p to match length of E_r such that each unique item in E_p can be matched to an equal number of items in E_r
+                    # max_it = 0  # prevent infinite loop
+                    # E_tmp = E_p.copy()
+                    # N = len(E_r)
+                    # while len(E_tmp + E_p) <= N and max_it < N:
+                    #     E_tmp += E_p
+                    #     max_it += 1
+                    # E_p = E_tmp.copy()
+
+                    # # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
+                    # E_tmp = []
+                    # for i in range(N):
+                    #     E_tmp += E_p[
+                    #         i :: N + 1
+                    #     ]  # TODO check if this change works as intended it used to be just N
+                    # E_p = E_tmp.copy()
+
                     max_it = 0  # prevent infinite loop
                     E_tmp = E_p.copy()
-                    N = len(E_r)
-                    #TODO test
+                    Nr = len(E_r)
                     Np = len(E_p)
-                    #TODO
-                    while len(E_tmp + E_p) <= N and max_it < N:
-                        E_tmp += E_p
-                        max_it += 1
+                    if Nr>Np:
+                        for it in range(Np,Nr,1):
+                            E_tmp+= [E_p[it % Np]]
                     E_p = E_tmp.copy()
 
                     # Reorder E_p so that like pivots are grouped together, i.e. remaining available qubits are assigned first to the first pivot point, then the second and so on.
                     E_tmp = []
-                    for i in range(N):
+                    for i in range(Np):
                         E_tmp += E_p[
                             i :: Np
-                        ]  # TODO check if this change works as intended it used to be just N
+                        ] 
                     E_p = E_tmp.copy()
-
+                    
+                    
                     # TODO what could merge_between be used for?
                     if not (self.merge_between == None):
                         pass
@@ -1718,13 +1744,13 @@ class Qhierarchy:
             self.tail(self.tail.Q, backend=backend)
             state = self.tail.state
             for layer in self:
-                    for unitary in layer.edge_mapping:
-                        state = unitary.function(
-                            bits=unitary.edge,
-                            symbols=unitary.symbols,
-                            state=state,
-                            **kwargs,
-                        )
+                for unitary in layer.edge_mapping:
+                    state = unitary.function(
+                        bits=unitary.edge,
+                        symbols=unitary.symbols,
+                        state=state,
+                        **kwargs,
+                    )
             return state
         else:
             if get_bits:

@@ -145,7 +145,7 @@ MAX_PAULISTRING_LEN = 3
 pauli_strings = [
     "".join(pauli_string)
     for reps in range(1, MAX_PAULISTRING_LEN + 1)
-    for pauli_string in product(["I","X", "Y", "Z"], repeat=reps)
+    for pauli_string in product(["X", "Y", "Z"], repeat=reps)
 ]
 one_length = [ps for ps in pauli_strings if len(ps) == 1]
 two_length = [ps for ps in pauli_strings if len(ps) == 2]
@@ -253,7 +253,7 @@ def get_ising_mpo_pbc(J, h):
 
 
 # %%
-N = 6
+N = 11
 H_RANGE = np.linspace(0, 1, 20)
 ALL_MPOs = {}
 for ind, hv in enumerate(H_RANGE):
@@ -308,7 +308,7 @@ def get_optimiser(qmps, optimizer_c="L-BFGS-B", params=[]):
 # )
 # motif = Qinit(5)+Qcycle(mapping=eY, boundary="open")#+ Qcycle(    mapping=eZpYpZ, boundary="periodic")+Qpivot("1*", mapping=sub)
 # motif1 = Qcycle(mapping=eY)
-hierq = Qinit(N, state=qtn.Circuit(N)) + Qcycle(mapping=eY) + Qcycle(mapping=eIYpZY)
+hierq = Qinit(N, state=qtn.Circuit(N)) +Qcycle(stride=1,mapping=eXY) +Qcycle(mapping=eY)  +Qcycle(mapping=eZY) # Qcycle(stride=3,mapping=eYZ)+ Qcycle(mapping=eZY)
 param_vals = np.random.rand(hierq.n_symbols)
 # param_vals = [0.3, 0.5]#, 0.7, 0.9,1.1,1.3]
 
@@ -356,6 +356,26 @@ for ind in pathinds:
     energies.append(ev)
 aes = np.array(energies, dtype=JAX_DTYPE)/N
 # %%
+import matplotlib.pyplot as plt
+
+# diff = np.abs(aesZY) - np.abs(aesXY)
+
+diff = np.abs(aesZY) - np.abs(aesXY)
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.axhline(0, color='k', lw=0.8)                 # reference
+
+# colour each point: red = aesZY > aesXY, blue = aesXY > aesZY
+colors = np.where(diff >= 0, 'crimson', 'royalblue')
+ax.scatter(H_RANGE, diff, c=colors, s=30)
+
+ax.set_yscale('symlog', linthresh=1e-6)          # keeps zeros + sign
+ax.set_xlabel('H')
+ax.set_ylabel('|aesZY| – |aesXY|  (symlog)')
+ax.set_title('Signed energy difference (colour shows sign)')
+
+
+# %%
 N_ITER=100
 REPS=5
 energies = []
@@ -381,6 +401,15 @@ print(ev2)
 ψ0 = np.zeros(2**N, dtype=np.complex128)
 for ind, n in enumerate(range(2**N)):
     ψ0[ind] = circ.amplitude(f"{n:05b}")
+# %%
+hv = H_RANGE[10]
+H = qtn.MPO_ham_ising(N,-1,hv,cyclic=True)
+dmrg = qtn.DMRG2(H , bond_dims=[2], cutoffs=1e-10)
+dmrg.solve(tol=1e-6, verbosity=1)
+# %%
+a = dmrg.state
+# %%
+
 # %%
 import scipy.linalg as la
 from utils import *

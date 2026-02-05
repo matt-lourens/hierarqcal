@@ -32,7 +32,7 @@ Instructions to reproduce the ansatz search:
    git checkout feature/evolve
 
 2. Create venv, activate it, install hierarqcal in editable mode, install extra requirements for this script:
-   python3 -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
+   python3 -m venv venv && source venv/bin/activate
    pip install -e .
    cd examples/ansatz_search && pip install -r requirements.txt
 

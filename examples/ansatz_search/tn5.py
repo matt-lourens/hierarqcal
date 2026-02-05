@@ -5,8 +5,7 @@ from autoray import astype, backend_like, do, get_dtype_name, reshape
 from hierarqcal import *
 import time
 import autoray
-import torch
-import tensorflow as tf
+
 import jax, jax.numpy as jnp, quimb.tensor as qtn
 from quimb import tree_map
 

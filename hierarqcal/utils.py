@@ -16,7 +16,7 @@ import numpy as np
 import sympy as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.patches import PathPatch, FancyArrowPatch
+from matplotlib.patches import PathPatch, FancyArrowPatch, FancyBboxPatch
 from matplotlib import cm
 from matplotlib.path import Path
 from hierarqcal import (
@@ -260,6 +260,7 @@ def plot_circuit(
     init_colour="#92a9bd",
     dx=0.5,
     big_r=0.5,
+    top_level=True,
     **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -274,28 +275,29 @@ def plot_circuit(
     parent_layer = None
     parent_edge = 0
     while not ((layer is None) and (parent_layer is None)):
-        """
-        Trying to plot mapping of mapping
-        """
-        # TODO this assumes parent has atleast one edge
-        # TODO only goes down to one level
-        # if layer is None:
-        #     parent_edge+=1
-        #     if parent_edge>len(parent_layer.E)-1:
-        #         layer=parent_layer.next
-        #         parent_edge=0
-        #         parent_layer=None
-        #     else:
-        #         parent_layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
-        #         layer=parent_layer.mapping.hierq[1]
-        #     if layer is None and parent_layer is None:
-        #         break
-        # if layer.mapping is not None:
-        #     if layer.mapping.hierq is not None:
-        #         parent_layer=layer
-        #         parent_edge=0
-        #         layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
-        #         layer = layer.mapping.hierq[1]
+        if top_level == False:
+            """
+            Trying to plot mapping of mapping
+            """
+            # TODO this assumes parent has atleast one edge
+            # TODO only goes down to one level
+            if layer is None:
+                parent_edge+=1
+                if parent_edge>len(parent_layer.E)-1:
+                    layer=parent_layer.next
+                    parent_edge=0
+                    parent_layer=None
+                else:
+                    parent_layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
+                    layer=parent_layer.mapping.hierq[1]
+                if layer is None and parent_layer is None:
+                    break
+            if layer.mapping is not None:
+                if layer.mapping.hierq is not None:
+                    parent_layer=layer
+                    parent_edge=0
+                    layer.mapping.hierq.update_Q(parent_layer.E[parent_edge])
+                    layer = layer.mapping.hierq[1]
 
         if isinstance(layer, Qcycle):
             node_colour = cycle_color
@@ -346,22 +348,52 @@ def plot_circuit(
                 q_prev_ind = hierq.tail.Q.index(q_prev)
                 i_order = 0
                 color = get_color(i_order, len(e), layer)
-                circle1 = plt.Circle(
-                    (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
-                )
-                ax.add_artist(circle1)
+                
                 if edge_mapping[e_ind].name is not None:
                     # get rotation from kwargs
-                    rotation = kwargs.get("rotation", 30)
-                    ax.text(
-                        x + ddx,
-                        -q_prev_ind + 0.15,
-                        edge_mapping[e_ind].name,
-                        ha="center",
-                        va="bottom",
-                        rotation=rotation,
-                        # bbox=dict(facecolor='white', edgecolor='none', pad=0),
+                    if edge_mapping[e_ind].name=="H":
+                        cx, cy = x + ddx, -q_prev_ind
+                        size_factor = 1.5
+                        half = size_factor * small_r                  # treat small_r like a “radius”
+                        side = 2 * half
+                        sq = FancyBboxPatch((cx - half, cy - half), side, side,
+                                            boxstyle="round,pad=0.05,rounding_size=.15",
+                                            facecolor="white", edgecolor="black", linewidth=1)
+                        ax.add_patch(sq)
+                        ax.text(cx, cy, "H", ha="center", va="center",
+                                fontsize=10, color="black", zorder=sq.get_zorder()+1)
+
+                        # (optional) keep squares undistorted
+                        # ax.set_aspect("equal", adjustable="datalim")
+                        # circle1 = plt.Square(
+                        #     (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
+                        # )
+                        # ax.add_artist(circle1)
+                    elif edge_mapping[e_ind].name=="CP":
+                        circle1 = plt.Circle(
+                            (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
+                        )
+                        ax.add_artist(circle1)
+                    else:
+                        rotation = kwargs.get("rotation", 30)
+                        ax.text(
+                            x + ddx,
+                            -q_prev_ind + 0.15,
+                            edge_mapping[e_ind].name,
+                            ha="center",
+                            va="bottom",
+                            rotation=rotation,
+                            # bbox=dict(facecolor='white', edgecolor='none', pad=0),
+                        )
+                        circle1 = plt.Circle(
+                            (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
+                        )
+                        ax.add_artist(circle1)
+                else:
+                    circle1 = plt.Circle(
+                        (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
                     )
+                    ax.add_artist(circle1)
                 i_order += 1
                 for q_next in e[1:]:
                     q_next_ind = hierq.tail.Q.index(q_next)
@@ -373,15 +405,39 @@ def plot_circuit(
                     )
                     # arrow = FancyArrowPatch((x + ddx, -q_prev), (x + ddx,-q_next), arrowstyle='-|>', mutation_scale=10, color='black', zorder=1)
                     # ax.add_patch(arrow)
-                    color = get_color(i_order, len(e), layer)
-                    circle1 = plt.Circle(
-                        (x + ddx, -q_next_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
-                    )
-                    # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
-                    ax.add_artist(circle1)
+                    if edge_mapping[e_ind].name=="CP":
+                        # TODO remove too much hardcoding!
+                        cx, cy = x + ddx, -q_next_ind
+                        size_factor = 1.8
+                        half = size_factor * small_r                  # treat small_r like a “radius”
+                        side = 2 * half
+                        sq = FancyBboxPatch((cx - half, cy - half), side, side,
+                                            boxstyle="round,pad=0.05,rounding_size=.15",
+                                            facecolor="white", edgecolor="black", linewidth=1)
+                        ax.add_patch(sq)
+                        mult = 2**(e_ind+1)
+                        ax.text(cx, cy, f"$\pi/{mult}$", ha="center", va="center",
+                                fontsize=10, color="black", zorder=sq.get_zorder()+1)
+
+                        # (optional) keep squares undistorted
+                        ax.set_aspect("equal", adjustable="datalim")
+                        # circle1 = plt.Square(
+                        #     (x + ddx, -q_prev_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
+                        # )
+                        # ax.add_artist(circle1)
+                    else:
+                        color = get_color(i_order, len(e), layer)
+                        circle1 = plt.Circle(
+                            (x + ddx, -q_next_ind), small_r, fill=True, facecolor=color,edgecolor="black",   linewidth=1
+                        )
+                        # ax.text(x + ddx, -q_next, i_order, ha="center", va="center")
+                        ax.add_artist(circle1)
                     i_order += 1
                     q_prev_ind = q_next_ind
-                ddx += dx
+                if not(edge_mapping[e_ind].name=="CP"):
+                    ddx += dx
+                else:
+                    ddx += 1
         x = x + ddx + dx
         ddx = 0
         layer = layer.next
