@@ -2076,11 +2076,11 @@ class Qinit(Qmotif):
             """
             If tensors are provided, the state is initialized as the tensor product of all the tensors.
             """
-            dimensions = [len(self.tensors[0])]
+            dimensions = [v for v in self.tensors[0].shape] #[len(self.tensors[0])]
             state = self.tensors[0]
             for tensor in self.tensors[1:]:
                 state = np.array(np.kron(state, tensor))
-                dimensions += [len(tensor)]
+                dimensions += [v for v in tensor.shape]
             self.dimensions = dimensions
             self.state = state.reshape(dimensions)
         self.set_Q(Q)

@@ -556,10 +556,9 @@ def get_tensor_as_f(u):
     return generic_f
 
 
-import quimb.tensor as qtn
-
 
 def get_quimb_as_f(u):
+    import quimb.tensor as qtn # TODO
     def generic_f(bits, symbols=[], state=None, u=u):
         if len(symbols) > 0:
             # state.apply_gate(u, symbols[0]["val"], *bits, parametrize=True, tags=symbols[0]["name"])
