@@ -1724,7 +1724,7 @@ class Qhierarchy:
             current = current.next
         return None
 
-    def __call__(self, symbols=None, backend=None, get_bits=False,store_name=False, **kwargs):
+    def __call__(self, symbols=None, backend=None, get_bits=False, store_name=False, **kwargs):
         if backend == "pennylane":
             from hierarqcal.pennylane import execute_circuit_pennylane
 
@@ -2094,8 +2094,11 @@ def store_bits(bits, symbols=None, state=None, name=None, **kwargs):
         if bits is not None and state is not None:
             state += [bits]
     else:
+        """
+        Returns symbol index TODO probably for future, sympy is unnecesary and just a string or index for symbol tracking is simpler
+        """
         if bits is not None and state is not None:
-            state += [(name,bits)]
+            state += [(name,bits,[int(symbol.name.split("_")[1]) for symbol in symbols])]
     return state
 
 PRIMITIVE_CLASS_MAP[Primitive_Types.SPLIT.value] = Qsplit
