@@ -41,6 +41,7 @@ SUFFICIENT_KWARGS = {
     "mapping",
     "type",
     "Q",
+    "tag",
 }
 class Primitive_Types(Enum):
     """
@@ -272,7 +273,8 @@ class Qmotif:
         arity= None,
         new_cycle=False,
         new_mask=False,
-        new_pivot = False
+        new_pivot = False,
+        tag="a"
     ) -> None:
         # TODO remove
         if any([new_cycle,new_mask,new_pivot]):
@@ -285,6 +287,7 @@ class Qmotif:
             self.new_pivot=False
         # Meta information
         self.is_operation = is_operation
+        self.tag = tag
         # self.is_default_mapping = is_default_mapping
         self.is_default_mapping = True if mapping is None else False
         self.type = type
@@ -403,7 +406,7 @@ class Qmotif:
             return Qmotifs((deepcopy(self),) + deepcopy(other))
         else:
             return Qmotifs((deepcopy(self), deepcopy(other)))
-
+    
     def set_Q(self, Q):
         """
         Set the qubit labels Q of the motif.
@@ -661,6 +664,9 @@ class Qmotif:
                 if arity > 0:
                     E = [E[0]]
         return E
+    def set_tag(self, tag):
+        self.tag=tag
+        
     def to_dict(self):
         motif = deepcopy(self)
         motif_dict = vars(motif)
