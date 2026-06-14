@@ -432,8 +432,9 @@ class Qmotif:
             # Reverse edge order if -1 is in edge order
             Ep_l = [E[i] for i in range(len(E) - 1, -1, -1)]
         else:
+            used_indices = {i - 1 for i in self.edge_order if i - 1 < len(E)}
             E_ordered = [E[i - 1] for i in self.edge_order if i - 1 < len(E)]
-            E_rest = [edge for edge in E if edge not in E_ordered]
+            E_rest = [E[idx] for idx in range(len(E)) if idx not in used_indices]
             Ep_l = E_ordered + E_rest
         self.E = Ep_l
 
