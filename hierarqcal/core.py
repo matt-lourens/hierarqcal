@@ -274,7 +274,8 @@ class Qmotif:
         new_cycle=False,
         new_mask=False,
         new_pivot = False,
-        tag="a"
+        tag="a",
+        colour=None
     ) -> None:
         # TODO remove
         if any([new_cycle,new_mask,new_pivot]):
@@ -288,6 +289,7 @@ class Qmotif:
         # Meta information
         self.is_operation = is_operation
         self.tag = tag
+        self.colour=colour
         # self.is_default_mapping = is_default_mapping
         self.is_default_mapping = True if mapping is None else False
         self.type = type

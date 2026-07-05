@@ -312,7 +312,7 @@ def plot_circuit(
         elif isinstance(layer, Qinit):
             node_colour = init_colour
         elif isinstance(layer, Qmotif):
-            node_colour = cycle_color
+            node_colour = layer.colour if layer.colour else cycle_color
         if isinstance(layer, Qinit):
             # plot ket tensors
             for i, label in enumerate(layer.Q):
@@ -557,23 +557,44 @@ def get_tensor_as_f(u):
 
 
 
+# def get_quimb_as_f(u):
+#     import quimb.tensor as qtn # TODO
+#     def generic_f(bits, symbols=[], state=None, u=u):
+#         if len(symbols) > 0:
+#             # state.apply_gate(u, symbols[0]["val"], *bits, parametrize=True, tags=symbols[0]["name"])
+#             # jnp.array([val], dtype=jnp.float64)
+#             um = qtn.array_ops.PArray(u, [symbol["val"] for symbol in symbols])
+#         else:
+#             um = u
+#         state.apply_gate_raw(um, bits, tags=[symbol["name"] for symbol in symbols])
+#         # state.apply_gate(u,*symbols,*bits, parametrize=True, tags=symbols[0].name)
+#         # state.apply_gate(u, *symbols, *bits, parametrize=True, tags=symbols[0].name)
+
+#         return state
+
+#     return generic_f
+
 def get_quimb_as_f(u):
-    import quimb.tensor as qtn # TODO
-    def generic_f(bits, symbols=[], state=None, u=u):
+    import quimb.tensor as qtn
+    def generic_f(bits, symbols=None, state=None, u=u):
+        symbols = symbols or []
         if len(symbols) > 0:
-            # state.apply_gate(u, symbols[0]["val"], *bits, parametrize=True, tags=symbols[0]["name"])
-            # jnp.array([val], dtype=jnp.float64)
-            um = qtn.array_ops.PArray(u, [symbol["val"] for symbol in symbols])
+            # Pass the raw JAX array directly to preserve the AD tracer graph
+            um = qtn.array_ops.PArray(u, symbols[0]["val"])
+            tag = symbols[0]["name"]
         else:
-            um = u
-        state.apply_gate_raw(um, bits, tags=[symbol["name"] for symbol in symbols])
-        # state.apply_gate(u,*symbols,*bits, parametrize=True, tags=symbols[0].name)
-        # state.apply_gate(u, *symbols, *bits, parametrize=True, tags=symbols[0].name)
+            um, tag = u, None
+            
+        state.gate_(
+            um, 
+            bits, 
+            tags=tag, 
+            contract=False
+        )
 
         return state
 
     return generic_f
-
 
 # def get_quimb_as_f(u):
 #     def generic_f(bits, symbols=None, state=None, u=u):
