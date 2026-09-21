@@ -261,6 +261,7 @@ def plot_circuit(
     dx=0.5,
     big_r=0.5,
     top_level=True,
+    unitary=False,
     **kwargs,
 ):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -312,22 +313,24 @@ def plot_circuit(
         elif isinstance(layer, Qinit):
             node_colour = init_colour
         elif isinstance(layer, Qmotif):
-            node_colour = layer.colour if layer.colour else cycle_color
+            node_colour = layer.colour if layer.colour is not None else cycle_color
         if isinstance(layer, Qinit):
             # plot ket tensors
             for i, label in enumerate(layer.Q):
                 # Give border
-                circle = plt.Circle(
-                    (x, -i),
-                    big_r,
-                    facecolor=node_colour,
-                    edgecolor="black",
-                    linewidth=1,
-                )
-                ax.add_artist(circle)
-                ax.text(x, -i, label, ha="center", va="center")
                 ax.hlines(-i, x, plot_width, color="gray", zorder=-2)
-            ddx += dx
+                if not unitary:
+                    circle = plt.Circle(
+                        (x, -i),
+                        big_r,
+                        facecolor=node_colour,
+                        edgecolor="black",
+                        linewidth=1,
+                    )
+                    ax.add_artist(circle)
+                    ax.text(x, -i, label, ha="center", va="center")
+            if not unitary: 
+                ddx += dx
         elif isinstance(layer, Qmask) and len(layer.E) == 0:
             for i, label in enumerate([q for q in layer.Q if q not in layer.Q_avail]):
                 ind = hierq.tail.Q.index(label)
@@ -447,12 +450,18 @@ def plot_circuit(
 
 
 def get_color(i, n, layer):
-    if isinstance(layer, Qmask):
+    if layer.colour is None:
+        if isinstance(layer, Qmask):
+            return cm.Reds((n - i) / n)
+        elif isinstance(layer, Qpivot):
+            return cm.Greys((n - i) / n)
+        else:
+            return cm.Blues((n - i) / n)
+    elif layer.colour == "reds":
         return cm.Reds((n - i) / n)
-    elif isinstance(layer, Qpivot):
-        return cm.Greys((n - i) / n)
-    else:
+    elif layer.colour == "blues":
         return cm.Blues((n - i) / n)
+    else: return cm.Greys((n - i) / n)
 
 
 def tensor_to_matrix_rowmajor(t0, indices):
