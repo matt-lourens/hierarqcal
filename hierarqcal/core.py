@@ -1791,7 +1791,7 @@ class Qhierarchy:
                     self.set_symbols(symbols)
                 # Default backend
                 # TODO set default mapping
-                state = self.tail(self.tail.Q, backend=backend).state
+                state = self.tail(self.tail.Q, backend=backend).state.copy()
                 for layer in self:
                     for unitary in layer.edge_mapping:
                         state = unitary.function(
